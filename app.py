@@ -107,7 +107,72 @@ if section == "Invoices":
 
 elif section == "Receiving":
     st.title("Receiving")
-    st.info("Search by part number to log received items.")
+
+    search = st.text_input("Search by Part Number", placeholder="e.g. 2454324 or 2454324-N")
+
+    if search:
+        normalized = search.strip().upper()
+        if not normalized.endswith("-N"):
+            normalized += "-N"
+
+        parts_found = supabase.table("parts").select("*").eq("part_number", normalized).execute().data
+
+        if not parts_found:
+            st.warning(f"No records found for {normalized}")
+        else:
+            pending = []
+            for part in parts_found:
+                inv_data = supabase.table("invoices").select("*").eq("id", part["invoice_id"]).execute().data
+                inv_row = inv_data[0] if inv_data else {}
+
+                vex_list = supabase.table("vex_numbers").select("vex_number").eq("invoice_id", part["invoice_id"]).execute().data
+                vex_tags = " ".join([v["vex_number"] for v in vex_list]) if vex_list else "No VEX"
+
+                received_log = supabase.table("receiving_log").select("quantity_received").eq("invoice_id", part["invoice_id"]).eq("part_number", normalized).execute().data
+                qty_received = sum([r["quantity_received"] for r in received_log]) if received_log else 0
+                qty_ordered = part["quantity"] or 0
+
+                if qty_received >= qty_ordered:
+                    continue
+
+                pending.append((part, inv_row, vex_tags, qty_ordered, qty_received))
+
+            if not pending:
+                st.success(f"✓ {normalized} fully received across all invoices.")
+            else:
+                for part, inv_row, vex_tags, qty_ordered, qty_received in pending:
+                    with st.container(border=True):
+                        col1, col2, col3 = st.columns([5, 2, 2])
+                        with col1:
+                            st.write(f"**{inv_row.get('so_number','—')}** — {inv_row.get('client','—')} — {inv_row.get('inv_number','—')} — {vex_tags} — {normalized}")
+                        with col2:
+                            st.write(f"Ordered: {qty_ordered} | Rcvd: {qty_received}")
+                        with col3:
+                            receive_type = st.radio("", ["Complete", "Partial"], key=f"type_{part['id']}", horizontal=True)
+
+                        col4, col5 = st.columns([3, 1])
+                        with col4:
+                            qty_input = st.number_input("Qty", min_value=0, max_value=qty_ordered, value=0, key=f"qty_{part['id']}")
+                        with col5:
+                            if st.button("Log", key=f"log_{part['id']}"):
+                                try:
+                                    if receive_type == "Complete":
+                                        final_qty = qty_ordered - qty_received
+                                    else:
+                                        if qty_input == 0:
+                                            st.warning("Enter a quantity for partial receipt.")
+                                            st.stop()
+                                        final_qty = qty_input
+                                    supabase.table("receiving_log").insert({
+                                        "invoice_id": part["invoice_id"],
+                                        "part_number": normalized,
+                                        "quantity_received": final_qty,
+                                        "receive_type": receive_type.lower()
+                                    }).execute()
+                                    st.success(f"✓ {final_qty} units of {normalized} logged successfully.")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"Error: {e}")
 
 elif section == "Orders":
     st.title("Orders")
