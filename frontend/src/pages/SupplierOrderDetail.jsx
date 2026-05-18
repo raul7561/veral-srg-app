@@ -1,0 +1,281 @@
+import { useState, useRef, useEffect } from "react"
+import { useParams, useNavigate } from "react-router-dom"
+
+const API = "http://localhost:8000/supplier-tracking"
+
+export default function SupplierOrderDetail() {
+  const { soNumber } = useParams()
+  const navigate = useNavigate()
+  const [order, setOrder] = useState(null)
+  const [lines, setLines] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => { fetchOrder() }, [soNumber])
+
+  async function fetchOrder() {
+    try {
+      const [ordersRes, linesRes] = await Promise.all([
+        fetch(`${API}/orders`),
+        fetch(`${API}/orders/${soNumber}/lines-by-so`),
+      ])
+      const orders = await ordersRes.json()
+      const found = orders.find(o => o.so_number === soNumber)
+      setOrder(found || null)
+      const linesData = await linesRes.json()
+      setLines(linesData)
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (loading) return <div className="p-8">Loading...</div>
+  if (!order) return <div className="p-8">Order {soNumber} not found.</div>
+
+  return (
+    <div className="p-8">
+      <button
+        onClick={() => navigate("/supplier-tracking")}
+        className="text-sm text-gray-500 hover:text-black mb-6 flex items-center gap-1"
+      >
+        ← Back to Supplier Tracking
+      </button>
+
+      <div className="flex items-baseline gap-4 mb-6">
+        <h1 className="text-2xl font-bold">{order.so_number}</h1>
+        <span className="text-gray-600">{order.client}</span>
+        <span className="text-gray-400 text-sm">{order.order_date || "—"}</span>
+      </div>
+
+      {/* Document chain */}
+      <div className="border rounded p-4 mb-6">
+        <div className="flex gap-8 text-sm flex-wrap">
+          <DocField
+            label="PO"
+            value={order.po_number}
+            uploadLabel="Attach PO PDF"
+            endpoint={`${API}/attach/po`}
+            method="POST"
+            onSuccess={fetchOrder}
+          />
+
+          <DocField
+            label="Ferral OV"
+            value={order.ferral_order_number ? `${order.ferral_order_number} — ${order.madisa_ov || ""}` : null}
+            uploadLabel="Attach Ferral OV PDF"
+            endpoint={`${API}/attach/ferral-ov`}
+            method="POST"
+            onSuccess={fetchOrder}
+          />
+
+          {order.po_number && (
+            <div className="flex flex-col gap-2">
+              <span className="text-xs text-gray-400 uppercase tracking-wide">Invoices</span>
+              <div className="flex flex-col gap-3">
+                {order.invs.map(inv => (
+                  <div key={inv.id} className="flex flex-col gap-1">
+                    <div className="flex items-center gap-3">
+                      <span className="font-mono font-medium">{inv.inv_number}</span>
+                      <span className="text-gray-400 text-xs">{inv.inv_date || "—"}</span>
+                    </div>
+                    <div className="flex items-center gap-2 ml-4">
+                      <span className="text-xs text-gray-400">VEX:</span>
+                      {inv.vex.map(v => (
+                        <span key={v.id} className="text-xs font-mono text-gray-600">{v.vex_number}</span>
+                      ))}
+                      <VexUploader
+                        soNumber={soNumber}
+                        invNumber={inv.inv_number}
+                        onSuccess={fetchOrder}
+                      />
+                    </div>
+                  </div>
+                ))}
+                <SimpleUploader
+                  label="+ Attach INV PDF"
+                  endpoint={`${API}/attach/inv`}
+                  onSuccess={fetchOrder}
+                />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Parts table */}
+      <div className="border rounded p-4">
+        <p className="text-sm text-gray-500 mb-3">
+          Parts — {order.received_lines}/{order.total_lines} received
+        </p>
+        {lines.length === 0 ? (
+          <p className="text-sm text-gray-400">No parts loaded.</p>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-500 border-b">
+                <th className="py-1 pr-4">Part Number</th>
+                <th className="py-1 pr-4">Description</th>
+                <th className="py-1 pr-4">Qty</th>
+                <th className="py-1 pr-4">Warehouse</th>
+                <th className="py-1 pr-4">ETA</th>
+                <th className="py-1">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {lines.map(line => (
+                <tr key={line.id} className="border-b last:border-0">
+                  <td className="py-1 pr-4 font-mono">{line.part_number}</td>
+                  <td className="py-1 pr-4">{line.description}</td>
+                  <td className="py-1 pr-4">{line.quantity}</td>
+                  <td className="py-1 pr-4">{line.warehouse || "—"}</td>
+                  <td className="py-1 pr-4">{line.eta_to_ferral || "—"}</td>
+                  <td className="py-1">{line.status}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
+    </div>
+  )
+}
+
+function DocField({ label, value, uploadLabel, endpoint, method, onSuccess }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const res = await fetch(endpoint, { method, body: formData })
+      if (res.ok) {
+        onSuccess()
+      } else {
+        const data = await res.json()
+        setError(data.detail)
+      }
+    } catch {
+      setError("Connection error")
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="flex flex-col gap-1">
+      <span className="text-xs text-gray-400 uppercase tracking-wide">{label}</span>
+      {value ? (
+        <span className="font-mono text-sm">{value}</span>
+      ) : (
+        <>
+          <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+          <button
+            onClick={() => inputRef.current?.click()}
+            disabled={uploading}
+            className="px-3 py-1 text-xs border rounded hover:bg-gray-50 disabled:opacity-50 text-left"
+          >
+            {uploading ? "Uploading..." : uploadLabel}
+          </button>
+          {error && <span className="text-xs text-red-500">{error}</span>}
+        </>
+      )}
+    </div>
+  )
+}
+
+function SimpleUploader({ label, endpoint, onSuccess }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const res = await fetch(endpoint, { method: "POST", body: formData })
+      if (res.ok) {
+        onSuccess()
+      } else {
+        const data = await res.json()
+        setError(data.detail)
+      }
+    } catch {
+      setError("Connection error")
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="px-3 py-1 text-xs border rounded hover:bg-gray-50 disabled:opacity-50"
+      >
+        {uploading ? "Uploading..." : label}
+      </button>
+      {error && <span className="text-xs text-red-500">{error}</span>}
+    </div>
+  )
+}
+
+function VexUploader({ soNumber, invNumber, onSuccess }) {
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState(null)
+  const inputRef = useRef(null)
+
+  async function handleUpload(e) {
+    const file = e.target.files[0]
+    if (!file) return
+    setUploading(true)
+    setError(null)
+    const formData = new FormData()
+    formData.append("file", file)
+    try {
+      const res = await fetch(
+        `http://localhost:8000/supplier-tracking/orders/${soNumber}/inv/${invNumber}/vex`,
+        { method: "POST", body: formData }
+      )
+      const data = await res.json()
+      if (res.ok) {
+        onSuccess()
+      } else {
+        setError(data.detail)
+      }
+    } catch {
+      setError("Connection error")
+    } finally {
+      setUploading(false)
+      if (inputRef.current) inputRef.current.value = ""
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+      <button
+        onClick={() => inputRef.current?.click()}
+        disabled={uploading}
+        className="px-2 py-0.5 text-xs border rounded hover:bg-gray-50 disabled:opacity-50"
+      >
+        {uploading ? "..." : "+ VEX"}
+      </button>
+      {error && <span className="text-xs text-red-500">{error}</span>}
+    </div>
+  )
+}
