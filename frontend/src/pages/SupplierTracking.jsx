@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import AttachDocumentModal from "../components/AttachDocumentModal"
 
 const FULFILLMENT_LABELS = {
   awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
@@ -15,6 +16,8 @@ export default function SupplierTracking() {
   const [message, setMessage] = useState(null)
   const [orders, setOrders] = useState([])
   const [search, setSearch] = useState("")
+  const [modalOpen, setModalOpen] = useState(false)
+  const [selectedOrder, setSelectedOrder] = useState(null)
   const fileInputRef = useRef(null)
   const navigate = useNavigate()
   const syncInputRef = useRef(null)
@@ -162,6 +165,7 @@ export default function SupplierTracking() {
               <th className="px-4 py-2">Date</th>
               <th className="px-4 py-2">Parts</th>
               <th className="px-4 py-2">Status</th>
+              <th className="px-4 py-2">Action</th>
             </tr>
           </thead>
           <tbody>
@@ -170,26 +174,82 @@ export default function SupplierTracking() {
               return (
                 <tr
                   key={order.id}
-                  onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
-                  className="border-b last:border-0 hover:bg-gray-50 cursor-pointer"
+                  className="border-b last:border-0 hover:bg-gray-50"
                 >
-                  <td className="px-4 py-3 font-semibold">{order.so_number}</td>
-                  <td className="px-4 py-3 text-gray-600">{order.client || "—"}</td>
-                  <td className="px-4 py-3 font-mono text-gray-500">{order.po_number || "—"}</td>
-                  <td className="px-4 py-3 text-gray-400">{order.order_date || "—"}</td>
-                  <td className="px-4 py-3 text-gray-500">{order.received_lines}/{order.total_lines}</td>
-                  <td className={`px-4 py-3 font-medium ${f.color}`}>{f.label}</td>
+                  <td
+                    className="px-4 py-3 font-semibold cursor-pointer"
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {order.so_number}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-gray-600 cursor-pointer"
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {order.client || "—"}
+                  </td>
+                  <td
+                    className="px-4 py-3 font-mono text-gray-500 cursor-pointer"
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {order.po_number || "—"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-gray-400 cursor-pointer"
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {order.order_date || "—"}
+                  </td>
+                  <td
+                    className="px-4 py-3 text-gray-500 cursor-pointer"
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {order.received_lines}/{order.total_lines}
+                  </td>
+                  <td
+                    className={`px-4 py-3 font-medium ${f.color} cursor-pointer`}
+                    onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}
+                  >
+                    {f.label}
+                  </td>
+                  <td className="px-4 py-3">
+                    <button
+                      onClick={() => {
+                        setSelectedOrder(order)
+                        setModalOpen(true)
+                      }}
+                      className="px-3 py-1 text-xs border rounded hover:bg-gray-100 transition-colors"
+                    >
+                      Attach
+                    </button>
+                  </td>
                 </tr>
               )
             })}
             {filtered.length === 0 && (
               <tr>
-                <td colSpan={6} className="px-4 py-6 text-center text-gray-400">No orders found.</td>
+                <td colSpan={7} className="px-4 py-6 text-center text-gray-400">No orders found.</td>
               </tr>
             )}
           </tbody>
         </table>
       </div>
+
+      {/* Modal */}
+      {modalOpen && selectedOrder && (
+        <AttachDocumentModal
+          soNumber={selectedOrder.so_number}
+          client={selectedOrder.client || "—"}
+          invs={selectedOrder.invs || []}
+          poNumber={selectedOrder.po_number}
+          ferralOrderNumber={selectedOrder.ferral_order_number}
+          onClose={() => {
+            setModalOpen(false)
+            setSelectedOrder(null)
+          }}
+          onSuccess={fetchOrders}
+        />
+      )}
     </div>
   )
 }
