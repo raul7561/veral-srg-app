@@ -46,6 +46,9 @@ export default function SupplierOrderDetail() {
         <h1 className="text-2xl font-bold">{order.so_number}</h1>
         <span className="text-gray-600">{order.client}</span>
         <span className="text-gray-400 text-sm">{order.order_date || "—"}</span>
+        {order.so_pdf_url && (
+          <a href={order.so_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ SO PDF</a>
+        )}
       </div>
 
       {/* Document chain */}
@@ -58,6 +61,7 @@ export default function SupplierOrderDetail() {
             endpoint={`${API}/attach/po`}
             method="POST"
             onSuccess={fetchOrder}
+            pdfUrl={order.po_pdf_url}
           />
 
           <DocField
@@ -67,6 +71,7 @@ export default function SupplierOrderDetail() {
             endpoint={`${API}/attach/ferral-ov`}
             method="POST"
             onSuccess={fetchOrder}
+            pdfUrl={order.ferral_ov_pdf_url}
           />
 
           {order.po_number && (
@@ -78,11 +83,19 @@ export default function SupplierOrderDetail() {
                     <div className="flex items-center gap-3">
                       <span className="font-mono font-medium">{inv.inv_number}</span>
                       <span className="text-gray-400 text-xs">{inv.inv_date || "—"}</span>
+                      {inv.inv_pdf_url && (
+                        <a href={inv.inv_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ PDF</a>
+                      )}
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                       <span className="text-xs text-gray-400">VEX:</span>
                       {inv.vex.map(v => (
-                        <span key={v.id} className="text-xs font-mono text-gray-600">{v.vex_number}</span>
+                        <span key={v.id} className="text-xs font-mono text-gray-600">
+                          {v.vex_number}
+                          {v.vex_pdf_url && (
+                            <a href={v.vex_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline ml-1">↓</a>
+                          )}
+                        </span>
                       ))}
                       <VexUploader
                         soNumber={soNumber}
@@ -141,7 +154,7 @@ export default function SupplierOrderDetail() {
   )
 }
 
-function DocField({ label, value, uploadLabel, endpoint, method, onSuccess }) {
+function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfUrl }) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
   const inputRef = useRef(null)
@@ -173,7 +186,12 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess }) {
     <div className="flex flex-col gap-1">
       <span className="text-xs text-gray-400 uppercase tracking-wide">{label}</span>
       {value ? (
-        <span className="font-mono text-sm">{value}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-mono text-sm">{value}</span>
+          {pdfUrl && (
+            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ PDF</a>
+          )}
+        </div>
       ) : (
         <>
           <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />

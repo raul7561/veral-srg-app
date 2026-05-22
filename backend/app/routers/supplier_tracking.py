@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.database import supabase
+from app.database import supabase, supabase_admin
 from app.parsers.so_parser import parse_so_pdf
 
 router = APIRouter(prefix="/supplier-tracking", tags=["supplier-tracking"])
@@ -21,6 +21,7 @@ async def create_supplier_order(file: UploadFile = File(...)):
     result = supabase.table("supplier_orders").insert({
         "so_number": so,
         "order_date": parsed["so_date"],
+        "client": parsed["client"],
     }).execute()
 
     supplier_order_id = result.data[0]["id"]
@@ -34,6 +35,15 @@ async def create_supplier_order(file: UploadFile = File(...)):
             "quantity": p["quantity"],
             "status": "pending",
         }).execute()
+
+    try:
+        path = f"{so}/{file.filename}"
+        supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        supabase.table("supplier_orders").update({"so_pdf_url": url}).eq("id", supplier_order_id).execute()
+    except Exception:
+        pass        
+
 
     return {
         "so_number": so,
@@ -74,7 +84,7 @@ def get_supplier_orders():
 
         result.append({
             **order,
-            "client": so_client_map.get(order["so_number"], "—"),
+            "client": order.get("client") or so_client_map.get(order["so_number"], "—"),
             "total_lines": total,
             "received_lines": received,
             "fulfillment": fulfillment,
@@ -114,6 +124,14 @@ async def attach_po(file: UploadFile = File(...)):
         "po_number": parsed["po_number"],
     }).eq("so_number", parsed["so_number"]).execute()
 
+    try:
+        path = f"{parsed['so_number']}/{file.filename}"
+        supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        supabase.table("supplier_orders").update({"po_pdf_url": url}).eq("so_number", parsed["so_number"]).execute()
+    except Exception:
+        pass
+
     return {
         "so_number": parsed["so_number"],
         "po_number": parsed["po_number"],
@@ -148,6 +166,14 @@ async def attach_ferral_ov(file: UploadFile = File(...)):
         supabase.table("supplier_order_lines").update({
             "madisa_ov": parsed["madisa_ov"],
         }).eq("supplier_order_id", supplier_order_id).execute()
+
+    try:
+        path = f"{parsed['so_number']}/{file.filename}"
+        supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        supabase.table("supplier_orders").update({"ferral_ov_pdf_url": url}).eq("so_number", parsed["so_number"]).execute()
+    except Exception:
+        pass    
 
     return {
         "ferral_order_number": parsed["ferral_order_number"],
@@ -194,6 +220,14 @@ async def attach_inv(file: UploadFile = File(...)):
             "quantity": p["quantity"],
         }).execute()
 
+    try:
+        path = f"{parsed['so_number']}/{file.filename}"
+        supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        supabase.table("supplier_invs").update({"inv_pdf_url": url}).eq("id", supplier_inv_id).execute()
+    except Exception:
+        pass    
+
     return {
         "so_number": parsed["so_number"],
         "inv_number": parsed["inv_number"],
@@ -237,11 +271,23 @@ async def attach_vex(so_number: str, inv_number: str, file: UploadFile = File(..
             "quantity": p["quantity"],
         }).execute()
 
+    try:
+        inv_data = supabase.table("supplier_invs").select("supplier_order_id").eq("id", supplier_inv_id).execute()
+        order_data = supabase.table("supplier_orders").select("so_number").eq("id", inv_data.data[0]["supplier_order_id"]).execute()
+        so_for_path = order_data.data[0]["so_number"]
+        path = f"{so_for_path}/{file.filename}"
+        supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        supabase.table("supplier_vex").update({"vex_pdf_url": url}).eq("id", supplier_vex_id).execute()
+    except Exception:
+        pass
+
     return {
         "vex_number": parsed["vex_number"],
         "vex_date": parsed["vex_date"],
         "parts_count": len(parsed["parts"]),
     }
+
 
 @router.post("/sync/madisa")
 async def sync_madisa(file: UploadFile = File(...)):
@@ -288,10 +334,8 @@ async def sync_madisa(file: UploadFile = File(...)):
             return "pkj"
         return None
 
-    # Cargar todas las líneas una sola vez
     all_lines = supabase.table("supplier_order_lines").select("id, madisa_ov, part_number").execute().data
 
-    # Índice en memoria: (madisa_ov, part_number) → [ids]
     index = {}
     for line in all_lines:
         if not line.get("madisa_ov") or not line.get("part_number"):

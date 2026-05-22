@@ -6,43 +6,42 @@ from datetime import datetime
 
 def parse_so_pdf(content: bytes) -> dict:
     with pdfplumber.open(io.BytesIO(content)) as pdf:
-        page = pdf.pages[0]
-        text = page.extract_text()
+        full_text = "\n".join(page.extract_text() for page in pdf.pages)
+        first_page = pdf.pages[0]
+        words = first_page.extract_words()
+        page_mid = first_page.width / 2
 
-    so_number = re.search(r"SO-\d+", text)
-    so_date = re.search(r"\d{1,2}/\d{1,2}/\d{4}", text)
+    so_number = re.search(r"SO-\d+", full_text)
+    so_date = re.search(r"\d{1,2}/\d{1,2}/\d{4}", full_text)
 
-    lines = text.split("\n")
-    client_lines = []
-    ship_lines = []
-    mode = None
-
-    for line in lines:
-        stripped = line.strip()
-        if "Name / Address" in stripped:
-            mode = "client"
-            # la misma línea puede contener "Ship To" al lado
+    client_words = []
+    capture = False
+    skip = {"Ship", "To"}
+    for w in words:
+        if w["text"] == "Address":
+            capture = True
             continue
-        if mode == "client" and "Ship To" in stripped:
-            # tomar solo lo que está antes de "Ship To"
-            left = stripped.split("Ship To")[0].strip()
-            if left:
-                client_lines.append(left)
-            mode = "ship"
-            continue
-        if "Customer PO No." in stripped or stripped.startswith("Customer PO"):
+        if capture and w["text"] in ["Customer", "Item", "Orders"]:
             break
-        if mode == "client" and stripped:
-            client_lines.append(stripped)
-        elif mode == "ship" and stripped:
-            ship_lines.append(stripped)
+        if capture and w["text"] in skip:
+            continue
+        if capture and float(w["x0"]) < page_mid * 0.7:
+            client_words.append(w)
 
-    client = client_lines[0] if client_lines else "NOT FOUND"
-    ship_to = ship_lines[0] if ship_lines else "NOT FOUND"
+    first_y = client_words[0]["top"] if client_words else None
+    first_line = [w["text"] for w in client_words if first_y and abs(w["top"] - first_y) < 5]
+    client = " ".join(first_line) if first_line else "NOT FOUND"
+    ship_to = "NOT PARSED"
 
     parts = []
-    for line in lines:
-        match = re.match(r"^(\S+-N)\s+(\d+)\s+(.+?)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})$", line)
+    full_lines = full_text.split("\n")
+
+    for line in full_lines:
+        match = (
+            re.match(r"^(\S+-N)\s+(\d+)\s+(.+?)\s+([\d,]+\.\d{2})\s+\d+\s+\d+\s+([\d,]+\.\d{2})$", line) or
+            re.match(r"^(\S+-N)\s+(\d+)\s+(.+?)\s+([\d,]+\.\d{2})\s+\d+\s+([\d,]+\.\d{2})$", line) or
+            re.match(r"^(\S+-N)\s+(\d+)\s+(.+?)\s+([\d,]+\.\d{2})\s+([\d,]+\.\d{2})$", line)
+        )
         if match:
             parts.append({
                 "part_number": match.group(1),
