@@ -18,10 +18,18 @@ async def create_supplier_order(file: UploadFile = File(...)):
     if existing.data:
         raise HTTPException(status_code=409, detail=f"{so} already exists in Supplier Tracking")
 
+    # Buscar match en customers por nombre
+    customer_id = None
+    if parsed["client"] and parsed["client"] != "NOT FOUND":
+        customer_match = supabase.table("customers").select("id").ilike("name", parsed["client"]).execute()
+        if customer_match.data:
+            customer_id = customer_match.data[0]["id"]
+
     result = supabase.table("supplier_orders").insert({
         "so_number": so,
         "order_date": parsed["so_date"],
         "client": parsed["client"],
+        "customer_id": customer_id,
     }).execute()
 
     supplier_order_id = result.data[0]["id"]
