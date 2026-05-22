@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { btn } from "../styles"
 
 export default function ReadyToDispatch() {
   const [orders, setOrders] = useState([])
@@ -42,7 +43,7 @@ export default function ReadyToDispatch() {
   if (loading) return <div className="p-8 text-sm text-gray-500">Loading...</div>
 
   const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
-  const clientOptions = Array.from(new Set(orders.map(o => o.client || '')).filter(Boolean))
+  const clientOptions = Array.from(new Set(orders.map(o => o.client || ''))).filter(Boolean)
 
   const filteredOrders = orders.filter(o => {
     const matchesSO = filterSO ? o.so_number === filterSO : true
@@ -181,15 +182,15 @@ export default function ReadyToDispatch() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Ready to Dispatch</h1>
+      <h1 className="page-title">Ready to Dispatch</h1>
 
       {confirming && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-white border border-[#D8D0C0] rounded p-6 w-96">
             <p className="text-sm font-semibold mb-4">{confirming.label}</p>
             <div className="flex gap-3">
-              <button onClick={confirmAction} className="bg-[#111111] text-white text-sm px-4 py-2 rounded">Confirm</button>
-              <button onClick={() => setConfirming(null)} className="text-sm px-4 py-2 rounded border border-[#D8D0C0]">Cancel</button>
+              <button onClick={confirmAction} className={btn.primary}>Confirm</button>
+              <button onClick={() => setConfirming(null)} className={btn.secondary}>Cancel</button>
             </div>
           </div>
         </div>

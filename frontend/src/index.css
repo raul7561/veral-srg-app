@@ -67,3 +67,5 @@
     @apply text-3xl font-extrabold uppercase tracking-wide mb-6 text-[#111111];
   }
 }
+
+@source inline("btn-primary btn-secondary btn-destructive btn-ghost btn-sm input-base label card section-title page-title");

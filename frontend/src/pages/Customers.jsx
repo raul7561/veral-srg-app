@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { btn } from "../styles";
 
 const API = "http://localhost:8000";
 
@@ -153,7 +154,7 @@ export default function Customers() {
         <h1 className="text-2xl font-bold uppercase tracking-wide">Customers</h1>
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(INITIAL_FORM); }}
-          className="bg-yellow-500 text-black font-bold px-4 py-2 rounded hover:bg-yellow-400 uppercase text-sm"
+          className="btn-primary"
         >
           + Add Customer
         </button>
@@ -340,13 +341,13 @@ export default function Customers() {
             <button
               onClick={handleSubmit}
               disabled={saving || !form.name.trim() || !form.country || form.country === "---" || !form.primary_contact.name.trim()}
-              className="bg-yellow-500 text-black font-bold px-4 py-2 rounded uppercase text-sm disabled:opacity-50"
+              className={btn.primary}
             >
               {saving ? "Saving..." : editingId ? "Save Changes" : "Create"}
             </button>
             <button
               onClick={() => { setShowForm(false); setEditingId(null); setForm(INITIAL_FORM); }}
-              className="border px-4 py-2 rounded uppercase text-sm"
+              className={btn.secondary}
             >
               Cancel
             </button>
@@ -369,8 +370,8 @@ export default function Customers() {
             <p className="font-semibold mb-4">Delete this customer?</p>
             <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button onClick={() => handleDelete(confirmDelete)} className="bg-red-600 text-white font-bold px-4 py-2 rounded text-sm">Delete</button>
-              <button onClick={() => setConfirmDelete(null)} className="border px-4 py-2 rounded text-sm">Cancel</button>
+              <button onClick={() => handleDelete(confirmDelete)} className={btn.destructive}>Delete</button>
+              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>Cancel</button>
             </div>
           </div>
         </div>

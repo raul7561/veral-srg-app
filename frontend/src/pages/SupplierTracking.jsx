@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
+import { btn } from "../styles"
 
 const FULFILLMENT_LABELS = {
   awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
@@ -91,13 +92,13 @@ export default function SupplierTracking() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Supplier Tracking</h1>
+      <h1 className="page-title">Supplier Tracking</h1>
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
           <button
             onClick={() => setUploadModalOpen(true)}
-            className="px-4 py-2 bg-black text-white text-sm rounded hover:bg-gray-800"
+            className={btn.primary}
           >
             Upload Document
           </button>
@@ -141,7 +142,7 @@ export default function SupplierTracking() {
           <button
             onClick={() => syncInputRef.current?.click()}
             disabled={syncing}
-            className="px-4 py-2 border text-sm rounded hover:bg-gray-50 disabled:opacity-50"
+            className="btn-secondary"
           >
             {syncing ? "Syncing..." : "Sync Madisa Excel"}
           </button>
@@ -200,7 +201,7 @@ export default function SupplierTracking() {
                         setSelectedOrder(order)
                         setAttachModalOpen(true)
                       }}
-                      className="px-3 py-1 text-xs border rounded hover:bg-gray-100 transition-colors"
+                      className="btn-secondary btn-sm"
                     >
                       Attach
                     </button>

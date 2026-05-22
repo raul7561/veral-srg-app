@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { btn } from "../styles";
 
 const API = "http://localhost:8000";
 
@@ -212,13 +213,13 @@ export default function CustomerDetail() {
               <button
                 onClick={handleUpload}
                 disabled={uploading || !uploadFile}
-                className="bg-yellow-500 text-black font-bold px-4 py-2 rounded text-sm uppercase disabled:opacity-50"
+                className={btn.primary}
               >
                 {uploading ? "Uploading..." : "Upload"}
               </button>
               <button
                 onClick={() => setShowUploadForm(false)}
-                className="border px-4 py-2 rounded text-sm uppercase"
+                className={btn.secondary}
               >
                 Cancel
               </button>
@@ -284,8 +285,8 @@ export default function CustomerDetail() {
             <p className="font-semibold mb-4">Delete this document?</p>
             <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button onClick={() => handleDeleteDoc(confirmDelete)} className="bg-red-600 text-white font-bold px-4 py-2 rounded text-sm">Delete</button>
-              <button onClick={() => setConfirmDelete(null)} className="border px-4 py-2 rounded text-sm">Cancel</button>
+              <button onClick={() => handleDeleteDoc(confirmDelete)} className={btn.destructive}>Delete</button>
+              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>Cancel</button>
             </div>
           </div>
         </div>

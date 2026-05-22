@@ -38,7 +38,7 @@ export default function ReceivingHistory() {
 
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">Receiving History</h1>
+      <h1 className="page-title">Receiving History</h1>
 
       <div className="mb-6 flex items-center gap-2">
         <input
