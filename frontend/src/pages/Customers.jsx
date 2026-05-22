@@ -403,7 +403,9 @@ function CustomerGroup({ title, customers, onEdit, onDelete }) {
               const primary = c.contacts?.find(ct => ct.is_primary) || {};
               return (
                 <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-4 py-3 font-medium">{c.name}</td>
+                  <td className="px-4 py-3 font-medium">
+                    <a href={`/customers/${c.id}`} className="hover:underline text-[#111111]">{c.name}</a>
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{c.country}</td>
                   <td className="px-4 py-3 text-gray-600">{primary.name || "—"}</td>
                   <td className="px-4 py-3 text-gray-600">{primary.email || "—"}</td>

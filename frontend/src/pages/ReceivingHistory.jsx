@@ -4,6 +4,9 @@ import { useNavigate } from 'react-router-dom'
 export default function ReceivingHistory() {
   const [orders, setOrders] = useState([])
   const [search, setSearch] = useState('')
+  const [filterSO, setFilterSO] = useState('')
+  const [filterClient, setFilterClient] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -14,22 +17,50 @@ export default function ReceivingHistory() {
       })
   }, [])
 
-  const filtered = orders.filter(o =>
-    o.so_number.toLowerCase().includes(search.toLowerCase()) ||
-    (o.client || '').toLowerCase().includes(search.toLowerCase()) ||
-    (o.po_number || '').toLowerCase().includes(search.toLowerCase())
-  )
+  const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
+  const clientOptions = Array.from(new Set(orders.map(o => o.client || ''))).filter(Boolean)
+
+  const filtered = orders
+    .filter(o => {
+      const q = search.toLowerCase()
+      const matchesText = o.so_number.toLowerCase().includes(q) || (o.client || '').toLowerCase().includes(q) || (o.po_number || '').toLowerCase().includes(q)
+      const matchesSO = filterSO ? o.so_number === filterSO : true
+      const matchesClient = filterClient ? (o.client || '') === filterClient : true
+      return matchesText && matchesSO && matchesClient
+    })
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === 'newest') return new Date(b.order_date || 0) - new Date(a.order_date || 0)
+      if (sortBy === 'oldest') return new Date(a.order_date || 0) - new Date(b.order_date || 0)
+      if (sortBy === 'az') return (a.client || '').localeCompare(b.client || '')
+      return 0
+    })
 
   return (
     <div className="p-8">
       <h1 className="text-2xl font-bold mb-6">Receiving History</h1>
 
-      <input
-        className="border border-[#D8D0C0] rounded px-3 py-2 mb-6 w-80 bg-white text-sm"
-        placeholder="Search by SO, client or PO..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-      />
+      <div className="mb-6 flex items-center gap-2">
+        <input
+          className="input-base w-80"
+          placeholder="Search by SO, client or PO..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+        />
+        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+          <option value="">All SOs</option>
+          {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+          <option value="">All Clients</option>
+          {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="az">Client A–Z</option>
+        </select>
+      </div>
 
       <div className="flex flex-col gap-2">
         {filtered.length === 0 && (

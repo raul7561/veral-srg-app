@@ -5,6 +5,9 @@ export default function ReadyToDispatch() {
   const [loading, setLoading] = useState(true)
   const [confirming, setConfirming] = useState(null)
   const [expanded, setExpanded] = useState({})
+  const [filterSO, setFilterSO] = useState('')
+  const [filterClient, setFilterClient] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
 
   const fetchOrders = () => {
     fetch('http://localhost:8000/ready-to-dispatch/orders')
@@ -38,8 +41,25 @@ export default function ReadyToDispatch() {
 
   if (loading) return <div className="p-8 text-sm text-gray-500">Loading...</div>
 
-  const pending = orders.filter(o => o.dispatch_status !== 'dispatched')
-  const dispatched = orders.filter(o => o.dispatch_status === 'dispatched')
+  const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
+  const clientOptions = Array.from(new Set(orders.map(o => o.client || '')).filter(Boolean))
+
+  const filteredOrders = orders.filter(o => {
+    const matchesSO = filterSO ? o.so_number === filterSO : true
+    const matchesClient = filterClient ? (o.client || '') === filterClient : true
+    return matchesSO && matchesClient
+  })
+
+  const sortKeyDate = (o) => new Date(o.order_date || o.dispatched_at || 0)
+  const sortComparator = (a, b) => {
+    if (sortBy === 'newest') return sortKeyDate(b) - sortKeyDate(a)
+    if (sortBy === 'oldest') return sortKeyDate(a) - sortKeyDate(b)
+    if (sortBy === 'az') return (a.client || '').localeCompare(b.client || '')
+    return 0
+  }
+
+  const pending = filteredOrders.filter(o => o.dispatch_status !== 'dispatched').slice().sort(sortComparator)
+  const dispatched = filteredOrders.filter(o => o.dispatch_status === 'dispatched').slice().sort(sortComparator)
 
   const statusLabel = (inv) => {
     if (inv.dispatch_status === 'dispatched') return <span className="text-xs text-[#2D7A4F] font-semibold">🚚 Dispatched · {inv.dispatched_at?.slice(0, 10)}</span>
@@ -174,6 +194,22 @@ export default function ReadyToDispatch() {
           </div>
         </div>
       )}
+
+      <div className="mb-6 flex items-center gap-2">
+        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+          <option value="">All SOs</option>
+          {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
+        </select>
+        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+          <option value="">All Clients</option>
+          {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
+        </select>
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="az">Client A–Z</option>
+        </select>
+      </div>
 
       {pending.length === 0 && (
         <p className="text-sm text-gray-500 mb-6">No orders ready to dispatch.</p>

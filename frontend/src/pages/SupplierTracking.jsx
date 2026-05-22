@@ -20,6 +20,10 @@ export default function SupplierTracking() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [attachModalOpen, setAttachModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
+  const [filterSO, setFilterSO] = useState('')
+  const [filterClient, setFilterClient] = useState('')
+  const [filterPO, setFilterPO] = useState('')
+  const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
   const syncInputRef = useRef(null)
 
@@ -62,21 +66,26 @@ export default function SupplierTracking() {
     }
   }
 
+  const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
+  const clientOptions = Array.from(new Set(orders.map(o => o.client || ""))).filter(Boolean)
+  const poOptions = Array.from(new Set(orders.map(o => o.po_number || ""))).filter(Boolean)
+
   const filtered = orders
-    .filter(o =>
-      o.so_number.toLowerCase().includes(search.toLowerCase()) ||
-      (o.client || "").toLowerCase().includes(search.toLowerCase()) ||
-      (o.po_number || "").toLowerCase().includes(search.toLowerCase())
-    )
+    .filter(o => {
+      const q = search.toLowerCase()
+      const matchesText = o.so_number.toLowerCase().includes(q) ||
+        (o.client || "").toLowerCase().includes(q) ||
+        (o.po_number || "").toLowerCase().includes(q)
+      const matchesSO = filterSO ? o.so_number === filterSO : true
+      const matchesClient = filterClient ? (o.client || "") === filterClient : true
+      const matchesPO = filterPO ? (o.po_number || "") === filterPO : true
+      return matchesText && matchesSO && matchesClient && matchesPO
+    })
+    .slice()
     .sort((a, b) => {
-      let valA = a[sortField] || ""
-      let valB = b[sortField] || ""
-      if (sortField === "total_lines") {
-        valA = a.total_lines || 0
-        valB = b.total_lines || 0
-      }
-      if (valA < valB) return sortDir === "asc" ? -1 : 1
-      if (valA > valB) return sortDir === "asc" ? 1 : -1
+      if (sortBy === 'newest') return new Date(b.order_date || 0) - new Date(a.order_date || 0)
+      if (sortBy === 'oldest') return new Date(a.order_date || 0) - new Date(b.order_date || 0)
+      if (sortBy === 'az') return (a.client || '').localeCompare(b.client || '')
       return 0
     })
 
@@ -92,13 +101,32 @@ export default function SupplierTracking() {
           >
             Upload Document
           </button>
-          <input
-            type="text"
-            placeholder="Search by SO, client or PO..."
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="border rounded px-3 py-2 text-sm w-72 bg-white"
-          />
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              placeholder="Search by SO, client or PO..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="input-base w-72"
+            />
+            <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+              <option value="">All SOs</option>
+              {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+              <option value="">All Clients</option>
+              {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
+            <select value={filterPO} onChange={e => setFilterPO(e.target.value)} className="input-base">
+              <option value="">All POs</option>
+              {poOptions.map(p => <option key={p} value={p}>{p}</option>)}
+            </select>
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="az">Client A–Z</option>
+            </select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

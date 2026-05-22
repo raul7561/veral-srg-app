@@ -8,6 +8,7 @@ import ReceivingHistoryDetail from './pages/ReceivingHistoryDetail'
 import ReadyToDispatch from './pages/ReadyToDispatch'
 import ShipmentMovement from './pages/ShipmentMovement'
 import Customers from './pages/Customers'
+import CustomerDetail from './pages/CustomerDetail'
 import './i18n'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
             <Route path="/ready-to-dispatch" element={<ReadyToDispatch />} />
             <Route path="/shipment-movement" element={<ShipmentMovement />} />
             <Route path="/customers" element={<Customers />} />
+            <Route path="/customers/:id" element={<CustomerDetail />} />
           </Routes>
         </main>
       </div>

@@ -16,6 +16,9 @@ export default function Orders() {
   const [loading, setLoading] = useState(true)
   const [expanded, setExpanded] = useState({})
   const [search, setSearch] = useState('')
+  const [filterSO, setFilterSO] = useState('')
+  const [filterClient, setFilterClient] = useState('')
+  const [sortBy, setSortBy] = useState('lag')
   const [uploading, setUploading] = useState(false)
   const [uploadMsg, setUploadMsg] = useState(null)
   const [editing, setEditing] = useState(null)
@@ -74,24 +77,42 @@ export default function Orders() {
     }
   }
 
-  const filtered = orders.filter(o =>
-    o.so_number.toLowerCase().includes(search.toLowerCase()) ||
-    o.client.toLowerCase().includes(search.toLowerCase()) ||
-    o.invoices.some(i => i.inv_number.toLowerCase().includes(search.toLowerCase()))
-  )
+  const filtered = orders
+    .filter(o => {
+      const q = search.toLowerCase()
+      const matchesText = o.so_number.toLowerCase().includes(q) ||
+        o.client.toLowerCase().includes(q) ||
+        o.invoices.some(i => i.inv_number.toLowerCase().includes(q))
+      const matchesSO = filterSO ? o.so_number === filterSO : true
+      const matchesClient = filterClient ? o.client === filterClient : true
+      return matchesText && matchesSO && matchesClient
+    })
+    .slice()
+    .sort((a, b) => {
+      if (sortBy === 'lag') {
+        const order = { overdue: 0, follow_up: 1, on_track: 2 }
+        const va = order[a.lag_status] ?? 3
+        const vb = order[b.lag_status] ?? 3
+        return va - vb
+      }
+      if (sortBy === 'newest') return new Date(b.so_date) - new Date(a.so_date)
+      if (sortBy === 'oldest') return new Date(a.so_date) - new Date(b.so_date)
+      if (sortBy === 'az') return a.client.localeCompare(b.client)
+      return 0
+    })
 
   if (loading) return (
     <div className="p-8 text-[#111111] font-['DM_Sans']">Loading...</div>
   )
 
   return (
-    <div className="p-8 font-['DM_Sans'] text-[#111111]">
-      <h1 className="text-2xl font-bold tracking-widest uppercase mb-6">
+    <div className="p-8">
+      <h1 className="page-title">
         {t('nav.orders')}
       </h1>
 
       <div className="mb-6 flex items-center gap-4">
-        <label className="cursor-pointer bg-[#F5A800] text-[#111111] text-xs font-bold uppercase tracking-widest px-4 py-2 rounded hover:opacity-90">
+        <label className="btn-primary cursor-pointer">
           {uploading ? 'Uploading...' : 'Upload SO PDF'}
           <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
@@ -102,13 +123,48 @@ export default function Orders() {
         )}
       </div>
 
-      <input
-        type="text"
-        placeholder="Search by SO, client or INV..."
-        value={search}
-        onChange={e => setSearch(e.target.value)}
-        className="w-full max-w-md mb-6 px-4 py-2 border border-[#D8D0C0] rounded bg-[#FDFAF5] text-[#111111] text-sm focus:outline-none focus:border-[#F5A800]"
-      />
+      <div className="mb-6 flex items-center gap-4">
+        <input
+          type="text"
+          placeholder="Search by SO, client or INV..."
+          value={search}
+          onChange={e => setSearch(e.target.value)}
+          className="input-base max-w-md"
+        />
+
+        <select
+          value={filterSO}
+          onChange={e => setFilterSO(e.target.value)}
+          className="input-base"
+        >
+          <option value="">All SOs</option>
+          {Array.from(new Set(orders.map(o => o.so_number))).map(s => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
+
+        <select
+          value={filterClient}
+          onChange={e => setFilterClient(e.target.value)}
+          className="input-base"
+        >
+          <option value="">All Clients</option>
+          {Array.from(new Set(orders.map(o => o.client))).map(c => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+
+        <select
+          value={sortBy}
+          onChange={e => setSortBy(e.target.value)}
+          className="input-base"
+        >
+          <option value="lag">By Lag</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="az">Client A–Z</option>
+        </select>
+      </div>
 
       <div className="flex flex-col gap-3">
         {filtered.map(so => {
@@ -116,7 +172,7 @@ export default function Orders() {
           const isOpen = expanded[so.so_number]
 
           return (
-            <div key={so.so_number} className="border border-[#D8D0C0] rounded bg-[#FDFAF5]">
+            <div key={so.so_number} className="card">
               <button
                 onClick={() => toggle(so.so_number)}
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
@@ -210,13 +266,13 @@ export default function Orders() {
                         {editConfirm ? (
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-[#D45A00] font-bold">Confirm changes?</span>
-                            <button onClick={handleEdit} className="text-xs bg-[#2D7A4F] text-white px-3 py-1 rounded font-bold">Yes, save</button>
-                            <button onClick={() => setEditConfirm(false)} className="text-xs text-[#888] px-3 py-1 rounded border border-[#D8D0C0]">Cancel</button>
+                            <button onClick={handleEdit} className="btn-primary btn-sm">Yes, save</button>
+                            <button onClick={() => setEditConfirm(false)} className="btn-secondary btn-sm">Cancel</button>
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            <button onClick={() => setEditConfirm(true)} className="text-xs bg-[#F5A800] text-[#111111] px-3 py-1 rounded font-bold">Save</button>
-                            <button onClick={() => { setEditing(null); setEditForm({}); setEditConfirm(false) }} className="text-xs text-[#888] px-3 py-1 rounded border border-[#D8D0C0]">Cancel</button>
+                            <button onClick={() => setEditConfirm(true)} className="btn-primary btn-sm">Save</button>
+                            <button onClick={() => { setEditing(null); setEditForm({}); setEditConfirm(false) }} className="btn-secondary btn-sm">Cancel</button>
                           </div>
                         )}
                       </div>
