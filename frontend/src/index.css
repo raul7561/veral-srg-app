@@ -16,7 +16,7 @@
   body {
     background-color: #F5F0E8;
     color: #111111;
-    font-family: 'DM Sans', sans-serif;
+    font-family: 'DM Sans', system-ui, sans-serif;
   }
 
   input, select, textarea {
