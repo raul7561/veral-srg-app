@@ -51,7 +51,7 @@ export default function Login() {
         <button
           type="button"
           onClick={() => navigate('/')}
-          className={`${btn.primary} w-full !bg-[#F5A800] !py-2.5 !text-[#111111] hover:!bg-[#ffc247]`}
+          className={`${btn.primary} w-full !bg-[#F5A800] !py-2.5 !text-srg-black hover:!bg-[#ffc247]`}
         >
           SIGN IN
         </button>

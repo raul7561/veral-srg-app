@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { btn } from "../styles"
+import { btn, input, pageTitle } from "../styles"
 
 export default function ReadyToDispatch() {
   const [orders, setOrders] = useState([])
@@ -75,7 +75,7 @@ export default function ReadyToDispatch() {
       return (
         <button
           onClick={() => setConfirming({ type: 'ready', inv_id: inv.inv_id, label: `Mark ${inv.inv_number} as Ready to Dispatch?` })}
-          className="text-xs bg-[#F5A800] text-[#111111] font-semibold px-3 py-1.5 rounded"
+          className="text-xs bg-[#F5A800] text-srg-black font-semibold px-3 py-1.5 rounded"
         >
           Mark Ready
         </button>
@@ -86,7 +86,7 @@ export default function ReadyToDispatch() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setConfirming({ type: 'dispatch', inv_id: inv.inv_id, label: `Confirm dispatch for ${inv.inv_number}?` })}
-            className="text-xs bg-[#111111] text-white font-semibold px-3 py-1.5 rounded"
+            className="text-xs bg-srg-black text-white font-semibold px-3 py-1.5 rounded"
           >
             Mark Dispatched
           </button>
@@ -114,9 +114,9 @@ export default function ReadyToDispatch() {
   const renderCard = (o, isDispatched) => {
     const isOpen = expanded[o.so_number]
     return (
-      <div key={o.so_number} className={`bg-white border border-[#D8D0C0] rounded overflow-hidden ${isDispatched ? 'opacity-70' : ''}`}>
+      <div key={o.so_number} className={`bg-white border border-srg-border rounded overflow-hidden ${isDispatched ? 'opacity-70' : ''}`}>
         <div
-          className="px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-[#F5F0E8] transition-colors"
+          className="px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-srg-cream transition-colors"
           onClick={() => toggleExpand(o.so_number)}
         >
           <div className="flex items-center gap-3">
@@ -142,25 +142,25 @@ export default function ReadyToDispatch() {
                       : o.invs.every(i => i.dispatch_status === 'ready' || i.dispatch_status === 'dispatched')
                         ? <button
                             onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_dispatch', so_number: o.so_number, label: `Confirm dispatch for all INVs in ${o.so_number}?` }) }}
-                            className="text-xs bg-[#111111] text-white font-semibold px-3 py-1.5 rounded"
+                            className="text-xs bg-srg-black text-white font-semibold px-3 py-1.5 rounded"
                           >
                             Mark All Dispatched
                           </button>
                         : <button
                             onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_ready', so_number: o.so_number, label: `Mark all INVs in ${o.so_number} as Ready to Dispatch?` }) }}
-                            className="text-xs bg-[#F5A800] text-[#111111] font-semibold px-3 py-1.5 rounded"
+                            className="text-xs bg-[#F5A800] text-srg-black font-semibold px-3 py-1.5 rounded"
                           >
                             Mark All Ready
                           </button>
                     }
                   </div>
-                : <span className="text-xs bg-[#F5A800] text-[#111111] px-2 py-1 rounded">Partial</span>
+                : <span className="text-xs bg-[#F5A800] text-srg-black px-2 py-1 rounded">Partial</span>
             }
           </div>
         </div>
 
         {isOpen && (
-          <div className="divide-y divide-[#D8D0C0] border-t border-[#D8D0C0]">
+          <div className="divide-y divide-srg-border border-t border-srg-border">
             {o.invs.map(inv => (
               <div key={inv.inv_id} className="px-5 py-3 flex justify-between items-center">
                 <div className="flex items-center gap-4">
@@ -182,11 +182,11 @@ export default function ReadyToDispatch() {
 
   return (
     <div className="p-8">
-      <h1 className="page-title">Ready to Dispatch</h1>
+      <h1 className={pageTitle}>Ready to Dispatch</h1>
 
       {confirming && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white border border-[#D8D0C0] rounded p-6 w-96">
+          <div className="bg-white border border-srg-border rounded p-6 w-96">
             <p className="text-sm font-semibold mb-4">{confirming.label}</p>
             <div className="flex gap-3">
               <button onClick={confirmAction} className={btn.primary}>Confirm</button>
@@ -197,15 +197,15 @@ export default function ReadyToDispatch() {
       )}
 
       <div className="mb-6 flex items-center gap-2">
-        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
           <option value="">All SOs</option>
           {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
           <option value="">All Clients</option>
           {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="az">Client A–Z</option>

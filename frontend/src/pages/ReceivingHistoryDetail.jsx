@@ -23,7 +23,7 @@ export default function ReceivingHistoryDetail() {
     <div className="p-8">
       <button
         onClick={() => navigate('/receiving-history')}
-        className="text-sm text-gray-500 hover:text-[#111111] mb-6 flex items-center gap-1"
+        className="text-sm text-gray-500 hover:text-srg-black mb-6 flex items-center gap-1"
       >
         ← Back
       </button>
@@ -37,9 +37,9 @@ export default function ReceivingHistoryDetail() {
         </p>
       </div>
 
-      <div className="bg-white border border-[#D8D0C0] rounded overflow-hidden">
+      <div className="bg-white border border-srg-border rounded overflow-hidden">
         <table className="w-full text-sm">
-          <thead className="bg-[#F5F0E8] text-xs uppercase text-gray-500 border-b border-[#D8D0C0]">
+          <thead className="bg-srg-cream text-xs uppercase text-gray-500 border-b border-srg-border">
             <tr>
               <th className="px-4 py-3 text-left">Part Number</th>
               <th className="px-4 py-3 text-left">Description</th>
@@ -53,7 +53,7 @@ export default function ReceivingHistoryDetail() {
           </thead>
           <tbody>
             {order.parts.map((p, i) => (
-              <tr key={i} className="border-b border-[#D8D0C0] last:border-0">
+              <tr key={i} className="border-b border-srg-border last:border-0">
                 <td className="px-4 py-3 font-mono text-xs">{p.part_number}</td>
                 <td className="px-4 py-3 text-gray-700">{p.description}</td>
                 <td className="px-4 py-3 text-center">{p.qty}</td>

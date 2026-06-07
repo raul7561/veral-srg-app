@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { btn, input, card, pageTitle } from '../styles'
 
 const API = import.meta.env.VITE_API_URL
 
@@ -7,7 +8,7 @@ const LAG_STYLES = {
   overdue: { dot: 'bg-[#D45A00]', label: 'text-[#D45A00]' },
   follow_up: { dot: 'bg-yellow-500', label: 'text-yellow-600' },
   on_track: { dot: 'bg-[#2D7A4F]', label: 'text-[#2D7A4F]' },
-  unknown: { dot: 'bg-[#D8D0C0]', label: 'text-[#D8D0C0]' },
+  unknown: { dot: 'bg-srg-border', label: 'text-srg-border' },
 }
 
 export default function Orders() {
@@ -102,17 +103,17 @@ export default function Orders() {
     })
 
   if (loading) return (
-    <div className="p-8 text-[#111111] font-['DM_Sans']">Loading...</div>
+    <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
   )
 
   return (
     <div className="p-8">
-      <h1 className="page-title">
+      <h1 className={pageTitle}>
         {t('nav.orders')}
       </h1>
 
       <div className="mb-6 flex items-center gap-4">
-        <label className="btn-primary cursor-pointer">
+        <label className={`${btn.primary} cursor-pointer`}>
           {uploading ? 'Uploading...' : 'Upload SO PDF'}
           <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
@@ -129,13 +130,13 @@ export default function Orders() {
           placeholder="Search by SO, client or INV..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="input-base max-w-md"
+          className={`${input} max-w-md`}
         />
 
         <select
           value={filterSO}
           onChange={e => setFilterSO(e.target.value)}
-          className="input-base"
+          className={input}
         >
           <option value="">All SOs</option>
           {Array.from(new Set(orders.map(o => o.so_number))).map(s => (
@@ -146,7 +147,7 @@ export default function Orders() {
         <select
           value={filterClient}
           onChange={e => setFilterClient(e.target.value)}
-          className="input-base"
+          className={input}
         >
           <option value="">All Clients</option>
           {Array.from(new Set(orders.map(o => o.client))).map(c => (
@@ -157,7 +158,7 @@ export default function Orders() {
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
-          className="input-base"
+          className={input}
         >
           <option value="lag">By Lag</option>
           <option value="newest">Newest</option>
@@ -172,14 +173,14 @@ export default function Orders() {
           const isOpen = expanded[so.so_number]
 
           return (
-            <div key={so.so_number} className="card">
+            <div key={so.so_number} className={card}>
               <button
                 onClick={() => toggle(so.so_number)}
                 className="w-full flex items-center justify-between px-5 py-4 text-left"
               >
                 <div className="flex items-center gap-4">
                   <span className="font-bold text-sm tracking-widest">{so.so_number}</span>
-                  <span className="text-sm text-[#111111]">{so.client}</span>
+                  <span className="text-sm text-srg-black">{so.client}</span>
                   <span className="text-xs text-[#888]">{so.so_date}</span>
                 </div>
                 <div className="flex items-center gap-3">
@@ -189,17 +190,17 @@ export default function Orders() {
                      so.lag_status === 'follow_up' ? `Follow Up (${so.business_days}d)` :
                      `On Track (${so.business_days}d)`}
                   </span>
-                  <span className="text-[#D8D0C0] text-lg">{isOpen ? '▲' : '▼'}</span>
+                  <span className="text-srg-border text-lg">{isOpen ? '▲' : '▼'}</span>
                 </div>
               </button>
 
               {isOpen && (
-                <div className="border-t border-[#D8D0C0] px-5 py-4 flex flex-col gap-4">
+                <div className="border-t border-srg-border px-5 py-4 flex flex-col gap-4">
                   {so.invoices.map(inv => {
                     const pct = inv.total_pns > 0 ? Math.round((inv.received_pns / inv.total_pns) * 100) : 0
                     const statusColor = pct === 100 ? '#2D7A4F' : pct > 0 ? '#F5A800' : '#D45A00'
                     return (
-                      <div key={inv.inv_number} className="border border-[#D8D0C0] rounded p-4 bg-[#F5F0E8]">
+                      <div key={inv.inv_number} className="border border-srg-border rounded p-4 bg-srg-cream">
                         <div className="flex items-center justify-between mb-2">
                           <span className="font-bold text-sm">{inv.inv_number}</span>
                           <span className="text-xs text-[#888]">
@@ -207,7 +208,7 @@ export default function Orders() {
                           </span>
                         </div>
                         <div className="flex items-center gap-2 mb-3">
-                          <div className="flex-1 h-1.5 bg-[#D8D0C0] rounded">
+                          <div className="flex-1 h-1.5 bg-srg-border rounded">
                             <div
                               className="h-1.5 rounded transition-all"
                               style={{ width: `${pct}%`, backgroundColor: statusColor }}
@@ -233,14 +234,14 @@ export default function Orders() {
                     )
                   })}
 
-                  <div className="border-t border-[#D8D0C0] pt-4">
+                  <div className="border-t border-srg-border pt-4">
                     {editing === so.so_number ? (
                       <div className="flex flex-col gap-3">
                         <div className="flex gap-3">
                           <div className="flex flex-col gap-1 flex-1">
                             <label className="text-xs uppercase tracking-widest text-[#888]">Client</label>
                             <input
-                              className="px-3 py-1.5 border border-[#D8D0C0] rounded bg-[#FDFAF5] text-sm text-[#111111] focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
                               value={editForm.client ?? so.client}
                               onChange={e => setEditForm(f => ({ ...f, client: e.target.value }))}
                             />
@@ -248,7 +249,7 @@ export default function Orders() {
                           <div className="flex flex-col gap-1 flex-1">
                             <label className="text-xs uppercase tracking-widest text-[#888]">Ship To</label>
                             <input
-                              className="px-3 py-1.5 border border-[#D8D0C0] rounded bg-[#FDFAF5] text-sm text-[#111111] focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
                               value={editForm.ship_to ?? so.ship_to}
                               onChange={e => setEditForm(f => ({ ...f, ship_to: e.target.value }))}
                             />
@@ -257,7 +258,7 @@ export default function Orders() {
                             <label className="text-xs uppercase tracking-widest text-[#888]">SO Date</label>
                             <input
                               type="date"
-                              className="px-3 py-1.5 border border-[#D8D0C0] rounded bg-[#FDFAF5] text-sm text-[#111111] focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
                               value={editForm.so_date ?? so.so_date}
                               onChange={e => setEditForm(f => ({ ...f, so_date: e.target.value }))}
                             />
@@ -266,20 +267,20 @@ export default function Orders() {
                         {editConfirm ? (
                           <div className="flex items-center gap-3">
                             <span className="text-xs text-[#D45A00] font-bold">Confirm changes?</span>
-                            <button onClick={handleEdit} className="btn-primary btn-sm">Yes, save</button>
-                            <button onClick={() => setEditConfirm(false)} className="btn-secondary btn-sm">Cancel</button>
+                            <button onClick={handleEdit} className={`${btn.primary} ${btn.sm}`}>Yes, save</button>
+                            <button onClick={() => setEditConfirm(false)} className={`${btn.secondary} ${btn.sm}`}>Cancel</button>
                           </div>
                         ) : (
                           <div className="flex gap-2">
-                            <button onClick={() => setEditConfirm(true)} className="btn-primary btn-sm">Save</button>
-                            <button onClick={() => { setEditing(null); setEditForm({}); setEditConfirm(false) }} className="btn-secondary btn-sm">Cancel</button>
+                            <button onClick={() => setEditConfirm(true)} className={`${btn.primary} ${btn.sm}`}>Save</button>
+                            <button onClick={() => { setEditing(null); setEditForm({}); setEditConfirm(false) }} className={`${btn.secondary} ${btn.sm}`}>Cancel</button>
                           </div>
                         )}
                       </div>
                     ) : (
                       <button
                         onClick={() => { setEditing(so.so_number); setEditForm({}) }}
-                        className="text-xs text-[#888] hover:text-[#111111] uppercase tracking-widest"
+                        className="text-xs text-[#888] hover:text-srg-black uppercase tracking-widest"
                       >
                         Edit SO
                       </button>

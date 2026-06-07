@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { input, pageTitle } from '../styles'
 
 export default function ReceivingHistory() {
   const [orders, setOrders] = useState([])
@@ -38,24 +39,24 @@ export default function ReceivingHistory() {
 
   return (
     <div className="p-8">
-      <h1 className="page-title">Receiving History</h1>
+      <h1 className={pageTitle}>Receiving History</h1>
 
       <div className="mb-6 flex items-center gap-2">
         <input
-          className="input-base w-80"
+          className={`${input} w-80`}
           placeholder="Search by SO, client or PO..."
           value={search}
           onChange={e => setSearch(e.target.value)}
         />
-        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
           <option value="">All SOs</option>
           {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
           <option value="">All Clients</option>
           {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="az">Client A–Z</option>
@@ -70,7 +71,7 @@ export default function ReceivingHistory() {
           <div
             key={o.so_number}
             onClick={() => navigate(`/receiving-history/${o.so_number}`)}
-            className="bg-white border border-[#D8D0C0] rounded px-5 py-4 cursor-pointer hover:border-[#F5A800] transition-colors"
+            className="bg-white border border-srg-border rounded px-5 py-4 cursor-pointer hover:border-[#F5A800] transition-colors"
           >
             <div className="flex justify-between items-center">
               <div>

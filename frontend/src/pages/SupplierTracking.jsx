@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
-import { btn } from "../styles"
+import { btn, input, pageTitle } from "../styles"
 
 const FULFILLMENT_LABELS = {
   awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
@@ -92,7 +92,7 @@ export default function SupplierTracking() {
 
   return (
     <div className="p-8">
-      <h1 className="page-title">Supplier Tracking</h1>
+      <h1 className={pageTitle}>Supplier Tracking</h1>
 
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-4">
@@ -108,21 +108,21 @@ export default function SupplierTracking() {
               placeholder="Search by SO, client or PO..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="input-base w-72"
+              className={`${input} w-72`}
             />
-            <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className="input-base">
+            <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
               <option value="">All SOs</option>
               {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className="input-base">
+            <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
               <option value="">All Clients</option>
               {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <select value={filterPO} onChange={e => setFilterPO(e.target.value)} className="input-base">
+            <select value={filterPO} onChange={e => setFilterPO(e.target.value)} className={input}>
               <option value="">All POs</option>
               {poOptions.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className="input-base">
+            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
               <option value="az">Client A–Z</option>
@@ -142,7 +142,7 @@ export default function SupplierTracking() {
           <button
             onClick={() => syncInputRef.current?.click()}
             disabled={syncing}
-            className="btn-secondary"
+            className={btn.secondary}
           >
             {syncing ? "Syncing..." : "Sync Madisa Excel"}
           </button>
@@ -201,7 +201,7 @@ export default function SupplierTracking() {
                         setSelectedOrder(order)
                         setAttachModalOpen(true)
                       }}
-                      className="btn-secondary btn-sm"
+                      className={`${btn.secondary} ${btn.sm}`}
                     >
                       Attach
                     </button>

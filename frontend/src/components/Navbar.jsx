@@ -39,7 +39,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
       )}
 
       <nav
-        className={`fixed top-14 bottom-0 left-0 z-40 w-64 shrink-0 bg-[#111111] flex flex-col px-4 py-6 transition-all duration-200 transform ${
+        className={`fixed top-14 bottom-0 left-0 z-40 w-64 shrink-0 bg-srg-black flex flex-col px-4 py-6 transition-all duration-200 transform ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:static md:translate-x-0 md:self-stretch`}
       >
@@ -53,8 +53,8 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
                 collapsed ? 'md:justify-center' : ''
               } ${
                 location.pathname === path
-                  ? 'bg-[#F5A800] text-[#111111] font-bold'
-                  : 'text-[#D8D0C0] hover:text-white'
+                  ? 'bg-[#F5A800] text-srg-black font-bold'
+                  : 'text-srg-border hover:text-white'
               }`}
             >
               <Icon size={18} className="shrink-0" />
@@ -66,7 +66,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
         <button
           type="button"
           onClick={toggleLang}
-          className={`flex items-center gap-3 text-xs tracking-widest text-[#D8D0C0] hover:text-white mt-4 px-3 py-2 rounded transition-colors ${
+          className={`flex items-center gap-3 text-xs tracking-widest text-srg-border hover:text-white mt-4 px-3 py-2 rounded transition-colors ${
             collapsed ? 'md:justify-center' : ''
           }`}
         >

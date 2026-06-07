@@ -154,7 +154,7 @@ export default function Customers() {
         <h1 className="text-2xl font-bold uppercase tracking-wide">Customers</h1>
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(INITIAL_FORM); }}
-          className="btn-primary"
+          className={btn.primary}
         >
           + Add Customer
         </button>
@@ -405,7 +405,7 @@ function CustomerGroup({ title, customers, onEdit, onDelete }) {
               return (
                 <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                   <td className="px-4 py-3 font-medium">
-                    <a href={`/customers/${c.id}`} className="hover:underline text-[#111111]">{c.name}</a>
+                    <a href={`/customers/${c.id}`} className="hover:underline text-srg-black">{c.name}</a>
                   </td>
                   <td className="px-4 py-3 text-gray-600">{c.country}</td>
                   <td className="px-4 py-3 text-gray-600">{primary.name || "—"}</td>
