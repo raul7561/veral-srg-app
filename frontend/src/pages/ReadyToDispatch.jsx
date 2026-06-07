@@ -63,9 +63,9 @@ export default function ReadyToDispatch() {
   const dispatched = filteredOrders.filter(o => o.dispatch_status === 'dispatched').slice().sort(sortComparator)
 
   const statusLabel = (inv) => {
-    if (inv.dispatch_status === 'dispatched') return <span className="text-xs text-[#2D7A4F] font-semibold">🚚 Dispatched · {inv.dispatched_at?.slice(0, 10)}</span>
-    if (inv.dispatch_status === 'ready') return <span className="text-xs text-[#F5A800] font-semibold">⏳ Ready to Dispatch · {inv.dispatched_at?.slice(0, 10)}</span>
-    if (inv.complete) return <span className="text-xs text-[#2D7A4F]">✓ Complete</span>
+    if (inv.dispatch_status === 'dispatched') return <span className="text-xs text-srg-green font-semibold">🚚 Dispatched · {inv.dispatched_at?.slice(0, 10)}</span>
+    if (inv.dispatch_status === 'ready') return <span className="text-xs text-srg-orange font-semibold">⏳ Ready to Dispatch · {inv.dispatched_at?.slice(0, 10)}</span>
+    if (inv.complete) return <span className="text-xs text-srg-green">✓ Complete</span>
     return <span className="text-xs text-gray-400">⏳ Incomplete</span>
   }
 
@@ -75,7 +75,7 @@ export default function ReadyToDispatch() {
       return (
         <button
           onClick={() => setConfirming({ type: 'ready', inv_id: inv.inv_id, label: `Mark ${inv.inv_number} as Ready to Dispatch?` })}
-          className="text-xs bg-[#F5A800] text-srg-black font-semibold px-3 py-1.5 rounded"
+          className="text-xs bg-srg-yellow text-srg-black font-semibold px-3 py-1.5 rounded"
         >
           Mark Ready
         </button>
@@ -114,7 +114,7 @@ export default function ReadyToDispatch() {
   const renderCard = (o, isDispatched) => {
     const isOpen = expanded[o.so_number]
     return (
-      <div key={o.so_number} className={`bg-white border border-srg-border rounded overflow-hidden ${isDispatched ? 'opacity-70' : ''}`}>
+      <div key={o.so_number} className={`bg-srg-surface border border-srg-border rounded overflow-hidden ${isDispatched ? 'opacity-70' : ''}`}>
         <div
           className="px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-srg-cream transition-colors"
           onClick={() => toggleExpand(o.so_number)}
@@ -133,10 +133,10 @@ export default function ReadyToDispatch() {
           </div>
           <div className="flex items-center gap-2">
             {isDispatched
-              ? <span className="text-xs text-[#2D7A4F] font-semibold">🚚 Dispatched · {o.dispatched_at?.slice(0, 10)}</span>
+              ? <span className="text-xs text-srg-green font-semibold">🚚 Dispatched · {o.dispatched_at?.slice(0, 10)}</span>
               : o.all_complete
                 ? <div className="flex items-center gap-2">
-                    <span className="text-xs bg-[#2D7A4F] text-white px-2 py-1 rounded">All Complete</span>
+                    <span className="text-xs bg-srg-green text-white px-2 py-1 rounded">All Complete</span>
                     {o.invs.every(i => i.dispatch_status === 'dispatched')
                       ? null
                       : o.invs.every(i => i.dispatch_status === 'ready' || i.dispatch_status === 'dispatched')
@@ -148,13 +148,13 @@ export default function ReadyToDispatch() {
                           </button>
                         : <button
                             onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_ready', so_number: o.so_number, label: `Mark all INVs in ${o.so_number} as Ready to Dispatch?` }) }}
-                            className="text-xs bg-[#F5A800] text-srg-black font-semibold px-3 py-1.5 rounded"
+                            className="text-xs bg-srg-yellow text-srg-black font-semibold px-3 py-1.5 rounded"
                           >
                             Mark All Ready
                           </button>
                     }
                   </div>
-                : <span className="text-xs bg-[#F5A800] text-srg-black px-2 py-1 rounded">Partial</span>
+                : <span className="text-xs bg-srg-orange text-srg-black px-2 py-1 rounded">Partial</span>
             }
           </div>
         </div>
@@ -186,7 +186,7 @@ export default function ReadyToDispatch() {
 
       {confirming && (
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
-          <div className="bg-white border border-srg-border rounded p-6 w-96">
+          <div className="bg-srg-surface border border-srg-border rounded p-6 w-96">
             <p className="text-sm font-semibold mb-4">{confirming.label}</p>
             <div className="flex gap-3">
               <button onClick={confirmAction} className={btn.primary}>Confirm</button>

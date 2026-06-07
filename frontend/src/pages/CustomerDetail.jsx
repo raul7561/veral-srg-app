@@ -122,7 +122,7 @@ export default function CustomerDetail() {
                 <td className="px-4 py-3 font-medium">{primary.name || "—"}</td>
                 <td className="px-4 py-3 text-gray-600">{primary.email || "—"}</td>
                 <td className="px-4 py-3 text-gray-600">{primary.phone || "—"}</td>
-                <td className="px-4 py-3"><span className="text-xs bg-yellow-100 text-yellow-800 font-semibold px-2 py-0.5 rounded">Primary</span></td>
+                <td className="px-4 py-3"><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">Primary</span></td>
               </tr>
               {extras.map((c, i) => (
                 <tr key={i} className="bg-gray-50 border-t">
@@ -143,7 +143,7 @@ export default function CustomerDetail() {
           <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Documents</h2>
           <button
             onClick={() => setShowUploadForm(!showUploadForm)}
-            className="text-xs uppercase font-semibold text-yellow-600 hover:underline"
+            className="text-xs uppercase font-semibold text-srg-yellow hover:underline"
           >
             + Upload
           </button>
@@ -236,16 +236,16 @@ export default function CustomerDetail() {
                 <span>⚠️</span> No tax certificate on file
               </div>
             ) : (
-              <div className={`border rounded-lg px-4 py-3 bg-white flex items-center justify-between text-sm ${taxExpired ? "border-red-300" : taxExpiringSoon ? "border-yellow-300" : ""}`}>
+              <div className={`border rounded-lg px-4 py-3 bg-white flex items-center justify-between text-sm ${taxExpired ? "border-srg-red" : taxExpiringSoon ? "border-srg-orange" : ""}`}>
                 <div className="flex items-center gap-3">
-                  {taxExpired && <span className="text-xs bg-red-100 text-red-700 font-semibold px-2 py-0.5 rounded">Expired</span>}
-                  {taxExpiringSoon && <span className="text-xs bg-yellow-100 text-yellow-800 font-semibold px-2 py-0.5 rounded">Expiring soon</span>}
+                  {taxExpired && <span className="text-xs bg-srg-red text-white font-semibold px-2 py-0.5 rounded">Expired</span>}
+                  {taxExpiringSoon && <span className="text-xs bg-srg-orange text-srg-black font-semibold px-2 py-0.5 rounded">Expiring soon</span>}
                   <span className="font-medium">{taxCert.file_name}</span>
                   {taxCert.expiry_date && <span className="text-gray-400">· Expires {taxCert.expiry_date}</span>}
                 </div>
                 <div className="flex items-center gap-4">
-                  <a href={taxCert.file_url} target="_blank" rel="noreferrer" className="text-xs text-yellow-600 font-semibold hover:underline uppercase">Download</a>
-                  <button onClick={() => setConfirmDelete(taxCert.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+                  <a href={taxCert.file_url} target="_blank" rel="noreferrer" className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</a>
+                  <button onClick={() => setConfirmDelete(taxCert.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                 </div>
               </div>
             )}
@@ -268,8 +268,8 @@ export default function CustomerDetail() {
                 <div key={doc.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i > 0 ? "border-t" : ""}`}>
                   <span className="font-medium">{doc.label || doc.file_name}</span>
                   <div className="flex items-center gap-4">
-                    <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-xs text-yellow-600 font-semibold hover:underline uppercase">Download</a>
-                    <button onClick={() => setConfirmDelete(doc.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+                    <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</a>
+                    <button onClick={() => setConfirmDelete(doc.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                   </div>
                 </div>
               ))}

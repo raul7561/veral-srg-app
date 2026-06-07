@@ -53,7 +53,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
                 collapsed ? 'md:justify-center' : ''
               } ${
                 location.pathname === path
-                  ? 'bg-[#F5A800] text-srg-black font-bold'
+                  ? 'bg-srg-yellow text-srg-black font-bold'
                   : 'text-srg-border hover:text-white'
               }`}
             >

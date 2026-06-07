@@ -147,10 +147,10 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
                       <span>📄</span>
                     )}
                     <span className="text-gray-700">{file.name} <span className="text-gray-400 text-xs">({(file.size / 1024).toFixed(0)} KB)</span></span>
-                    {uploading && i < currentIndex && <span className="text-green-600 text-xs">✓</span>}
+                    {uploading && i < currentIndex && <span className="text-srg-green text-xs">✓</span>}
                     {uploading && i > currentIndex && <span className="text-gray-400 text-xs">waiting</span>}
                   </div>
-                  {!uploading && <button onClick={() => removeFile(i)} className="text-gray-400 hover:text-red-500 text-xs">✕</button>}
+                  {!uploading && <button onClick={() => removeFile(i)} className="text-gray-400 hover:text-srg-red text-xs">✕</button>}
                 </div>
               ))}
             </div>
@@ -164,8 +164,8 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
                   key={i}
                   className={`p-3 rounded-lg text-sm border ${
                     r.type === "success"
-                      ? "bg-green-50 text-green-700 border-green-200"
-                      : "bg-red-50 text-red-700 border-red-200"
+                      ? "bg-green-50 text-srg-green border-green-200"
+                      : "bg-red-50 text-srg-red border-red-200"
                   }`}
                 >
                   <span className="font-medium">{r.file}:</span> {r.text}

@@ -299,7 +299,7 @@ export default function Customers() {
             <div key={i} className="mt-4">
               <div className="flex items-center justify-between mb-2">
                 <p className="text-xs uppercase font-semibold text-gray-400">Contact {i + 2}</p>
-                <button onClick={() => removeExtraContact(i)} className="text-xs text-red-500 hover:underline">Remove</button>
+                <button onClick={() => removeExtraContact(i)} className="text-xs text-srg-red hover:underline">Remove</button>
               </div>
               <div className="grid grid-cols-3 gap-4">
                 <div>
@@ -332,7 +332,7 @@ export default function Customers() {
 
           <button
             onClick={addExtraContact}
-            className="mt-4 text-xs text-yellow-600 hover:underline uppercase font-semibold"
+            className="mt-4 text-xs text-srg-yellow hover:underline uppercase font-semibold"
           >
             + Add Another Contact
           </button>
@@ -412,7 +412,7 @@ function CustomerGroup({ title, customers, onEdit, onDelete }) {
                   <td className="px-4 py-3 text-gray-600">{primary.email || "—"}</td>
                   <td className="px-4 py-3 text-gray-600">{primary.phone || "—"}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => onDelete(c.id)} className="text-xs text-red-500 hover:underline">Delete</button>
+                    <button onClick={() => onDelete(c.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                   </td>
                 </tr>
               );

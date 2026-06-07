@@ -71,7 +71,7 @@ export default function ReceivingHistory() {
           <div
             key={o.so_number}
             onClick={() => navigate(`/receiving-history/${o.so_number}`)}
-            className="bg-white border border-srg-border rounded px-5 py-4 cursor-pointer hover:border-[#F5A800] transition-colors"
+            className="bg-white border border-srg-border rounded px-5 py-4 cursor-pointer hover:border-srg-yellow transition-colors"
           >
             <div className="flex justify-between items-center">
               <div>

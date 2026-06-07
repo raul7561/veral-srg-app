@@ -6,9 +6,9 @@ import { btn, input, pageTitle } from "../styles"
 
 const FULFILLMENT_LABELS = {
   awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
-  pending: { label: "Pending", color: "text-yellow-600" },
+  pending: { label: "Pending", color: "text-srg-orange" },
   in_progress: { label: "In Progress", color: "text-blue-600" },
-  complete: { label: "Complete", color: "text-green-600" },
+  complete: { label: "Complete", color: "text-srg-green" },
 }
 
 export default function SupplierTracking() {
@@ -147,7 +147,7 @@ export default function SupplierTracking() {
             {syncing ? "Syncing..." : "Sync Madisa Excel"}
           </button>
           {syncMessage && (
-            <p className={`text-sm ${syncMessage.type === "success" ? "text-green-600" : "text-red-600"}`}>
+            <p className={`text-sm ${syncMessage.type === "success" ? "text-srg-green" : "text-srg-red"}`}>
               {syncMessage.text}
             </p>
           )}

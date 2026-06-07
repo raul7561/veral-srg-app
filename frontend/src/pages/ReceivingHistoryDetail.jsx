@@ -57,10 +57,10 @@ export default function ReceivingHistoryDetail() {
                 <td className="px-4 py-3 font-mono text-xs">{p.part_number}</td>
                 <td className="px-4 py-3 text-gray-700">{p.description}</td>
                 <td className="px-4 py-3 text-center">{p.qty}</td>
-                <td className="px-4 py-3 text-center text-[#2D7A4F] font-semibold">{p.qty_received}</td>
+                <td className="px-4 py-3 text-center text-srg-green font-semibold">{p.qty_received}</td>
                 <td className="px-4 py-3 text-center">
                   {p.qty_pending > 0
-                    ? <span className="text-[#D45A00] font-semibold">{p.qty_pending}</span>
+                    ? <span className="text-srg-red font-semibold">{p.qty_pending}</span>
                     : <span className="text-gray-400">0</span>
                   }
                 </td>

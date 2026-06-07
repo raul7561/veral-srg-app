@@ -5,9 +5,9 @@ import { btn, input, card, pageTitle } from '../styles'
 const API = import.meta.env.VITE_API_URL
 
 const LAG_STYLES = {
-  overdue: { dot: 'bg-[#D45A00]', label: 'text-[#D45A00]' },
-  follow_up: { dot: 'bg-yellow-500', label: 'text-yellow-600' },
-  on_track: { dot: 'bg-[#2D7A4F]', label: 'text-[#2D7A4F]' },
+  overdue: { dot: 'bg-srg-red', label: 'text-srg-red' },
+  follow_up: { dot: 'bg-srg-orange', label: 'text-srg-orange' },
+  on_track: { dot: 'bg-srg-green', label: 'text-srg-green' },
   unknown: { dot: 'bg-srg-border', label: 'text-srg-border' },
 }
 
@@ -118,7 +118,7 @@ export default function Orders() {
           <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={uploading} />
         </label>
         {uploadMsg && (
-          <span className={`text-xs font-bold ${uploadMsg.type === 'success' ? 'text-[#2D7A4F]' : 'text-[#D45A00]'}`}>
+          <span className={`text-xs font-bold ${uploadMsg.type === 'success' ? 'text-srg-green' : 'text-srg-red'}`}>
             {uploadMsg.text}
           </span>
         )}
@@ -198,7 +198,7 @@ export default function Orders() {
                 <div className="border-t border-srg-border px-5 py-4 flex flex-col gap-4">
                   {so.invoices.map(inv => {
                     const pct = inv.total_pns > 0 ? Math.round((inv.received_pns / inv.total_pns) * 100) : 0
-                    const statusColor = pct === 100 ? '#2D7A4F' : pct > 0 ? '#F5A800' : '#D45A00'
+                    const statusColor = pct === 100 ? 'var(--color-srg-green)' : pct > 0 ? 'var(--color-srg-orange)' : 'var(--color-srg-orange)'
                     return (
                       <div key={inv.inv_number} className="border border-srg-border rounded p-4 bg-srg-cream">
                         <div className="flex items-center justify-between mb-2">
@@ -221,7 +221,7 @@ export default function Orders() {
                         <div className="flex flex-col gap-1">
                           {inv.parts.map(p => (
                             <div key={p.part_number} className="flex items-center gap-2 text-xs">
-                              <span style={{ color: p.complete ? '#2D7A4F' : '#D8D0C0' }}>
+                              <span style={{ color: p.complete ? 'var(--color-srg-green)' : 'var(--color-srg-border)' }}>
                                 {p.complete ? '✓' : '○'}
                               </span>
                               <span className="font-mono">{p.part_number}</span>
@@ -241,7 +241,7 @@ export default function Orders() {
                           <div className="flex flex-col gap-1 flex-1">
                             <label className="text-xs uppercase tracking-widest text-[#888]">Client</label>
                             <input
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
                               value={editForm.client ?? so.client}
                               onChange={e => setEditForm(f => ({ ...f, client: e.target.value }))}
                             />
@@ -249,7 +249,7 @@ export default function Orders() {
                           <div className="flex flex-col gap-1 flex-1">
                             <label className="text-xs uppercase tracking-widest text-[#888]">Ship To</label>
                             <input
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
                               value={editForm.ship_to ?? so.ship_to}
                               onChange={e => setEditForm(f => ({ ...f, ship_to: e.target.value }))}
                             />
@@ -258,7 +258,7 @@ export default function Orders() {
                             <label className="text-xs uppercase tracking-widest text-[#888]">SO Date</label>
                             <input
                               type="date"
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-[#F5A800]"
+                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
                               value={editForm.so_date ?? so.so_date}
                               onChange={e => setEditForm(f => ({ ...f, so_date: e.target.value }))}
                             />
@@ -266,7 +266,7 @@ export default function Orders() {
                         </div>
                         {editConfirm ? (
                           <div className="flex items-center gap-3">
-                            <span className="text-xs text-[#D45A00] font-bold">Confirm changes?</span>
+                            <span className="text-xs text-srg-red font-bold">Confirm changes?</span>
                             <button onClick={handleEdit} className={`${btn.primary} ${btn.sm}`}>Yes, save</button>
                             <button onClick={() => setEditConfirm(false)} className={`${btn.secondary} ${btn.sm}`}>Cancel</button>
                           </div>

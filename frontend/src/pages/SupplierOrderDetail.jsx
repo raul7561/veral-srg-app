@@ -202,7 +202,7 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
           >
             {uploading ? "Uploading..." : uploadLabel}
           </button>
-          {error && <span className="text-xs text-red-500">{error}</span>}
+          {error && <span className="text-xs text-srg-red">{error}</span>}
         </>
       )}
     </div>
@@ -247,7 +247,7 @@ function SimpleUploader({ label, endpoint, onSuccess }) {
       >
         {uploading ? "Uploading..." : label}
       </button>
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && <span className="text-xs text-srg-red">{error}</span>}
     </div>
   )
 }
@@ -293,7 +293,7 @@ function VexUploader({ soNumber, invNumber, onSuccess }) {
       >
         {uploading ? "..." : "+ VEX"}
       </button>
-      {error && <span className="text-xs text-red-500">{error}</span>}
+      {error && <span className="text-xs text-srg-red">{error}</span>}
     </div>
   )
 }
