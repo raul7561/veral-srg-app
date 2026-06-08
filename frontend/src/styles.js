@@ -15,3 +15,12 @@ export const pageTitle = "text-3xl font-extrabold uppercase tracking-wide mb-6 t
 export const sectionTitle = "text-xs font-bold uppercase tracking-widest text-gray-400 mb-3"
 
 export const label = "text-xs uppercase font-semibold text-gray-500 tracking-wide"
+
+export const table = {
+  wrapper: "border border-srg-border rounded overflow-hidden",
+  base: "w-full text-sm",
+  head: "text-left text-xs text-gray-400 uppercase tracking-wide border-b border-srg-border bg-srg-cream",
+  th: "px-4 py-1.5",
+  row: "border-b border-srg-border last:border-0 hover:bg-srg-cream",
+  td: "px-4 py-1.5",
+}

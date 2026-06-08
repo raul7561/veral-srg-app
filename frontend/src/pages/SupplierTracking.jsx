@@ -3,12 +3,12 @@ import { useNavigate } from "react-router-dom"
 import { getSupplierTracking } from "../api"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
-import { btn, input, pageTitle } from "../styles"
+import { btn, input, pageTitle, table } from "../styles"
 
 const FULFILLMENT_LABELS = {
   awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
   pending: { label: "Pending", color: "text-srg-orange" },
-  in_progress: { label: "In Progress", color: "text-blue-600" },
+  in_progress: { label: "In Progress", color: "text-srg-blue" },
   complete: { label: "Complete", color: "text-srg-green" },
 }
 
@@ -17,8 +17,6 @@ export default function SupplierTracking() {
   const [syncMessage, setSyncMessage] = useState(null)
   const [orders, setOrders] = useState([])
   const [search, setSearch] = useState("")
-  const [sortField, setSortField] = useState("order_date")
-  const [sortDir, setSortDir] = useState("desc")
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [attachModalOpen, setAttachModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
@@ -154,10 +152,10 @@ export default function SupplierTracking() {
         </div>
       </div>
 
-      <div className="border rounded overflow-hidden">
-        <table className="w-full text-sm">
+      <div className={table.wrapper}>
+        <table className={table.base}>
           <thead>
-            <tr className="text-left text-xs text-gray-400 uppercase tracking-wide border-b bg-gray-50">
+            <tr className={table.head}>
               {[
                 { key: "so_number", label: "SO" },
                 { key: "client", label: "Client" },
@@ -168,34 +166,26 @@ export default function SupplierTracking() {
               ].map(col => (
                 <th
                   key={col.key}
-                  className="px-4 py-2 cursor-pointer select-none hover:text-gray-600"
-                  onClick={() => {
-                    if (sortField === col.key) {
-                      setSortDir(prev => prev === "asc" ? "desc" : "asc")
-                    } else {
-                      setSortField(col.key)
-                      setSortDir("asc")
-                    }
-                  }}
+                  className={table.th}
                 >
-                  {col.label} {sortField === col.key ? (sortDir === "asc" ? "↑" : "↓") : ""}
+                  {col.label}
                 </th>
               ))}
-              <th className="px-4 py-2">Action</th>
+              <th className={table.th}>Action</th>
             </tr>
           </thead>
           <tbody>
             {filtered.map(order => {
               const f = FULFILLMENT_LABELS[order.fulfillment] || FULFILLMENT_LABELS.pending
               return (
-                <tr key={order.id} className="border-b last:border-0 hover:bg-gray-50">
-                  <td className="px-4 py-3 font-semibold cursor-pointer" onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
-                  <td className="px-4 py-3 text-gray-600 cursor-pointer" onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
-                  <td className="px-4 py-3 font-mono text-gray-500 cursor-pointer" onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
-                  <td className="px-4 py-3 text-gray-400 cursor-pointer" onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
-                  <td className="px-4 py-3 text-gray-500 cursor-pointer" onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
-                  <td className={`px-4 py-3 font-medium ${f.color} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{f.label}</td>
-                  <td className="px-4 py-3">
+                <tr key={order.id} className={table.row}>
+                  <td className={`${table.td} font-mono font-bold cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
+                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
+                  <td className={`${table.td} font-mono text-gray-500 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
+                  <td className={`${table.td} text-gray-400 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
+                  <td className={`${table.td} text-gray-500 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
+                  <td className={`${table.td} font-medium ${f.color} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{f.label}</td>
+                  <td className={table.td}>
                     <button
                       onClick={() => {
                         setSelectedOrder(order)
@@ -210,8 +200,8 @@ export default function SupplierTracking() {
               )
             })}
             {filtered.length === 0 && (
-              <tr>
-                <td colSpan={7} className="px-4 py-6 text-center text-gray-400">No orders found.</td>
+              <tr className={table.row}>
+                <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>No orders found.</td>
               </tr>
             )}
           </tbody>
