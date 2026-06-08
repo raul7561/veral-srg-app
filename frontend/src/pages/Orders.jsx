@@ -1,92 +1,112 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { btn, input, card, pageTitle } from '../styles'
-
-const API = import.meta.env.VITE_API_URL
+import { useNavigate } from 'react-router-dom'
+import {
+  Bar,
+  BarChart,
+  Cell,
+  Legend,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
+import { getOrders } from '../api'
+import { card, input, pageTitle, sectionTitle } from '../styles'
 
 const LAG_STYLES = {
-  overdue: { dot: 'bg-srg-red', label: 'text-srg-red' },
-  follow_up: { dot: 'bg-srg-orange', label: 'text-srg-orange' },
-  on_track: { dot: 'bg-srg-green', label: 'text-srg-green' },
-  unknown: { dot: 'bg-srg-border', label: 'text-srg-border' },
+  overdue: { dot: 'bg-srg-red', label: 'text-srg-red', text: 'Overdue' },
+  follow_up: { dot: 'bg-srg-orange', label: 'text-srg-orange', text: 'Follow Up' },
+  on_track: { dot: 'bg-srg-green', label: 'text-srg-green', text: 'On Track' },
+  unknown: { dot: 'bg-srg-border', label: 'text-srg-border', text: 'On Track' },
+}
+
+const METRIC_FILTERS = [
+  { key: 'on_track', label: 'On Track', numberClass: 'text-srg-green', activeBorder: 'border-srg-green' },
+  { key: 'follow_up', label: 'Follow Up', numberClass: 'text-srg-orange', activeBorder: 'border-srg-orange' },
+  { key: 'overdue', label: 'Overdue', numberClass: 'text-srg-red', activeBorder: 'border-srg-red' },
+  { key: 'no_inv', label: 'No INV', numberClass: 'text-srg-black', activeBorder: 'border-srg-black' },
+]
+
+const BAR_COLORS = {
+  on_track: '#2D7A4F',
+  follow_up: '#D45A00',
+  overdue: '#C0392B',
+}
+
+const DISPATCH_COLORS = {
+  pending: '#D45A00',
+  ready: '#2D7A4F',
+  dispatched: '#111111',
 }
 
 export default function Orders() {
   const { t } = useTranslation()
+  const navigate = useNavigate()
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
-  const [expanded, setExpanded] = useState({})
   const [search, setSearch] = useState('')
-  const [filterSO, setFilterSO] = useState('')
-  const [filterClient, setFilterClient] = useState('')
   const [sortBy, setSortBy] = useState('lag')
-  const [uploading, setUploading] = useState(false)
-  const [uploadMsg, setUploadMsg] = useState(null)
-  const [editing, setEditing] = useState(null)
-  const [editForm, setEditForm] = useState({})
-  const [editConfirm, setEditConfirm] = useState(false)
+  const [activeFilter, setActiveFilter] = useState(null)
 
   useEffect(() => {
-    fetch(`${API}/orders`)
-      .then(r => r.json())
+    getOrders()
       .then(data => { setOrders(data); setLoading(false) })
       .catch(() => setLoading(false))
   }, [])
 
-  const toggle = (so) => setExpanded(prev => ({ ...prev, [so]: !prev[so] }))
+  const metricCounts = useMemo(() => ({
+    on_track: orders.filter(order => order.lag_status === 'on_track').length,
+    follow_up: orders.filter(order => order.lag_status === 'follow_up').length,
+    overdue: orders.filter(order => order.lag_status === 'overdue').length,
+    no_inv: orders.filter(order => order.invoices.length === 0).length,
+  }), [orders])
 
-  const handleUpload = async (e) => {
-    const file = e.target.files[0]
-    if (!file) return
-    setUploading(true)
-    setUploadMsg(null)
-    const formData = new FormData()
-    formData.append('file', file)
-    try {
-      const res = await fetch(`${API}/orders/upload`, {
-        method: 'POST',
-        body: formData
+  const ageData = useMemo(() => [
+    {
+      name: 'On Track',
+      count: orders.filter(order => order.business_days >= 0 && order.business_days <= 14).length,
+      fill: BAR_COLORS.on_track,
+    },
+    {
+      name: 'Follow Up',
+      count: orders.filter(order => order.business_days >= 15 && order.business_days <= 19).length,
+      fill: BAR_COLORS.follow_up,
+    },
+    {
+      name: 'Overdue',
+      count: orders.filter(order => order.business_days >= 20).length,
+      fill: BAR_COLORS.overdue,
+    },
+  ], [orders])
+
+  const dispatchData = useMemo(() => {
+    const counts = { pending: 0, ready: 0, dispatched: 0 }
+    orders.forEach(order => {
+      order.invoices.forEach(inv => {
+        if (counts[inv.dispatch_status] !== undefined) counts[inv.dispatch_status] += 1
       })
-      const data = await res.json()
-      if (res.ok) {
-        setUploadMsg({ type: 'success', text: `${data.so_number} saved — ${data.client} — ${data.parts_count} parts` })
-        const refreshed = await fetch(`${API}/orders`).then(r => r.json())
-        setOrders(refreshed)
-      } else {
-        setUploadMsg({ type: 'error', text: data.detail || 'Upload failed' })
-      }
-    } catch {
-      setUploadMsg({ type: 'error', text: 'Connection error' })
-    } finally {
-      setUploading(false)
-      e.target.value = ''
-    }
-  }
-
-  const handleEdit = async () => {
-    const res = await fetch(`${API}/orders/${editing}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm)
     })
-    if (res.ok) {
-      const refreshed = await fetch(`${API}/orders`).then(r => r.json())
-      setOrders(refreshed)
-      setEditing(null)
-      setEditForm({})
-      setEditConfirm(false)
-    }
-  }
 
-  const filtered = orders
+    return [
+      { name: 'Pending', key: 'pending', value: counts.pending },
+      { name: 'Ready', key: 'ready', value: counts.ready },
+      { name: 'Dispatched', key: 'dispatched', value: counts.dispatched },
+    ]
+  }, [orders])
+
+  const filtered = useMemo(() => orders
     .filter(o => {
       const q = search.toLowerCase()
       const matchesText = o.so_number.toLowerCase().includes(q) ||
         o.client.toLowerCase().includes(q) ||
         o.invoices.some(i => i.inv_number.toLowerCase().includes(q))
-      const matchesSO = filterSO ? o.so_number === filterSO : true
-      const matchesClient = filterClient ? o.client === filterClient : true
-      return matchesText && matchesSO && matchesClient
+      const matchesActiveFilter = !activeFilter ||
+        (activeFilter === 'no_inv' ? o.invoices.length === 0 : o.lag_status === activeFilter)
+
+      return matchesText && matchesActiveFilter
     })
     .slice()
     .sort((a, b) => {
@@ -100,7 +120,7 @@ export default function Orders() {
       if (sortBy === 'oldest') return new Date(a.so_date) - new Date(b.so_date)
       if (sortBy === 'az') return a.client.localeCompare(b.client)
       return 0
-    })
+    }), [activeFilter, orders, search, sortBy])
 
   if (loading) return (
     <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
@@ -112,53 +132,80 @@ export default function Orders() {
         {t('nav.orders')}
       </h1>
 
-      <div className="mb-6 flex items-center gap-4">
-        <label className={`${btn.primary} cursor-pointer`}>
-          {uploading ? 'Uploading...' : 'Upload SO PDF'}
-          <input type="file" accept=".pdf" className="hidden" onChange={handleUpload} disabled={uploading} />
-        </label>
-        {uploadMsg && (
-          <span className={`text-xs font-bold ${uploadMsg.type === 'success' ? 'text-srg-green' : 'text-srg-red'}`}>
-            {uploadMsg.text}
-          </span>
-        )}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+        {METRIC_FILTERS.map(metric => {
+          const isActive = activeFilter === metric.key
+
+          return (
+            <button
+              key={metric.key}
+              type="button"
+              onClick={() => setActiveFilter(isActive ? null : metric.key)}
+              className={`${card} ${isActive ? `border-2 ${metric.activeBorder}` : ''} p-4 text-left hover:bg-srg-cream transition-colors cursor-pointer`}
+            >
+              <div className={`text-4xl font-extrabold leading-none ${metric.numberClass}`}>
+                {metricCounts[metric.key]}
+              </div>
+              <div className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+                {metric.label}
+              </div>
+            </button>
+          )
+        })}
       </div>
 
-      <div className="mb-6 flex items-center gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
+        <div className={`${card} p-4`}>
+          <h2 className={sectionTitle}>Antigüedad</h2>
+          <ResponsiveContainer width="100%" height={240}>
+            <BarChart data={ageData}>
+              <XAxis dataKey="name" />
+              <YAxis allowDecimals={false} />
+              <Tooltip />
+              <Bar dataKey="count">
+                {ageData.map(item => (
+                  <Cell key={item.name} fill={item.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+
+        <div className={`${card} p-4`}>
+          <h2 className={sectionTitle}>Despacho</h2>
+          <ResponsiveContainer width="100%" height={240}>
+            <PieChart>
+              <Pie
+                data={dispatchData}
+                dataKey="value"
+                nameKey="name"
+                innerRadius={50}
+                outerRadius={80}
+              >
+                {dispatchData.map(item => (
+                  <Cell key={item.key} fill={DISPATCH_COLORS[item.key]} />
+                ))}
+              </Pie>
+              <Tooltip />
+              <Legend verticalAlign="bottom" />
+            </PieChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <input
           type="text"
           placeholder="Search by SO, client or INV..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className={`${input} max-w-md`}
+          className={`${input} sm:max-w-md`}
         />
-
-        <select
-          value={filterSO}
-          onChange={e => setFilterSO(e.target.value)}
-          className={input}
-        >
-          <option value="">All SOs</option>
-          {Array.from(new Set(orders.map(o => o.so_number))).map(s => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-
-        <select
-          value={filterClient}
-          onChange={e => setFilterClient(e.target.value)}
-          className={input}
-        >
-          <option value="">All Clients</option>
-          {Array.from(new Set(orders.map(o => o.client))).map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
 
         <select
           value={sortBy}
           onChange={e => setSortBy(e.target.value)}
-          className={input}
+          className={`${input} sm:max-w-48`}
         >
           <option value="lag">By Lag</option>
           <option value="newest">Newest</option>
@@ -167,130 +214,41 @@ export default function Orders() {
         </select>
       </div>
 
-      <div className="flex flex-col gap-3">
-        {filtered.map(so => {
-          const lag = LAG_STYLES[so.lag_status] || LAG_STYLES.unknown
-          const isOpen = expanded[so.so_number]
+      <div className={`${card} overflow-hidden`}>
+        <table className="w-full border-collapse text-sm">
+          <tbody>
+            {filtered.map(so => {
+              const lag = LAG_STYLES[so.lag_status] || LAG_STYLES.unknown
 
-          return (
-            <div key={so.so_number} className={card}>
-              <button
-                onClick={() => toggle(so.so_number)}
-                className="w-full flex items-center justify-between px-5 py-4 text-left"
-              >
-                <div className="flex items-center gap-4">
-                  <span className="font-bold text-sm tracking-widest">{so.so_number}</span>
-                  <span className="text-sm text-srg-black">{so.client}</span>
-                  <span className="text-xs text-[#888]">{so.so_date}</span>
-                </div>
-                <div className="flex items-center gap-3">
-                  <span className={`text-xs font-bold uppercase ${lag.label}`}>
-                    <span className={`inline-block w-2 h-2 rounded-full mr-1 ${lag.dot}`} />
-                    {so.lag_status === 'overdue' ? `Overdue (${so.business_days}d)` :
-                     so.lag_status === 'follow_up' ? `Follow Up (${so.business_days}d)` :
-                     `On Track (${so.business_days}d)`}
-                  </span>
-                  <span className="text-srg-border text-lg">{isOpen ? '▲' : '▼'}</span>
-                </div>
-              </button>
-
-              {isOpen && (
-                <div className="border-t border-srg-border px-5 py-4 flex flex-col gap-4">
-                  {so.invoices.map(inv => {
-                    const pct = inv.total_pns > 0 ? Math.round((inv.received_pns / inv.total_pns) * 100) : 0
-                    const statusColor = pct === 100 ? 'var(--color-srg-green)' : pct > 0 ? 'var(--color-srg-orange)' : 'var(--color-srg-orange)'
-                    return (
-                      <div key={inv.inv_number} className="border border-srg-border rounded p-4 bg-srg-cream">
-                        <div className="flex items-center justify-between mb-2">
-                          <span className="font-bold text-sm">{inv.inv_number}</span>
-                          <span className="text-xs text-[#888]">
-                            {inv.vex.length > 0 ? inv.vex.join(', ') : 'No VEX'}
-                          </span>
-                        </div>
-                        <div className="flex items-center gap-2 mb-3">
-                          <div className="flex-1 h-1.5 bg-srg-border rounded">
-                            <div
-                              className="h-1.5 rounded transition-all"
-                              style={{ width: `${pct}%`, backgroundColor: statusColor }}
-                            />
-                          </div>
-                          <span className="text-xs font-bold" style={{ color: statusColor }}>
-                            {inv.received_pns}/{inv.total_pns}
-                          </span>
-                        </div>
-                        <div className="flex flex-col gap-1">
-                          {inv.parts.map(p => (
-                            <div key={p.part_number} className="flex items-center gap-2 text-xs">
-                              <span style={{ color: p.complete ? 'var(--color-srg-green)' : 'var(--color-srg-border)' }}>
-                                {p.complete ? '✓' : '○'}
-                              </span>
-                              <span className="font-mono">{p.part_number}</span>
-                              <span className="text-[#888]">{p.description}</span>
-                              <span className="ml-auto text-[#888]">{p.quantity_received}/{p.quantity}</span>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )
-                  })}
-
-                  <div className="border-t border-srg-border pt-4">
-                    {editing === so.so_number ? (
-                      <div className="flex flex-col gap-3">
-                        <div className="flex gap-3">
-                          <div className="flex flex-col gap-1 flex-1">
-                            <label className="text-xs uppercase tracking-widest text-[#888]">Client</label>
-                            <input
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
-                              value={editForm.client ?? so.client}
-                              onChange={e => setEditForm(f => ({ ...f, client: e.target.value }))}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1 flex-1">
-                            <label className="text-xs uppercase tracking-widest text-[#888]">Ship To</label>
-                            <input
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
-                              value={editForm.ship_to ?? so.ship_to}
-                              onChange={e => setEditForm(f => ({ ...f, ship_to: e.target.value }))}
-                            />
-                          </div>
-                          <div className="flex flex-col gap-1">
-                            <label className="text-xs uppercase tracking-widest text-[#888]">SO Date</label>
-                            <input
-                              type="date"
-                              className="px-3 py-1.5 border border-srg-border rounded bg-srg-surface text-sm text-srg-black focus:outline-none focus:border-srg-yellow"
-                              value={editForm.so_date ?? so.so_date}
-                              onChange={e => setEditForm(f => ({ ...f, so_date: e.target.value }))}
-                            />
-                          </div>
-                        </div>
-                        {editConfirm ? (
-                          <div className="flex items-center gap-3">
-                            <span className="text-xs text-srg-red font-bold">Confirm changes?</span>
-                            <button onClick={handleEdit} className={`${btn.primary} ${btn.sm}`}>Yes, save</button>
-                            <button onClick={() => setEditConfirm(false)} className={`${btn.secondary} ${btn.sm}`}>Cancel</button>
-                          </div>
-                        ) : (
-                          <div className="flex gap-2">
-                            <button onClick={() => setEditConfirm(true)} className={`${btn.primary} ${btn.sm}`}>Save</button>
-                            <button onClick={() => { setEditing(null); setEditForm({}); setEditConfirm(false) }} className={`${btn.secondary} ${btn.sm}`}>Cancel</button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <button
-                        onClick={() => { setEditing(so.so_number); setEditForm({}) }}
-                        className="text-xs text-[#888] hover:text-srg-black uppercase tracking-widest"
-                      >
-                        Edit SO
-                      </button>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-          )
-        })}
+              return (
+                <tr
+                  key={so.so_number}
+                  onClick={() => navigate(`/supplier-tracking/${so.so_number}`)}
+                  className="border-b border-srg-border last:border-b-0 hover:bg-srg-cream cursor-pointer"
+                >
+                  <td className="py-2.5 px-4 font-mono font-bold text-srg-black whitespace-nowrap">
+                    {so.so_number}
+                  </td>
+                  <td className="py-2.5 px-4 text-srg-black">
+                    {so.client}
+                  </td>
+                  <td className="py-2.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                    {so.so_date}
+                  </td>
+                  <td className="py-2.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                    {so.invoices.length} INV
+                  </td>
+                  <td className="py-2.5 px-4 text-right whitespace-nowrap">
+                    <span className={`text-xs font-bold uppercase ${lag.label}`}>
+                      <span className={`inline-block w-2 h-2 rounded-full mr-1 ${lag.dot}`} />
+                      {lag.text} ({so.business_days}d)
+                    </span>
+                  </td>
+                </tr>
+              )
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   )

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getReceivingHistory } from '../api'
 import { input, pageTitle } from '../styles'
 
 export default function ReceivingHistory() {
@@ -11,8 +12,7 @@ export default function ReceivingHistory() {
   const navigate = useNavigate()
 
   useEffect(() => {
-    fetch('http://localhost:8000/receiving-history/orders')
-      .then(r => r.json())
+    getReceivingHistory()
       .then(data => {
         if (Array.isArray(data)) setOrders(data)
       })

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { getCustomerDocuments, getCustomers } from "../api";
 import { btn } from "../styles";
 
 const API = "http://localhost:8000";
@@ -30,12 +31,10 @@ export default function CustomerDetail() {
 
   async function fetchAll() {
     setLoading(true);
-    const [custRes, docsRes] = await Promise.all([
-      fetch(`${API}/customers/`),
-      fetch(`${API}/customers/${id}/documents`),
+    const [allCustomers, docs] = await Promise.all([
+      getCustomers(),
+      getCustomerDocuments(id),
     ]);
-    const allCustomers = await custRes.json();
-    const docs = await docsRes.json();
     const found = allCustomers.find(c => c.id === id);
     setCustomer(found || null);
     setDocuments(docs);

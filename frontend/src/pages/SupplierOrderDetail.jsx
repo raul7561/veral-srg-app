@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
+import { getSupplierOrderLinesBySo, getSupplierTracking } from "../api"
 
 const API = "http://localhost:8000/supplier-tracking"
 
@@ -15,13 +16,13 @@ export default function SupplierOrderDetail() {
   async function fetchOrder() {
     try {
       const [ordersRes, linesRes] = await Promise.all([
-        fetch(`${API}/orders`),
-        fetch(`${API}/orders/${soNumber}/lines-by-so`),
+        getSupplierTracking(),
+        getSupplierOrderLinesBySo(soNumber),
       ])
-      const orders = await ordersRes.json()
+      const orders = ordersRes
       const found = orders.find(o => o.so_number === soNumber)
       setOrder(found || null)
-      const linesData = await linesRes.json()
+      const linesData = linesRes
       setLines(linesData)
     } catch (err) {
       console.error(err)

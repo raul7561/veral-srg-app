@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { getReceivingHistoryDetail } from '../api'
 
 export default function ReceivingHistoryDetail() {
   const { soNumber } = useParams()
@@ -8,8 +9,7 @@ export default function ReceivingHistoryDetail() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch(`http://localhost:8000/receiving-history/orders/${soNumber}`)
-      .then(r => r.json())
+    getReceivingHistoryDetail(soNumber)
       .then(data => {
         setOrder(data)
         setLoading(false)

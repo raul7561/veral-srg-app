@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { getCustomers } from "../api";
 import { btn } from "../styles";
 
 const API = "http://localhost:8000";
@@ -73,8 +74,7 @@ export default function Customers() {
 
   async function fetchCustomers() {
     setLoading(true);
-    const res = await fetch(`${API}/customers/`);
-    const data = await res.json();
+    const data = await getCustomers();
     setCustomers(data);
     setLoading(false);
   }

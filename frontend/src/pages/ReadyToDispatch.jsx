@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { getReadyToDispatch } from '../api'
 import { btn, input, pageTitle } from "../styles"
 
 export default function ReadyToDispatch() {
@@ -11,8 +12,7 @@ export default function ReadyToDispatch() {
   const [sortBy, setSortBy] = useState('newest')
 
   const fetchOrders = () => {
-    fetch('http://localhost:8000/ready-to-dispatch/orders')
-      .then(r => r.json())
+    getReadyToDispatch()
       .then(data => {
         setOrders(data)
         setLoading(false)

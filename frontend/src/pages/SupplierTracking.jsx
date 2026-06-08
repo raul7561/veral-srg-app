@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
+import { getSupplierTracking } from "../api"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
 import { btn, input, pageTitle } from "../styles"
@@ -32,8 +33,7 @@ export default function SupplierTracking() {
 
   async function fetchOrders() {
     try {
-      const res = await fetch("http://localhost:8000/supplier-tracking/orders")
-      const data = await res.json()
+      const data = await getSupplierTracking()
       setOrders(data)
     } catch (err) {
       console.error("Failed to fetch orders", err)
