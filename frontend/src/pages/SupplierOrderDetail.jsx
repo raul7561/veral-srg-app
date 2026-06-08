@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
 import { useParams, useNavigate } from "react-router-dom"
 import { getSupplierOrderLinesBySo, getSupplierTracking } from "../api"
+import { table } from "../styles"
 
 const API = "http://localhost:8000/supplier-tracking"
 
@@ -38,7 +39,7 @@ export default function SupplierOrderDetail() {
     <div className="p-8">
       <button
         onClick={() => navigate("/supplier-tracking")}
-        className="text-sm text-gray-500 hover:text-black mb-6 flex items-center gap-1"
+        className="text-sm text-gray-500 hover:text-srg-black mb-6 flex items-center gap-1"
       >
         ← Back to Supplier Tracking
       </button>
@@ -48,12 +49,12 @@ export default function SupplierOrderDetail() {
         <span className="text-gray-600">{order.client}</span>
         <span className="text-gray-400 text-sm">{order.order_date || "—"}</span>
         {order.so_pdf_url && (
-          <a href={order.so_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ SO PDF</a>
+          <a href={order.so_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ SO PDF</a>
         )}
       </div>
 
       {/* Document chain */}
-      <div className="border rounded p-4 mb-6">
+      <div className="border border-srg-border rounded p-4 mb-6">
         <div className="flex gap-8 text-sm flex-wrap">
           <DocField
             label="PO"
@@ -85,7 +86,7 @@ export default function SupplierOrderDetail() {
                       <span className="font-mono font-medium">{inv.inv_number}</span>
                       <span className="text-gray-400 text-xs">{inv.inv_date || "—"}</span>
                       {inv.inv_pdf_url && (
-                        <a href={inv.inv_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ PDF</a>
+                        <a href={inv.inv_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ PDF</a>
                       )}
                     </div>
                     <div className="flex items-center gap-2 ml-4">
@@ -94,7 +95,7 @@ export default function SupplierOrderDetail() {
                         <span key={v.id} className="text-xs font-mono text-gray-600">
                           {v.vex_number}
                           {v.vex_pdf_url && (
-                            <a href={v.vex_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline ml-1">↓</a>
+                            <a href={v.vex_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline ml-1">↓</a>
                           )}
                         </span>
                       ))}
@@ -118,18 +119,19 @@ export default function SupplierOrderDetail() {
       </div>
 
       {/* Parts table */}
-      <div className="border rounded p-4">
+      <div className="border border-srg-border rounded p-4">
         <p className="text-sm text-gray-500 mb-3">
           Parts — {order.received_lines}/{order.total_lines} received
         </p>
         {lines.length === 0 ? (
           <p className="text-sm text-gray-400">No parts loaded.</p>
         ) : (
-          <table className="w-full text-sm">
+          <table className={table.base}>
             <thead>
-              <tr className="text-left text-gray-500 border-b">
+              <tr className={table.head}>
                 <th className="py-1 pr-4">Part Number</th>
                 <th className="py-1 pr-4">Description</th>
+                <th className="py-1 pr-4">Type</th>
                 <th className="py-1 pr-4">Qty</th>
                 <th className="py-1 pr-4">Warehouse</th>
                 <th className="py-1 pr-4">ETA</th>
@@ -138,13 +140,30 @@ export default function SupplierOrderDetail() {
             </thead>
             <tbody>
               {lines.map(line => (
-                <tr key={line.id} className="border-b last:border-0">
+                <tr key={line.id} className="border-b border-srg-border last:border-0">
                   <td className="py-1 pr-4 font-mono">{line.part_number}</td>
                   <td className="py-1 pr-4">{line.description}</td>
+                  <td className="py-1 pr-4">
+                    {line.po_category === "pkj" ? (
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase bg-srg-amber text-srg-black">PKJ</span>
+                    ) : line.po_category === "cross_dock" ? (
+                      <span className="inline-block px-2 py-0.5 rounded text-xs font-bold uppercase border border-srg-border text-gray-500">Cross-dock</span>
+                    ) : (
+                      <span className="text-gray-400">—</span>
+                    )}
+                  </td>
                   <td className="py-1 pr-4">{line.quantity}</td>
                   <td className="py-1 pr-4">{line.warehouse || "—"}</td>
                   <td className="py-1 pr-4">{line.eta_to_ferral || "—"}</td>
-                  <td className="py-1">{line.status}</td>
+                  <td className="py-1 font-medium">
+                    {line.status === "received" ? (
+                      <span className="text-srg-green">Received</span>
+                    ) : line.status === "pending" ? (
+                      <span className="text-srg-orange">Pending</span>
+                    ) : (
+                      <span className="text-gray-500">{line.status}</span>
+                    )}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -190,7 +209,7 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm">{value}</span>
           {pdfUrl && (
-            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline">↓ PDF</a>
+            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ PDF</a>
           )}
         </div>
       ) : (
@@ -199,7 +218,7 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
           <button
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
-            className="px-3 py-1 text-xs border rounded hover:bg-gray-50 disabled:opacity-50 text-left"
+            className="px-3 py-1 text-xs border border-srg-border rounded hover:bg-srg-cream disabled:opacity-50 text-left"
           >
             {uploading ? "Uploading..." : uploadLabel}
           </button>
@@ -244,7 +263,7 @@ function SimpleUploader({ label, endpoint, onSuccess }) {
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="px-3 py-1 text-xs border rounded hover:bg-gray-50 disabled:opacity-50"
+        className="px-3 py-1 text-xs border border-srg-border rounded hover:bg-srg-cream disabled:opacity-50"
       >
         {uploading ? "Uploading..." : label}
       </button>
@@ -290,7 +309,7 @@ function VexUploader({ soNumber, invNumber, onSuccess }) {
       <button
         onClick={() => inputRef.current?.click()}
         disabled={uploading}
-        className="px-2 py-0.5 text-xs border rounded hover:bg-gray-50 disabled:opacity-50"
+        className="px-2 py-0.5 text-xs border border-srg-border rounded hover:bg-srg-cream disabled:opacity-50"
       >
         {uploading ? "..." : "+ VEX"}
       </button>

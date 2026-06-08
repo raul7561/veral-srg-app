@@ -27,6 +27,11 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
     i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')
   }
 
+  const isActive = (path) =>
+    path === '/'
+      ? location.pathname === '/'
+      : location.pathname === path || location.pathname.startsWith(path + '/')
+
   return (
     <>
       {mobileOpen && (
@@ -43,6 +48,8 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:static md:translate-x-0 md:self-stretch`}
       >
+        <div className="h-px bg-srg-yellow mb-4" />
+
         <div className="flex flex-col gap-1 flex-1">
           {links.map(({ path, key, Icon }) => (
             <Link
@@ -52,7 +59,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
               className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors ${
                 collapsed ? 'md:justify-center' : ''
               } ${
-                location.pathname === path
+                isActive(path)
                   ? 'bg-srg-yellow text-srg-black font-bold'
                   : 'text-srg-border hover:text-white'
               }`}
@@ -62,6 +69,8 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
             </Link>
           ))}
         </div>
+
+        <div className="h-px bg-srg-yellow mb-4" />
 
         <button
           type="button"
