@@ -14,7 +14,8 @@ import {
   YAxis,
 } from 'recharts'
 import { getOrders } from '../api'
-import { card, input, pageTitle, sectionTitle } from '../styles'
+import Spinner from '../components/Spinner'
+import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
 const LAG_STYLES = {
   overdue: { dot: 'bg-srg-red', label: 'text-srg-red', text: 'Overdue' },
@@ -50,11 +51,20 @@ export default function Orders() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('lag')
   const [activeFilter, setActiveFilter] = useState(null)
+  const [cameFromLogin, setCameFromLogin] = useState(false)
 
   useEffect(() => {
     getOrders()
       .then(data => { setOrders(data); setLoading(false) })
       .catch(() => setLoading(false))
+  }, [])
+
+  useEffect(() => {
+    if (sessionStorage.getItem('srg_just_logged_in') === 'true') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setCameFromLogin(true)
+      sessionStorage.removeItem('srg_just_logged_in')
+    }
   }, [])
 
   const metricCounts = useMemo(() => ({
@@ -122,8 +132,16 @@ export default function Orders() {
       return 0
     }), [activeFilter, orders, search, sortBy])
 
+  const topCritical = useMemo(
+    () => [...filtered].sort((a, b) => (b.business_days ?? 0) - (a.business_days ?? 0)).slice(0, 10),
+    [filtered]
+  )
+
   if (loading) return (
-    <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
+    <>
+      {cameFromLogin && <Spinner />}
+      <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
+    </>
   )
 
   return (
@@ -214,32 +232,41 @@ export default function Orders() {
         </select>
       </div>
 
-      <div className={`${card} overflow-hidden`}>
-        <table className="w-full border-collapse text-sm">
+      <div className={table.wrapper}>
+        <table className={table.base}>
+          <thead>
+            <tr className={table.head}>
+              <th className={table.th}>Sales Order</th>
+              <th className={table.th}>Client</th>
+              <th className={table.th}>Date</th>
+              <th className={table.th}>INV</th>
+              <th className={`${table.th} text-right`}>Status</th>
+            </tr>
+          </thead>
           <tbody>
-            {filtered.map(so => {
+            {topCritical.map(so => {
               const lag = LAG_STYLES[so.lag_status] || LAG_STYLES.unknown
 
               return (
                 <tr
                   key={so.so_number}
                   onClick={() => navigate(`/supplier-tracking/${so.so_number}`)}
-                  className="border-b border-srg-border last:border-b-0 hover:bg-srg-cream cursor-pointer"
+                  className={`${table.row} cursor-pointer`}
                 >
-                  <td className="py-2.5 px-4 font-mono font-bold text-srg-black whitespace-nowrap">
+                  <td className={`${table.td} font-mono text-srg-black whitespace-nowrap`}>
                     {so.so_number}
                   </td>
-                  <td className="py-2.5 px-4 text-srg-black">
+                  <td className={`${table.td} text-srg-black`}>
                     {so.client}
                   </td>
-                  <td className="py-2.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                  <td className={`${table.td} text-gray-600 whitespace-nowrap`}>
                     {so.so_date}
                   </td>
-                  <td className="py-2.5 px-4 text-xs text-gray-500 whitespace-nowrap">
+                  <td className={`${table.td} text-gray-600 whitespace-nowrap`}>
                     {so.invoices.length} INV
                   </td>
-                  <td className="py-2.5 px-4 text-right whitespace-nowrap">
-                    <span className={`text-xs font-bold uppercase ${lag.label}`}>
+                  <td className={`${table.td} text-right whitespace-nowrap`}>
+                    <span className={`text-xs uppercase ${lag.label}`}>
                       <span className={`inline-block w-2 h-2 rounded-full mr-1 ${lag.dot}`} />
                       {lag.text} ({so.business_days}d)
                     </span>

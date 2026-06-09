@@ -1,22 +1,31 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getReceivingHistory } from '../api'
-import { input, pageTitle } from '../styles'
+import Pagination from '../components/Pagination'
+import { input, pageTitle, table } from '../styles'
+
+const LIMIT = 25
 
 export default function ReceivingHistory() {
   const [orders, setOrders] = useState([])
+  const [total, setTotal] = useState(0)
   const [search, setSearch] = useState('')
   const [filterSO, setFilterSO] = useState('')
   const [filterClient, setFilterClient] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const page = parseInt(searchParams.get('page') || '1', 10)
 
   useEffect(() => {
-    getReceivingHistory()
+    getReceivingHistory({ page, limit: LIMIT })
       .then(data => {
-        if (Array.isArray(data)) setOrders(data)
+        setOrders(Array.isArray(data?.rows) ? data.rows : [])
+        setTotal(data?.total || 0)
       })
-  }, [])
+  }, [page])
+
+  const goToPage = (p) => setSearchParams({ page: String(p) })
 
   const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
   const clientOptions = Array.from(new Set(orders.map(o => o.client || ''))).filter(Boolean)
@@ -46,13 +55,16 @@ export default function ReceivingHistory() {
           className={`${input} w-80`}
           placeholder="Search by SO, client or PO..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => {
+            setSearch(e.target.value)
+            setSearchParams({ page: '1' })
+          }}
         />
-        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
+        <select value={filterSO} onChange={e => { setFilterSO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
           <option value="">All SOs</option>
           {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
+        <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
           <option value="">All Clients</option>
           {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
@@ -63,33 +75,38 @@ export default function ReceivingHistory() {
         </select>
       </div>
 
-      <div className="flex flex-col gap-2">
-        {filtered.length === 0 && (
-          <p className="text-sm text-gray-500">No orders with received parts yet.</p>
-        )}
-        {filtered.map(o => (
-          <div
-            key={o.so_number}
-            onClick={() => navigate(`/receiving-history/${o.so_number}`)}
-            className="bg-white border border-srg-border rounded px-5 py-4 cursor-pointer hover:border-srg-yellow transition-colors"
-          >
-            <div className="flex justify-between items-center">
-              <div>
-                <span className="font-semibold text-sm">{o.so_number}</span>
-                <span className="text-gray-400 mx-2">·</span>
-                <span className="text-sm">{o.client}</span>
-                {o.po_number && (
-                  <>
-                    <span className="text-gray-400 mx-2">·</span>
-                    <span className="text-sm text-gray-500">{o.po_number}</span>
-                  </>
-                )}
-              </div>
-              <span className="text-xs text-gray-400">{o.order_date}</span>
-            </div>
-          </div>
-        ))}
-      </div>
+      {filtered.length === 0 ? (
+        <p className="text-sm text-gray-500">No orders with received parts yet.</p>
+      ) : (
+        <div className={table.wrapper}>
+          <table className={table.base}>
+            <thead>
+              <tr className={table.head}>
+                <th className={table.th}>Sales Order</th>
+                <th className={table.th}>Client</th>
+                <th className={table.th}>Purchase Order</th>
+                <th className={table.th}>Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map(o => (
+                <tr
+                  key={o.so_number}
+                  onClick={() => navigate(`/receiving-history/${o.so_number}`)}
+                  className={`${table.row} cursor-pointer`}
+                >
+                  <td className={`${table.td} font-mono text-srg-black`}>{o.so_number}</td>
+                  <td className={`${table.td} text-srg-black`}>{o.client}</td>
+                  <td className={`${table.td} font-mono text-gray-600`}>{o.po_number || '—'}</td>
+                  <td className={`${table.td} text-gray-600`}>{o.order_date}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      <Pagination page={page} total={total} limit={LIMIT} onPageChange={goToPage} />
     </div>
   )
 }

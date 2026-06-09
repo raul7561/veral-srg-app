@@ -3,16 +3,19 @@ import { useTranslation } from 'react-i18next'
 import {
   ClipboardList,
   Languages,
+  LogOut,
   MapPin,
   PackageCheck,
   Send,
   Truck,
   Users,
 } from 'lucide-react'
+import { useAuth } from '../context/AuthContext'
 
 export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
+  const { logout } = useAuth()
 
   const links = [
     { path: '/', key: 'orders', Icon: ClipboardList },
@@ -25,6 +28,10 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
 
   const toggleLang = () => {
     i18n.changeLanguage(i18n.language === 'en' ? 'es' : 'en')
+  }
+
+  const handleLogout = () => {
+    logout()
   }
 
   const isActive = (path) =>
@@ -82,6 +89,18 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
           <Languages size={18} className={`shrink-0 ${collapsed ? '' : 'md:hidden'}`} />
           <span className={collapsed ? 'md:hidden' : ''}>
             {i18n.language === 'en' ? 'ES' : 'EN'}
+          </span>
+        </button>
+
+        <button
+          onClick={handleLogout}
+          className={`flex items-center gap-3 text-xs tracking-widest text-srg-border hover:text-srg-red mt-2 px-3 py-2 rounded transition-colors ${
+            collapsed ? 'md:justify-center' : ''
+          }`}
+        >
+          <LogOut size={18} className="shrink-0" />
+          <span className={collapsed ? 'md:hidden' : ''}>
+            {i18n.language === 'en' ? 'Log out' : 'Cerrar sesión'}
           </span>
         </button>
       </nav>

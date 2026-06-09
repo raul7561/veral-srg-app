@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import Header from './components/Header'
 import Navbar from './components/Navbar'
+import ProtectedRoute from './components/ProtectedRoute'
+import { AuthProvider } from './context/AuthContext'
 import Orders from './pages/Orders'
 import SupplierTracking from './pages/SupplierTracking'
 import SupplierOrderDetail from './pages/SupplierOrderDetail'
@@ -40,19 +42,21 @@ function AppLayout({ children }) {
 
 export default function App() {
   return (
-    <BrowserRouter>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/" element={<AppLayout><Orders /></AppLayout>} />
-        <Route path="/supplier-tracking" element={<AppLayout><SupplierTracking /></AppLayout>} />
-        <Route path="/supplier-tracking/:soNumber" element={<AppLayout><SupplierOrderDetail /></AppLayout>} />
-        <Route path="/receiving-history" element={<AppLayout><ReceivingHistory /></AppLayout>} />
-        <Route path="/receiving-history/:soNumber" element={<AppLayout><ReceivingHistoryDetail /></AppLayout>} />
-        <Route path="/ready-to-dispatch" element={<AppLayout><ReadyToDispatch /></AppLayout>} />
-        <Route path="/shipment-movement" element={<AppLayout><ShipmentMovement /></AppLayout>} />
-        <Route path="/customers" element={<AppLayout><Customers /></AppLayout>} />
-        <Route path="/customers/:id" element={<AppLayout><CustomerDetail /></AppLayout>} />
-      </Routes>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<ProtectedRoute><AppLayout><Orders /></AppLayout></ProtectedRoute>} />
+          <Route path="/supplier-tracking" element={<ProtectedRoute><AppLayout><SupplierTracking /></AppLayout></ProtectedRoute>} />
+          <Route path="/supplier-tracking/:soNumber" element={<ProtectedRoute><AppLayout><SupplierOrderDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/receiving-history" element={<ProtectedRoute><AppLayout><ReceivingHistory /></AppLayout></ProtectedRoute>} />
+          <Route path="/receiving-history/:soNumber" element={<ProtectedRoute><AppLayout><ReceivingHistoryDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/ready-to-dispatch" element={<ProtectedRoute><AppLayout><ReadyToDispatch /></AppLayout></ProtectedRoute>} />
+          <Route path="/shipment-movement" element={<ProtectedRoute><AppLayout><ShipmentMovement /></AppLayout></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute><AppLayout><Customers /></AppLayout></ProtectedRoute>} />
+          <Route path="/customers/:id" element={<ProtectedRoute><AppLayout><CustomerDetail /></AppLayout></ProtectedRoute>} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }

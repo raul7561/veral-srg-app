@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getReceivingHistoryDetail } from '../api'
+import { table } from '../styles'
 
 export default function ReceivingHistoryDetail() {
   const { soNumber } = useParams()
@@ -37,36 +38,36 @@ export default function ReceivingHistoryDetail() {
         </p>
       </div>
 
-      <div className="bg-white border border-srg-border rounded overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-srg-cream text-xs uppercase text-gray-500 border-b border-srg-border">
-            <tr>
-              <th className="px-4 py-3 text-left">Part Number</th>
-              <th className="px-4 py-3 text-left">Description</th>
-              <th className="px-4 py-3 text-center">Qty</th>
-              <th className="px-4 py-3 text-center">Received</th>
-              <th className="px-4 py-3 text-center">Pending</th>
-              <th className="px-4 py-3 text-left">INV</th>
-              <th className="px-4 py-3 text-left">VEX</th>
-              <th className="px-4 py-3 text-left">Date Received</th>
+      <div className={table.wrapper}>
+        <table className={table.base}>
+          <thead>
+            <tr className={table.head}>
+              <th className={`${table.th} text-left`}>Part Number</th>
+              <th className={`${table.th} text-left`}>Description</th>
+              <th className={`${table.th} text-center`}>Qty</th>
+              <th className={`${table.th} text-center`}>Received</th>
+              <th className={`${table.th} text-center`}>Pending</th>
+              <th className={`${table.th} text-left`}>INV</th>
+              <th className={`${table.th} text-left`}>VEX</th>
+              <th className={`${table.th} text-left`}>Date Received</th>
             </tr>
           </thead>
           <tbody>
             {order.parts.map((p, i) => (
-              <tr key={i} className="border-b border-srg-border last:border-0">
-                <td className="px-4 py-3 font-mono text-xs">{p.part_number}</td>
-                <td className="px-4 py-3 text-gray-700">{p.description}</td>
-                <td className="px-4 py-3 text-center">{p.qty}</td>
-                <td className="px-4 py-3 text-center text-srg-green font-semibold">{p.qty_received}</td>
-                <td className="px-4 py-3 text-center">
+              <tr key={i} className={table.row}>
+                <td className={`${table.td} font-mono text-xs`}>{p.part_number}</td>
+                <td className={`${table.td} text-gray-700`}>{p.description}</td>
+                <td className={`${table.td} text-center`}>{p.qty}</td>
+                <td className={`${table.td} text-center text-srg-green font-semibold`}>{p.qty_received}</td>
+                <td className={`${table.td} text-center`}>
                   {p.qty_pending > 0
                     ? <span className="text-srg-red font-semibold">{p.qty_pending}</span>
                     : <span className="text-gray-400">0</span>
                   }
                 </td>
-                <td className="px-4 py-3 text-xs text-gray-600">{p.invs.join(', ') || '—'}</td>
-                <td className="px-4 py-3 text-xs text-gray-600">{p.vexs.join(', ') || '—'}</td>
-                <td className="px-4 py-3 text-xs text-gray-500">{p.date_of_receiving || '—'}</td>
+                <td className={`${table.td} text-xs text-gray-600`}>{p.invs.join(', ') || '—'}</td>
+                <td className={`${table.td} text-xs text-gray-600`}>{p.vexs.join(', ') || '—'}</td>
+                <td className={`${table.td} text-xs text-gray-500`}>{p.date_of_receiving || '—'}</td>
               </tr>
             ))}
           </tbody>

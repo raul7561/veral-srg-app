@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { getCustomers } from "../api";
-import { btn } from "../styles";
+import { btn, pageTitle, table } from "../styles";
 
 const API = "http://localhost:8000";
 
@@ -149,9 +149,9 @@ export default function Customers() {
   const international = customers.filter(c => c.type === "international");
 
   return (
-    <div className="p-8 max-w-5xl mx-auto">
+    <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold uppercase tracking-wide">Customers</h1>
+        <h1 className={pageTitle}>Customers</h1>
         <button
           onClick={() => { setShowForm(true); setEditingId(null); setForm(INITIAL_FORM); }}
           className={btn.primary}
@@ -387,31 +387,31 @@ function CustomerGroup({ title, customers, onEdit, onDelete }) {
       <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">
         {title} — {customers.length}
       </h2>
-      <div className="border rounded-lg overflow-hidden">
-        <table className="w-full text-sm">
-          <thead className="bg-gray-50 border-b">
-            <tr>
-              <th className="text-left px-4 py-3 font-semibold uppercase text-xs text-gray-500">Name</th>
-              <th className="text-left px-4 py-3 font-semibold uppercase text-xs text-gray-500">Country</th>
-              <th className="text-left px-4 py-3 font-semibold uppercase text-xs text-gray-500">Primary Contact</th>
-              <th className="text-left px-4 py-3 font-semibold uppercase text-xs text-gray-500">Email</th>
-              <th className="text-left px-4 py-3 font-semibold uppercase text-xs text-gray-500">Phone</th>
-              <th className="px-4 py-3"></th>
+      <div className={table.wrapper}>
+        <table className={table.base}>
+          <thead>
+            <tr className={table.head}>
+              <th className={table.th}>Name</th>
+              <th className={table.th}>Country</th>
+              <th className={table.th}>Primary Contact</th>
+              <th className={table.th}>Email</th>
+              <th className={table.th}>Phone</th>
+              <th className={table.th}></th>
             </tr>
           </thead>
           <tbody>
-            {customers.map((c, i) => {
+            {customers.map((c) => {
               const primary = c.contacts?.find(ct => ct.is_primary) || {};
               return (
-                <tr key={c.id} className={i % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                  <td className="px-4 py-3 font-medium">
+                <tr key={c.id} className={table.row}>
+                  <td className={table.td}>
                     <a href={`/customers/${c.id}`} className="hover:underline text-srg-black">{c.name}</a>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{c.country}</td>
-                  <td className="px-4 py-3 text-gray-600">{primary.name || "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{primary.email || "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{primary.phone || "—"}</td>
-                  <td className="px-4 py-3 text-right">
+                  <td className={`${table.td} text-gray-600`}>{c.country}</td>
+                  <td className={`${table.td} text-gray-600`}>{primary.name || "—"}</td>
+                  <td className={`${table.td} text-gray-600`}>{primary.email || "—"}</td>
+                  <td className={`${table.td} text-gray-600`}>{primary.phone || "—"}</td>
+                  <td className={`${table.td} text-right`}>
                     <button onClick={() => onDelete(c.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                   </td>
                 </tr>

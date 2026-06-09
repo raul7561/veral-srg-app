@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCustomerDocuments, getCustomers } from "../api";
-import { btn } from "../styles";
+import { btn, table } from "../styles";
 
 const API = "http://localhost:8000";
 
@@ -106,29 +106,29 @@ export default function CustomerDetail() {
       {/* Contacts */}
       <section className="mb-8">
         <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Contacts</h2>
-        <div className="border rounded-lg overflow-hidden">
-          <table className="w-full text-sm">
-            <thead className="bg-gray-50 border-b">
-              <tr>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase text-gray-500">Name</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase text-gray-500">Email</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase text-gray-500">Phone</th>
-                <th className="text-left px-4 py-3 text-xs font-semibold uppercase text-gray-500">Role</th>
+        <div className={table.wrapper}>
+          <table className={table.base}>
+            <thead>
+              <tr className={table.head}>
+                <th className={table.th}>Name</th>
+                <th className={table.th}>Email</th>
+                <th className={table.th}>Phone</th>
+                <th className={table.th}>Role</th>
               </tr>
             </thead>
             <tbody>
-              <tr className="bg-white">
-                <td className="px-4 py-3 font-medium">{primary.name || "—"}</td>
-                <td className="px-4 py-3 text-gray-600">{primary.email || "—"}</td>
-                <td className="px-4 py-3 text-gray-600">{primary.phone || "—"}</td>
-                <td className="px-4 py-3"><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">Primary</span></td>
+              <tr className={table.row}>
+                <td className={table.td}>{primary.name || "—"}</td>
+                <td className={`${table.td} text-gray-600`}>{primary.email || "—"}</td>
+                <td className={`${table.td} text-gray-600`}>{primary.phone || "—"}</td>
+                <td className={table.td}><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">Primary</span></td>
               </tr>
               {extras.map((c, i) => (
-                <tr key={i} className="bg-gray-50 border-t">
-                  <td className="px-4 py-3">{c.name || "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.email || "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{c.phone || "—"}</td>
-                  <td className="px-4 py-3 text-gray-400 text-xs">Additional</td>
+                <tr key={i} className={table.row}>
+                  <td className={table.td}>{c.name || "—"}</td>
+                  <td className={`${table.td} text-gray-600`}>{c.email || "—"}</td>
+                  <td className={`${table.td} text-gray-600`}>{c.phone || "—"}</td>
+                  <td className={`${table.td} text-gray-400 text-xs`}>Additional</td>
                 </tr>
               ))}
             </tbody>

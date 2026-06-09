@@ -47,9 +47,15 @@ export function getCustomerDocuments(customerId) {
   return getJson(`/customers/${customerId}/documents`);
 }
 
-export function getSupplierTracking() {
-  if (USE_MOCK) return mockResponse(mockSupplierTracking);
-  return getJson("/supplier-tracking/orders");
+export function getSupplierTracking({ page = 1, limit = 25 } = {}) {
+  if (USE_MOCK) {
+    const total = mockSupplierTracking.length;
+    const start = (page - 1) * limit;
+    const rows = mockSupplierTracking.slice(start, start + limit);
+    return mockResponse({ rows, total });
+  }
+  const params = new URLSearchParams({ page, limit });
+  return getJson(`/supplier-tracking/orders?${params}`);
 }
 
 export function getSupplierOrderLinesBySo(soNumber) {
@@ -64,9 +70,15 @@ export function getReadyToDispatch() {
   return getJson("/ready-to-dispatch/orders");
 }
 
-export function getReceivingHistory() {
-  if (USE_MOCK) return mockResponse(mockReceivingHistory);
-  return getJson("/receiving-history/orders");
+export function getReceivingHistory({ page = 1, limit = 25 } = {}) {
+  if (USE_MOCK) {
+    const total = mockReceivingHistory.length;
+    const start = (page - 1) * limit;
+    const rows = mockReceivingHistory.slice(start, start + limit);
+    return mockResponse({ rows, total });
+  }
+  const params = new URLSearchParams({ page, limit });
+  return getJson(`/receiving-history/orders?${params}`);
 }
 
 export function getReceivingHistoryDetail(soNumber) {

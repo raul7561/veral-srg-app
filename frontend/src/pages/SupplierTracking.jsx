@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, useSearchParams } from "react-router-dom"
 import { getSupplierTracking } from "../api"
+import Pagination from "../components/Pagination"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
 import { btn, input, pageTitle, table } from "../styles"
@@ -12,10 +13,13 @@ const FULFILLMENT_LABELS = {
   complete: { label: "Complete", color: "text-srg-green" },
 }
 
+const LIMIT = 25
+
 export default function SupplierTracking() {
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState(null)
   const [orders, setOrders] = useState([])
+  const [total, setTotal] = useState(0)
   const [search, setSearch] = useState("")
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [attachModalOpen, setAttachModalOpen] = useState(false)
@@ -25,18 +29,25 @@ export default function SupplierTracking() {
   const [filterPO, setFilterPO] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
+  const [searchParams, setSearchParams] = useSearchParams()
+  const page = parseInt(searchParams.get('page') || '1', 10)
   const syncInputRef = useRef(null)
 
-  useEffect(() => { fetchOrders() }, [])
+  useEffect(() => { fetchOrders(page) }, [page])
 
-  async function fetchOrders() {
+  async function fetchOrders(p = page) {
     try {
-      const data = await getSupplierTracking()
-      setOrders(data)
+      const data = await getSupplierTracking({ page: p, limit: LIMIT })
+      setOrders(data?.rows || [])
+      setTotal(data?.total || 0)
     } catch (err) {
       console.error("Failed to fetch orders", err)
+      setOrders([])
+      setTotal(0)
     }
   }
+
+  const goToPage = (p) => setSearchParams({ page: String(p) })
 
   async function handleMadasaSync(e) {
     const file = e.target.files[0]
@@ -105,22 +116,25 @@ export default function SupplierTracking() {
               type="text"
               placeholder="Search by SO, client or PO..."
               value={search}
-              onChange={e => setSearch(e.target.value)}
+              onChange={e => {
+                setSearch(e.target.value)
+                setSearchParams({ page: '1' })
+              }}
               className={`${input} w-72`}
             />
-            <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
+            <select value={filterSO} onChange={e => { setFilterSO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
               <option value="">All SOs</option>
               {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
             </select>
-            <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
+            <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
               <option value="">All Clients</option>
               {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
-            <select value={filterPO} onChange={e => setFilterPO(e.target.value)} className={input}>
+            <select value={filterPO} onChange={e => { setFilterPO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
               <option value="">All POs</option>
               {poOptions.map(p => <option key={p} value={p}>{p}</option>)}
             </select>
-            <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
+            <select value={sortBy} onChange={e => { setSortBy(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
               <option value="newest">Newest</option>
               <option value="oldest">Oldest</option>
               <option value="az">Client A–Z</option>
@@ -157,9 +171,9 @@ export default function SupplierTracking() {
           <thead>
             <tr className={table.head}>
               {[
-                { key: "so_number", label: "SO" },
+                { key: "so_number", label: "Sales Order" },
                 { key: "client", label: "Client" },
-                { key: "po_number", label: "PO" },
+                { key: "po_number", label: "Purchase Order" },
                 { key: "order_date", label: "Date" },
                 { key: "total_lines", label: "Parts" },
                 { key: "fulfillment", label: "Status" },
@@ -179,19 +193,19 @@ export default function SupplierTracking() {
               const f = FULFILLMENT_LABELS[order.fulfillment] || FULFILLMENT_LABELS.pending
               return (
                 <tr key={order.id} className={table.row}>
-                  <td className={`${table.td} font-mono font-bold cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
-                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
-                  <td className={`${table.td} font-mono text-gray-500 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
-                  <td className={`${table.td} text-gray-400 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
-                  <td className={`${table.td} text-gray-500 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
-                  <td className={`${table.td} font-medium ${f.color} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{f.label}</td>
+                  <td className={`${table.td} font-mono text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
+                  <td className={`${table.td} text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
+                  <td className={`${table.td} font-mono text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
+                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
+                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
+                  <td className={`${table.td} ${f.color} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{f.label}</td>
                   <td className={table.td}>
                     <button
                       onClick={() => {
                         setSelectedOrder(order)
                         setAttachModalOpen(true)
                       }}
-                      className={`${btn.secondary} ${btn.sm}`}
+                      className={`${btn.secondary} ${btn.row}`}
                     >
                       Attach
                     </button>
@@ -207,6 +221,8 @@ export default function SupplierTracking() {
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} total={total} limit={LIMIT} onPageChange={goToPage} />
 
       {/* Upload Document Modal (SO, PO, Ferral OV) */}
       {uploadModalOpen && (
