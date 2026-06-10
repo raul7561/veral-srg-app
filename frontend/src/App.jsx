@@ -34,7 +34,7 @@ function AppLayout({ children }) {
           mobileOpen={mobileOpen}
           onCloseMobile={() => setMobileOpen(false)}
         />
-        <main className="flex-1 bg-srg-cream">{children}</main>
+        <main className="flex-1 min-w-0 bg-srg-cream">{children}</main>
       </div>
     </div>
   )

@@ -18,7 +18,7 @@ export const sectionTitle = "text-xs font-bold uppercase tracking-widest text-gr
 export const label = "text-xs uppercase font-semibold text-gray-500 tracking-wide"
 
 export const table = {
-  wrapper: "border border-srg-border rounded overflow-hidden",
+  wrapper: "border border-srg-border rounded overflow-x-auto",
   base: "w-full text-sm",
   head: "text-left text-xs font-bold text-srg-black uppercase tracking-wide border-b border-srg-border bg-srg-cream",
   th: "px-4 py-1",

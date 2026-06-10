@@ -103,15 +103,15 @@ export default function SupplierTracking() {
     <div className="p-8">
       <h1 className={pageTitle}>Supplier Tracking</h1>
 
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
           <button
             onClick={() => setUploadModalOpen(true)}
-            className={btn.primary}
+            className={`${btn.primary} w-full md:w-auto`}
           >
             Upload Document
           </button>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <input
               type="text"
               placeholder="Search by SO, client or PO..."
@@ -120,8 +120,9 @@ export default function SupplierTracking() {
                 setSearch(e.target.value)
                 setSearchParams({ page: '1' })
               }}
-              className={`${input} w-72`}
+              className={`${input} w-full md:w-72`}
             />
+            <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
             <select value={filterSO} onChange={e => { setFilterSO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
               <option value="">All SOs</option>
               {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
@@ -139,10 +140,11 @@ export default function SupplierTracking() {
               <option value="oldest">Oldest</option>
               <option value="az">Client A–Z</option>
             </select>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <input
             ref={syncInputRef}
             type="file"
@@ -154,7 +156,7 @@ export default function SupplierTracking() {
           <button
             onClick={() => syncInputRef.current?.click()}
             disabled={syncing}
-            className={btn.secondary}
+            className={`${btn.secondary} w-full md:w-auto`}
           >
             {syncing ? "Syncing..." : "Sync Madisa Excel"}
           </button>
