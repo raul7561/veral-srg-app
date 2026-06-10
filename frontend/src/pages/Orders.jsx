@@ -14,7 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 import { getOrders } from '../api'
-import Spinner from '../components/Spinner'
+import CurtainReveal from '../components/CurtainReveal'
 import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
 const LAG_STYLES = {
@@ -138,14 +138,14 @@ export default function Orders() {
   )
 
   if (loading) return (
-    <>
-      {cameFromLogin && <Spinner />}
-      <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
-    </>
+    <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
   )
 
   return (
-    <div className="p-8">
+    <>
+      {cameFromLogin && <CurtainReveal />}
+
+      <div className="p-8">
       <h1 className={pageTitle}>
         {t('nav.orders')}
       </h1>
@@ -277,6 +277,7 @@ export default function Orders() {
           </tbody>
         </table>
       </div>
-    </div>
+      </div>
+    </>
   )
 }

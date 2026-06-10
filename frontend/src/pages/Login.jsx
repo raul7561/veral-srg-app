@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import hero from '../assets/hero.png'
 import logo from '../assets/srg_logo.png'
+import CurtainCover from '../components/CurtainCover'
 import CurtainReveal from '../components/CurtainReveal'
 import { useAuth } from '../context/AuthContext'
 import { btn, input, label } from '../styles'
@@ -12,6 +13,7 @@ export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showCurtain, setShowCurtain] = useState(false)
+  const [coveringIn, setCoveringIn] = useState(false)
 
   useEffect(() => {
     if (sessionStorage.getItem('srg_just_logged_out') === 'true') {
@@ -23,6 +25,14 @@ export default function Login() {
   return (
     <div style={{ background: 'var(--color-srg-black)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       {showCurtain && <CurtainReveal />}
+      {coveringIn && (
+        <CurtainCover
+          onCovered={() => {
+            sessionStorage.setItem('srg_just_logged_in', 'true')
+            navigate('/')
+          }}
+        />
+      )}
 
       <div style={{ position: 'relative', width: '100%', height: '45vh' }}>
         <img src={hero} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
@@ -66,7 +76,10 @@ export default function Login() {
 
         <button
           type="button"
-          onClick={() => { login(); sessionStorage.setItem('srg_just_logged_in', 'true'); navigate('/') }}
+          onClick={() => {
+            login()
+            setCoveringIn(true)
+          }}
           className={`${btn.primary} w-full !bg-srg-yellow !py-2.5 !text-srg-black hover:!bg-[#ffc247]`}
         >
           SIGN IN
