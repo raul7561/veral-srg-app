@@ -1,0 +1,55 @@
+import { useState, useEffect, useRef } from 'react'
+import { getClients } from '../api/quotes'
+import { input } from '../styles'
+
+export default function ClientAutocomplete({ value, onChange, placeholder }) {
+  const [names, setNames] = useState([])
+  const inputRef = useRef(null)
+
+  useEffect(() => {
+    getClients()
+      .then(data => setNames((data.items || []).map(c => c.name)))
+      .catch(() => setNames([]))
+  }, [])
+
+  const suggestion =
+    value.trim() === ''
+      ? ''
+      : names.find(n => n.toLowerCase().startsWith(value.toLowerCase()) && n.toLowerCase() !== value.toLowerCase()) || ''
+
+  const ghost = suggestion ? value + suggestion.slice(value.length) : ''
+
+  function accept() {
+    if (suggestion) onChange(suggestion)
+  }
+
+  function handleKeyDown(e) {
+    if ((e.key === 'Tab' || e.key === 'ArrowRight' || e.key === 'Enter') && suggestion) {
+      e.preventDefault()
+      accept()
+    } else if (e.key === 'Escape') {
+      inputRef.current?.blur()
+    }
+  }
+
+  return (
+    <div className="relative">
+      <div
+        aria-hidden="true"
+        className={`${input} absolute inset-0 pointer-events-none text-gray-400 overflow-hidden whitespace-pre`}
+        style={{ background: 'transparent', borderColor: 'transparent' }}
+      >
+        {ghost}
+      </div>
+      <input
+        ref={inputRef}
+        className={`${input} relative bg-transparent`}
+        value={value}
+        onChange={e => onChange(e.target.value)}
+        onKeyDown={handleKeyDown}
+        placeholder={placeholder}
+        autoComplete="off"
+      />
+    </div>
+  )
+}

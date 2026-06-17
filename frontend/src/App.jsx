@@ -13,6 +13,8 @@ import ReadyToDispatch from './pages/ReadyToDispatch'
 import ShipmentMovement from './pages/ShipmentMovement'
 import Customers from './pages/Customers'
 import CustomerDetail from './pages/CustomerDetail'
+import NewQuote from './pages/NewQuote'
+import Historial from './pages/Historial'
 import Login from './pages/Login'
 import './i18n'
 
@@ -55,6 +57,9 @@ export default function App() {
           <Route path="/shipment-movement" element={<ProtectedRoute><AppLayout><ShipmentMovement /></AppLayout></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute><AppLayout><Customers /></AppLayout></ProtectedRoute>} />
           <Route path="/customers/:id" element={<ProtectedRoute><AppLayout><CustomerDetail /></AppLayout></ProtectedRoute>} />
+          <Route path="/quotes/new" element={<ProtectedRoute><AppLayout><NewQuote /></AppLayout></ProtectedRoute>} />
+          <Route path="/quotes/:id/edit" element={<ProtectedRoute><AppLayout><NewQuote /></AppLayout></ProtectedRoute>} />
+          <Route path="/quotes/history" element={<ProtectedRoute><AppLayout><Historial /></AppLayout></ProtectedRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

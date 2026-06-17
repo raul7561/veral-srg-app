@@ -11,6 +11,9 @@ const resources = {
         readyToDispatch: "READY TO DISPATCH",
         shipmentMovement: "SHIPMENT MOVEMENT",
         customers: "CUSTOMERS",
+        quotes: "QUOTES",
+        quotesGenerate: "GENERATE",
+        quotesHistory: "HISTORY",
       }
     }
   },
@@ -23,6 +26,9 @@ const resources = {
         readyToDispatch: "LISTO PARA DESPACHAR",
         shipmentMovement: "MOVIMIENTO DE ENVÍO",
         customers: "CLIENTES",
+        quotes: "COTIZACIONES",
+        quotesGenerate: "GENERAR",
+        quotesHistory: "HISTORIAL",
       }
     }
   }

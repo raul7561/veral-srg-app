@@ -1,7 +1,12 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
+  ChevronDown,
   ClipboardList,
+  FilePlus,
+  FileText,
+  History,
   Languages,
   LogOut,
   MapPin,
@@ -15,6 +20,7 @@ import { useAuth } from '../context/AuthContext'
 export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
+  const [quotesOpen, setQuotesOpen] = useState(location.pathname.startsWith('/quotes'))
   const { logout } = useAuth()
 
   const links = [
@@ -75,6 +81,67 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
               <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t(`nav.${key}`)}</span>
             </Link>
           ))}
+
+          {collapsed ? (
+            <Link
+              to="/quotes/new"
+              onClick={onCloseMobile}
+              className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors ${
+                collapsed ? 'md:justify-center' : ''
+              } ${
+                location.pathname.startsWith('/quotes')
+                  ? 'bg-srg-yellow text-srg-black font-bold'
+                  : 'text-srg-border hover:text-white'
+              }`}
+            >
+              <FileText size={18} className="shrink-0" />
+              <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t('nav.quotes')}</span>
+            </Link>
+          ) : (
+            <div className="flex flex-col gap-1">
+              <button
+                type="button"
+                onClick={() => setQuotesOpen(current => !current)}
+                className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors ${
+                  collapsed ? 'md:justify-center' : ''
+                } ${
+                  location.pathname.startsWith('/quotes')
+                    ? 'bg-srg-yellow text-srg-black font-bold'
+                    : 'text-srg-border hover:text-white'
+                }`}
+              >
+                <FileText size={18} className="shrink-0" />
+                <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t('nav.quotes')}</span>
+                <ChevronDown
+                  size={16}
+                  className={`ml-auto shrink-0 transition-transform ${quotesOpen ? 'rotate-180' : ''}`}
+                />
+              </button>
+
+              {quotesOpen && (
+                <>
+                  {[
+                    { path: '/quotes/new', label: t('nav.quotesGenerate'), Icon: FilePlus },
+                    { path: '/quotes/history', label: t('nav.quotesHistory'), Icon: History },
+                  ].map(({ path, label, Icon }) => (
+                    <Link
+                      key={path}
+                      to={path}
+                      onClick={onCloseMobile}
+                      className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors pl-9 ${
+                        location.pathname === path
+                          ? 'bg-srg-yellow text-srg-black font-bold'
+                          : 'text-srg-border hover:text-white'
+                      }`}
+                    >
+                      <Icon size={18} className="shrink-0" />
+                      <span className="whitespace-nowrap">{label}</span>
+                    </Link>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="h-px bg-srg-yellow mb-4" />
