@@ -10,16 +10,14 @@ router = APIRouter(prefix="/orders", tags=["orders"])
 
 @router.get("")
 def get_orders():
-    sales_orders = supabase.table("sales_orders").select("*").order("so_date", desc=True).execute().data
-    all_invoices = supabase.table("invoices").select("*").execute().data
-    all_parts = supabase.table("parts").select("*").execute().data
-    all_logs = supabase.table("receiving_log").select("*").execute().data
-    all_vex = supabase.table("vex_numbers").select("*").execute().data
+    orders = supabase.table("supplier_orders").select("*").order("order_date", desc=True).execute().data
+    all_invs = supabase.table("supplier_invs").select("*").execute().data
 
     result = []
 
-    for so in sales_orders:
-        so_date = date.fromisoformat(so["so_date"]) if so.get("so_date") else None
+    for so in orders:
+        raw_date = so.get("order_date")
+        so_date = date.fromisoformat(raw_date) if raw_date else None
         if so_date:
             business_days = int(np.busday_count(so_date, date.today()))
             if business_days >= 20:
@@ -32,50 +30,24 @@ def get_orders():
             business_days = None
             lag_status = "unknown"
 
-        invs = [i for i in all_invoices if i["so_number"] == so["so_number"]]
-        inv_list = []
-
-        for inv in invs:
-            parts = [p for p in all_parts if p["invoice_id"] == inv["id"]]
-            logs = [r for r in all_logs if r["invoice_id"] == inv["id"]]
-            vex_list = [v for v in all_vex if v["invoice_id"] == inv["id"]]
-
-            total_pns = len(parts)
-            received_pns = sum(
-                1 for p in parts
-                if sum(r["quantity_received"] for r in logs if r["part_number"] == p["part_number"]) >= p["quantity"]
-            )
-
-            part_list = []
-            for p in parts:
-                qty_received = sum(r["quantity_received"] for r in logs if r["part_number"] == p["part_number"])
-                part_list.append({
-                    "part_number": p["part_number"],
-                    "description": p["description"],
-                    "quantity": p["quantity"],
-                    "quantity_received": qty_received,
-                    "complete": qty_received >= p["quantity"]
-                })
-
-            inv_list.append({
+        invs = [i for i in all_invs if i["supplier_order_id"] == so["id"]]
+        inv_list = [
+            {
                 "id": inv["id"],
-                "inv_number": inv["inv_number"],
-                "invoice_date": inv.get("invoice_date"),
+                "inv_number": inv.get("inv_number"),
+                "invoice_date": inv.get("inv_date"),
                 "dispatch_status": inv.get("dispatch_status", "pending"),
-                "total_pns": total_pns,
-                "received_pns": received_pns,
-                "vex": [v["vex_number"] for v in vex_list],
-                "parts": part_list
-            })
+            }
+            for inv in invs
+        ]
 
         result.append({
-            "so_number": so["so_number"],
-            "so_date": so.get("so_date"),
+            "so_number": so.get("so_number"),
+            "so_date": raw_date,
             "client": so.get("client"),
-            "ship_to": so.get("ship_to"),
             "business_days": business_days,
             "lag_status": lag_status,
-            "invoices": inv_list
+            "invoices": inv_list,
         })
 
     return result

@@ -168,3 +168,24 @@ def update_quote(request, quote_id: int) -> dict:
         raise
 
     return response.data
+
+def convert_quote_to_so(quote_id: int, so_number: str, customer_id: str) -> dict:
+    try:
+        response = supabase.rpc(
+            "convert_quote_to_so",
+            {
+                "p_quote_id": str(quote_id),
+                "p_so_number": so_number,
+                "p_customer_id": customer_id,
+            },
+        ).execute()
+    except Exception as e:
+        message = str(e)
+        if "QUOTE_NOT_FOUND" in message:
+            raise QuoteNotFound()
+        if "QUOTE_FROZEN" in message:
+            raise QuoteFrozen()
+        if "QUOTE_VOIDED" in message:
+            raise QuoteVoided()
+        raise
+    return response.data

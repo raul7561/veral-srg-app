@@ -4,13 +4,10 @@ from app.database import supabase
 router = APIRouter(prefix="/receiving-history", tags=["Receiving History"])
 
 @router.get("/orders")
-def get_orders_with_vex():
+def get_orders_with_vex(page: int = 1, limit: int = 25):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
     supplier_vex = supabase.table("supplier_vex").select("*").execute().data
-    sales_orders = supabase.table("sales_orders").select("so_number, client").execute().data
-
-    so_client_map = {s["so_number"]: s["client"] for s in sales_orders}
 
     vex_by_inv = {}
     for v in supplier_vex:
@@ -25,11 +22,14 @@ def get_orders_with_vex():
         results.append({
             "so_number": so["so_number"],
             "po_number": so.get("po_number"),
-            "client": so_client_map.get(so["so_number"], "—"),
+            "client": so.get("client"),
             "order_date": so.get("order_date"),
         })
 
-    return results
+    total = len(results)
+    start = (page - 1) * limit
+    paginated = results[start:start + limit]
+    return { "rows": paginated, "total": total }
 
 @router.get("/orders/{so_number}")
 def get_order_detail(so_number: str):
@@ -43,9 +43,6 @@ def get_order_detail(so_number: str):
     lines = supabase.table("supplier_order_lines").select("*").eq("supplier_order_id", supplier_order_id).execute().data
     invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", supplier_order_id).execute().data
     vex = supabase.table("supplier_vex").select("*").execute().data
-    sales_orders = supabase.table("sales_orders").select("so_number, client").execute().data
-
-    so_client_map = {s["so_number"]: s["client"] for s in sales_orders}
 
     inv_map = {i["id"]: i for i in invs}
     vex_by_inv = {}
@@ -87,7 +84,7 @@ def get_order_detail(so_number: str):
 
     return {
         "so_number": so_number,
-        "client": so_client_map.get(so_number, "—"),
+        "client": order.data[0].get("client"),
         "po_number": order.data[0].get("po_number"),
         "order_date": order.data[0].get("order_date"),
         "parts": part_rows,

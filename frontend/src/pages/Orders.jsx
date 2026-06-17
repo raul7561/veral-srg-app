@@ -13,7 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
-import { getOrders } from '../api'
+import { getOrders, getQuotesThisMonthCount } from '../api'
 import CurtainReveal from '../components/CurtainReveal'
 import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
@@ -52,11 +52,15 @@ export default function Orders() {
   const [sortBy, setSortBy] = useState('lag')
   const [activeFilter, setActiveFilter] = useState(null)
   const [cameFromLogin, setCameFromLogin] = useState(false)
+  const [quotesThisMonth, setQuotesThisMonth] = useState(0)
 
   useEffect(() => {
     getOrders()
       .then(data => { setOrders(data); setLoading(false) })
       .catch(() => setLoading(false))
+    getQuotesThisMonthCount()
+      .then(setQuotesThisMonth)
+      .catch(() => setQuotesThisMonth(0))
   }, [])
 
   useEffect(() => {
@@ -150,7 +154,7 @@ export default function Orders() {
         {t('nav.orders')}
       </h1>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
         {METRIC_FILTERS.map(metric => {
           const isActive = activeFilter === metric.key
 
@@ -170,11 +174,19 @@ export default function Orders() {
             </button>
           )
         })}
+        <div className={`${card} p-4`}>
+          <div className="text-4xl font-extrabold leading-none text-srg-black">
+            {quotesThisMonth}
+          </div>
+          <div className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-400">
+            Quotes this month
+          </div>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className={`${card} p-4`}>
-          <h2 className={sectionTitle}>Antigüedad</h2>
+          <h2 className={sectionTitle}>Orders by age</h2>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={ageData}>
               <XAxis dataKey="name" />
@@ -190,7 +202,7 @@ export default function Orders() {
         </div>
 
         <div className={`${card} p-4`}>
-          <h2 className={sectionTitle}>Despacho</h2>
+          <h2 className={sectionTitle}>INVs by dispatch status</h2>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
@@ -231,6 +243,9 @@ export default function Orders() {
           <option value="az">Client A–Z</option>
         </select>
       </div>
+
+      <h2 className={sectionTitle}>Most critical orders</h2>
+      <p className="text-xs text-gray-400 mb-3">Top 10 by lag. Full list in Supplier Tracking.</p>
 
       <div className={table.wrapper}>
         <table className={table.base}>

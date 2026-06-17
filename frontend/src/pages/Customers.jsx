@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { getCustomers } from "../api";
 import { btn, pageTitle, table } from "../styles";
 
@@ -62,6 +63,8 @@ const INITIAL_FORM = {
 };
 
 export default function Customers() {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
@@ -120,6 +123,11 @@ export default function Customers() {
       setShowForm(false);
       setEditingId(null);
       fetchCustomers();
+      const returnId = location.state?.returnToConvertQuoteId;
+      if (returnId) {
+        navigate('/quotes/history', { state: { returnToConvertQuoteId: returnId } });
+        return;
+      }
     } finally {
       setSaving(false);
     }

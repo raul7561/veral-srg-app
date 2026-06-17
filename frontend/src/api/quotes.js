@@ -64,6 +64,19 @@ export async function updateQuote(id, payload) {
   return res.json()
 }
 
+export async function convertQuote(id, payload) {
+  const res = await fetch(`${API_URL}/api/quotes/${id}/convert`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  })
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}))
+    throw new Error(data.detail || `convert failed with status ${res.status}`)
+  }
+  return res.json()
+}
+
 export async function previewQuote(payload) {
   const res = await fetch(`${API_URL}/api/quotes/preview`, {
     method: "POST",

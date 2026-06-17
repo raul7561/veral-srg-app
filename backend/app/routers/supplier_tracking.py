@@ -61,8 +61,12 @@ async def create_supplier_order(file: UploadFile = File(...)):
 
 
 @router.get("/orders")
-def get_supplier_orders():
-    orders = supabase.table("supplier_orders").select("*").order("created_at", desc=True).execute().data
+def get_supplier_orders(page: int = 1, limit: int = 25):
+    start = (page - 1) * limit
+    end = start + limit - 1
+    resp = supabase.table("supplier_orders").select("*", count="exact").order("created_at", desc=True).range(start, end).execute()
+    orders = resp.data
+    total_count = resp.count
     all_lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").execute().data
     all_invs = supabase.table("supplier_invs").select("*").execute().data
     all_vex = supabase.table("supplier_vex").select("*").execute().data
@@ -99,7 +103,7 @@ def get_supplier_orders():
             "invs": invs,
         })
 
-    return result
+    return {"rows": result, "total": total_count}
 
 
 @router.get("/orders/{so_number}/lines-by-so")

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
+import { useLocation, useNavigate } from 'react-router-dom'
+import { convertQuote, getClients, getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
 import { btn, input, pageTitle, table } from '../styles'
 
 function money(n) {
@@ -16,7 +16,15 @@ export default function Historial() {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
+  const [convertOpen, setConvertOpen] = useState(false)
+  const [clientQuery, setClientQuery] = useState(selected?.client_name || '')
+  const [clientResults, setClientResults] = useState([])
+  const [selectedClient, setSelectedClient] = useState(null)
+  const [soNumber, setSoNumber] = useState('')
+  const [converting, setConverting] = useState(false)
+  const [convertError, setConvertError] = useState(null)
   const navigate = useNavigate()
+  const location = useLocation()
 
   async function load() {
     setLoading(true)
@@ -34,7 +42,56 @@ export default function Historial() {
     }
   }
 
-  useEffect(() => { load() }, [page])
+  useEffect(() => { queueMicrotask(() => load()) }, [page])
+
+  useEffect(() => {
+    const qid = location.state?.returnToConvertQuoteId
+    if (!qid) return
+    const q = quotes.find(x => x.id === qid)
+    if (q) {
+      queueMicrotask(() => openConvertModal(q))
+      navigate(location.pathname, { replace: true, state: {} })
+    } else if (!loading) {
+      queueMicrotask(() => load())
+    }
+  }, [location.state, quotes])
+
+  const filteredClients = clientResults
+    .filter(c => c.id)
+    .filter(c => (c.name || '').toLowerCase().includes(clientQuery.toLowerCase()))
+    .slice(0, 6)
+
+  function openConvertModal(quote = selected) {
+    if (quote) setSelected(quote)
+    setClientQuery(quote?.client_name || '')
+    setClientResults([])
+    setSelectedClient(null)
+    setSoNumber('')
+    setConvertError(null)
+    setConvertOpen(true)
+    getClients()
+      .then(d => setClientResults(d.items || []))
+      .catch(e => setConvertError(e.message))
+  }
+
+  async function doConvert() {
+    if (!selectedClient?.id || !soNumber.trim() || !selected) return
+    setConverting(true)
+    setConvertError(null)
+    try {
+      const updated = await convertQuote(selected.id, {
+        so_number: soNumber.trim(),
+        customer_id: selectedClient.id,
+      })
+      setConvertOpen(false)
+      setSelected(updated)
+      load()
+    } catch (e) {
+      setConvertError(e.message)
+    } finally {
+      setConverting(false)
+    }
+  }
 
   function doSearch() {
     setPage(1)
@@ -51,10 +108,86 @@ export default function Historial() {
             {!selected.so_number && (
               <button onClick={() => navigate(`/quotes/${selected.id}/edit`)} className={btn.secondary}>↻ Actualizar stock</button>
             )}
+            {!selected.so_number && (
+              <button onClick={() => openConvertModal()} className={btn.primary}>→ Convertir a SO</button>
+            )}
             <button onClick={() => window.open(quotePdfUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
             <button onClick={() => window.open(quoteExcelUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar Excel</button>
           </div>
         </div>
+        {convertOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-[28rem] max-w-[calc(100vw-2rem)] shadow-xl">
+              <p className="font-semibold mb-4">Convertir quote a SO</p>
+              <div className="mb-4">
+                <label className="text-xs uppercase font-semibold text-gray-500">Cliente</label>
+                <input
+                  className={`${input} mt-1`}
+                  value={clientQuery}
+                  onChange={e => {
+                    setClientQuery(e.target.value)
+                    setSelectedClient(null)
+                  }}
+                  placeholder="Buscar cliente registrado"
+                />
+                <div className="mt-2 max-h-48 overflow-y-auto border border-srg-border rounded">
+                  {filteredClients.map(client => (
+                    <button
+                      key={client.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedClient(client)
+                        setClientQuery(client.name)
+                      }}
+                      className={`block w-full text-left px-3 py-2 text-sm hover:bg-srg-cream ${
+                        selectedClient?.id === client.id ? 'bg-srg-yellow text-srg-black font-bold' : ''
+                      }`}
+                    >
+                      {client.name}
+                    </button>
+                  ))}
+                  {filteredClients.length === 0 && (
+                    <div className="px-3 py-2 text-sm text-gray-400">No hay coincidencias.</div>
+                  )}
+                </div>
+                {!selectedClient && (
+                  <div className="mt-3 rounded border border-srg-border p-3">
+                    <p className="text-sm text-gray-500 mb-3">Este cliente aun no esta registrado en Customers</p>
+                    <button
+                      onClick={() => {
+                        setConvertOpen(false)
+                        navigate('/customers', { state: { returnToConvertQuoteId: selected.id } })
+                      }}
+                      className={btn.secondary}
+                    >
+                      + Agregar cliente en Customers
+                    </button>
+                  </div>
+                )}
+              </div>
+              <div className="mb-4">
+                <label className="text-xs uppercase font-semibold text-gray-500">Numero de SO</label>
+                <input
+                  className={`${input} mt-1`}
+                  value={soNumber}
+                  onChange={e => setSoNumber(e.target.value)}
+                  placeholder="SO..."
+                />
+              </div>
+              {convertError && <p className="text-sm text-srg-red mb-4">{convertError}</p>}
+              <div className="flex gap-3">
+                <button
+                  onClick={doConvert}
+                  disabled={!selectedClient?.id || !soNumber.trim() || converting}
+                  className={btn.primary}
+                >
+                  {converting ? 'Convirtiendo...' : 'Convertir a SO'}
+                </button>
+                <button onClick={() => setConvertOpen(false)} className={btn.secondary}>Cancelar</button>
+              </div>
+            </div>
+          </div>
+        )}
         <iframe
           src={quoteHtmlUrl(selected.id)}
           title={`Quote ${selected.quote_number}`}

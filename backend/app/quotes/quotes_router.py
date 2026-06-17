@@ -8,6 +8,7 @@ from app.quotes.models import (
     CalculateRequest,
     CalculateResponse,
     CancelQuoteRequest,
+    ConvertQuoteRequest,
     CreateQuoteRequest,
     ParseResponse,
     PriceLevel,
@@ -302,4 +303,21 @@ def cancel_quote(quote_id: int, request: CancelQuoteRequest):
         raise HTTPException(status_code=409, detail="Quote convertido a SO, no se puede anular")
     except QuoteAlreadyVoided:
         raise HTTPException(status_code=409, detail="Quote ya esta anulado")
+    return quote
+
+
+@router.post("/{quote_id}/convert", response_model=QuoteDetail)
+def convert_quote(quote_id: int, request: ConvertQuoteRequest):
+    try:
+        quote = quotes_repo.convert_quote_to_so(
+            quote_id=quote_id,
+            so_number=request.so_number,
+            customer_id=request.customer_id,
+        )
+    except QuoteNotFound:
+        raise HTTPException(status_code=404, detail="Quote no encontrado")
+    except QuoteFrozen:
+        raise HTTPException(status_code=409, detail="Quote ya convertido a SO, no se puede reconvertir")
+    except QuoteVoided:
+        raise HTTPException(status_code=409, detail="Quote anulado, no se puede convertir")
     return quote

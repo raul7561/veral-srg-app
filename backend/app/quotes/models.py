@@ -77,6 +77,11 @@ class CancelQuoteRequest(BaseModel):
     cancelled_reason: str
 
 
+class ConvertQuoteRequest(BaseModel):
+    so_number: str
+    customer_id: str
+
+
 class ClientItem(BaseModel):
     id: int | None = None
     name: str

@@ -1,7 +1,5 @@
 import {
   mockCustomerDocuments,
-  mockCustomers,
-  mockOrders,
   mockReadyToDispatch,
   mockReceivingHistory,
   mockReceivingHistoryDetails,
@@ -29,12 +27,26 @@ async function getJson(path) {
 }
 
 export function getOrders() {
-  if (USE_MOCK) return mockResponse(mockOrders);
   return getJson("/orders");
 }
 
+export function getQuotesThisMonthCount() {
+  const now = new Date();
+  const y = now.getFullYear();
+  const m = now.getMonth(); // 0-indexed
+  const first = new Date(y, m, 1);
+  const last = new Date(y, m + 1, 0);
+  const fmt = (d) => d.toISOString().slice(0, 10); // YYYY-MM-DD
+  const params = new URLSearchParams({
+    date_from: fmt(first),
+    date_to: fmt(last),
+    page_size: 1,
+    status: 'activo',
+  });
+  return getJson(`/api/quotes?${params}`).then(r => r.total ?? 0);
+}
+
 export function getCustomers() {
-  if (USE_MOCK) return mockResponse(mockCustomers);
   return getJson("/customers/");
 }
 
