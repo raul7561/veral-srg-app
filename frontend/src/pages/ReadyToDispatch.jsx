@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { Fragment, useEffect, useState } from 'react'
 import { getReadyToDispatch } from '../api'
-import { btn, input, pageTitle } from "../styles"
+import { btn, input, pageTitle, table } from "../styles"
 
 export default function ReadyToDispatch() {
   const [orders, setOrders] = useState([])
@@ -63,10 +63,10 @@ export default function ReadyToDispatch() {
   const dispatched = filteredOrders.filter(o => o.dispatch_status === 'dispatched').slice().sort(sortComparator)
 
   const statusLabel = (inv) => {
-    if (inv.dispatch_status === 'dispatched') return <span className="text-xs text-srg-green font-semibold">🚚 Dispatched · {inv.dispatched_at?.slice(0, 10)}</span>
-    if (inv.dispatch_status === 'ready') return <span className="text-xs text-srg-orange font-semibold">⏳ Ready to Dispatch · {inv.dispatched_at?.slice(0, 10)}</span>
-    if (inv.complete) return <span className="text-xs text-srg-green">✓ Complete</span>
-    return <span className="text-xs text-gray-400">⏳ Incomplete</span>
+    if (inv.dispatch_status === 'dispatched') return <span className="text-xs text-srg-green font-semibold">Dispatched - {inv.dispatched_at?.slice(0, 10)}</span>
+    if (inv.dispatch_status === 'ready') return <span className="text-xs text-srg-orange font-semibold">Ready to Dispatch - {inv.dispatched_at?.slice(0, 10)}</span>
+    if (inv.complete) return <span className="text-xs text-srg-green">Complete</span>
+    return <span className="text-xs text-gray-400">Incomplete</span>
   }
 
   const actionButton = (inv) => {
@@ -75,7 +75,7 @@ export default function ReadyToDispatch() {
       return (
         <button
           onClick={() => setConfirming({ type: 'ready', inv_id: inv.inv_id, label: `Mark ${inv.inv_number} as Ready to Dispatch?` })}
-          className="text-xs bg-srg-yellow text-srg-black font-semibold px-3 py-1.5 rounded"
+          className={`${btn.primary} ${btn.row}`}
         >
           Mark Ready
         </button>
@@ -86,13 +86,13 @@ export default function ReadyToDispatch() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => setConfirming({ type: 'dispatch', inv_id: inv.inv_id, label: `Confirm dispatch for ${inv.inv_number}?` })}
-            className="text-xs bg-srg-black text-white font-semibold px-3 py-1.5 rounded"
+            className={`${btn.primary} ${btn.row}`}
           >
             Mark Dispatched
           </button>
           <button
             onClick={() => setConfirming({ type: 'undispatch', inv_id: inv.inv_id, label: `Unmark ${inv.inv_number}?` })}
-            className="text-xs text-gray-400 underline"
+            className={`${btn.ghost} ${btn.row} text-gray-400`}
           >
             Unmark
           </button>
@@ -103,7 +103,7 @@ export default function ReadyToDispatch() {
       return (
         <button
           onClick={() => setConfirming({ type: 'undispatch', inv_id: inv.inv_id, label: `Unmark ${inv.inv_number} as dispatched?` })}
-          className="text-xs text-gray-400 underline"
+          className={`${btn.ghost} ${btn.row} text-gray-400`}
         >
           Unmark
         </button>
@@ -111,74 +111,97 @@ export default function ReadyToDispatch() {
     }
   }
 
-  const renderCard = (o, isDispatched) => {
-    const isOpen = expanded[o.so_number]
-    return (
-      <div key={o.so_number} className={`bg-srg-surface border border-srg-border rounded overflow-hidden ${isDispatched ? 'opacity-70' : ''}`}>
-        <div
-          className="px-5 py-4 flex justify-between items-center cursor-pointer hover:bg-srg-cream transition-colors"
-          onClick={() => toggleExpand(o.so_number)}
-        >
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-gray-400">{isOpen ? '▲' : '▼'}</span>
-            <span className="font-semibold text-sm">{o.so_number}</span>
-            <span className="text-gray-400">·</span>
-            <span className="text-sm">{o.client}</span>
-            {o.po_number && (
-              <>
-                <span className="text-gray-400">·</span>
-                <span className="text-sm text-gray-500">{o.po_number}</span>
-              </>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {isDispatched
-              ? <span className="text-xs text-srg-green font-semibold">🚚 Dispatched · {o.dispatched_at?.slice(0, 10)}</span>
-              : o.all_complete
-                ? <div className="flex items-center gap-2">
-                    <span className="text-xs bg-srg-green text-white px-2 py-1 rounded">All Complete</span>
-                    {o.invs.every(i => i.dispatch_status === 'dispatched')
-                      ? null
-                      : o.invs.every(i => i.dispatch_status === 'ready' || i.dispatch_status === 'dispatched')
-                        ? <button
-                            onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_dispatch', so_number: o.so_number, label: `Confirm dispatch for all INVs in ${o.so_number}?` }) }}
-                            className="text-xs bg-srg-black text-white font-semibold px-3 py-1.5 rounded"
-                          >
-                            Mark All Dispatched
-                          </button>
-                        : <button
-                            onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_ready', so_number: o.so_number, label: `Mark all INVs in ${o.so_number} as Ready to Dispatch?` }) }}
-                            className="text-xs bg-srg-yellow text-srg-black font-semibold px-3 py-1.5 rounded"
-                          >
-                            Mark All Ready
-                          </button>
-                    }
-                  </div>
-                : <span className="text-xs bg-srg-orange text-srg-black px-2 py-1 rounded">Partial</span>
-            }
-          </div>
-        </div>
-
-        {isOpen && (
-          <div className="divide-y divide-srg-border border-t border-srg-border">
-            {o.invs.map(inv => (
-              <div key={inv.inv_id} className="px-5 py-3 flex justify-between items-center">
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-mono">{inv.inv_number}</span>
-                  <span className="text-xs text-gray-400">{inv.inv_date}</span>
-                  {statusLabel(inv)}
-                  {inv.vexs?.length > 0 && (
-                    <span className="text-xs text-gray-400">{inv.vexs.join(', ')}</span>
-                  )}
-                </div>
-                {actionButton(inv)}
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    )
+  const orderStatusBadge = (o, isDispatched) => {
+    if (isDispatched) {
+      return <span className="inline-flex rounded bg-srg-green px-2 py-1 text-xs font-semibold text-white">Dispatched</span>
+    }
+    if (o.all_complete) {
+      return <span className="inline-flex rounded bg-srg-green px-2 py-1 text-xs font-semibold text-white">All Complete</span>
+    }
+    return <span className="inline-flex rounded bg-srg-orange px-2 py-1 text-xs font-semibold text-srg-black">Partial</span>
   }
+
+  const orderActionButton = (o, isDispatched) => {
+    if (isDispatched) return null
+    if (o.all_complete) {
+      if (o.invs.every(i => i.dispatch_status === 'dispatched')) {
+        return null
+      }
+      if (o.invs.every(i => i.dispatch_status === 'ready' || i.dispatch_status === 'dispatched')) {
+        return (
+          <button
+            onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_dispatch', so_number: o.so_number, label: `Confirm dispatch for all INVs in ${o.so_number}?` }) }}
+            className={`${btn.primary} ${btn.row}`}
+          >
+            Mark All Dispatched
+          </button>
+        )
+      }
+      return (
+        <button
+          onClick={(e) => { e.stopPropagation(); setConfirming({ type: 'so_ready', so_number: o.so_number, label: `Mark all INVs in ${o.so_number} as Ready to Dispatch?` }) }}
+          className={`${btn.primary} ${btn.row}`}
+        >
+          Mark All Ready
+        </button>
+      )
+    }
+    return null
+  }
+
+  const renderDispatchTable = (rows, isDispatched) => (
+    <div className={isDispatched ? "opacity-70" : ""}>
+      <div className={table.wrapper}>
+        <table className={table.base}>
+          <thead>
+            <tr className={table.head}>
+              <th className={`${table.th} w-10`}></th>
+              <th className={table.th}>Sales Order</th>
+              <th className={table.th}>Client</th>
+              <th className={table.th}>Purchase Order</th>
+              <th className={table.th}>Status</th>
+              <th className={`${table.th} text-right`}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(o => {
+              const isOpen = expanded[o.so_number]
+              return (
+                <Fragment key={o.so_number}>
+                  <tr className={`${table.row} cursor-pointer`} onClick={() => toggleExpand(o.so_number)}>
+                    <td className={`${table.td} text-gray-400`}>{isOpen ? '▾' : '▸'}</td>
+                    <td className={`${table.td} font-mono text-srg-black`}>{o.so_number}</td>
+                    <td className={`${table.td} text-srg-black`}>{o.client}</td>
+                    <td className={`${table.td} font-mono text-gray-600`}>{o.po_number || "—"}</td>
+                    <td className={table.td}>{orderStatusBadge(o, isDispatched)}</td>
+                    <td className={table.td}>
+                      <div className="hidden md:flex items-center justify-end">
+                        {orderActionButton(o, isDispatched)}
+                      </div>
+                    </td>
+                  </tr>
+                  {isOpen && o.invs.map(inv => (
+                    <tr key={inv.inv_id} className={`${table.row} bg-srg-cream/60 hover:bg-srg-cream`}>
+                      <td className={table.td}></td>
+                      <td className={`${table.td} pl-8 font-mono text-srg-black`}>{inv.inv_number}</td>
+                      <td className={`${table.td} text-gray-600`}>{inv.inv_date || "—"}</td>
+                      <td className={`${table.td} text-gray-500`}>{inv.vexs?.length > 0 ? inv.vexs.join(', ') : "—"}</td>
+                      <td className={table.td}>{statusLabel(inv)}</td>
+                      <td className={table.td}>
+                        <div className="hidden md:flex items-center justify-end">
+                          {actionButton(inv)}
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </Fragment>
+              )
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  )
 
   return (
     <div className="p-8">
@@ -196,36 +219,36 @@ export default function ReadyToDispatch() {
         </div>
       )}
 
-      <div className="mb-6 flex items-center gap-2">
-        <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
-          <option value="">All SOs</option>
-          {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
-          <option value="">All Clients</option>
-          {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
-        </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="az">Client A–Z</option>
-        </select>
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
+        <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
+          <select value={filterSO} onChange={e => setFilterSO(e.target.value)} className={input}>
+            <option value="">All SOs</option>
+            {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select value={filterClient} onChange={e => setFilterClient(e.target.value)} className={input}>
+            <option value="">All Clients</option>
+            {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
+            <option value="newest">Newest</option>
+            <option value="oldest">Oldest</option>
+            <option value="az">Client A–Z</option>
+          </select>
+        </div>
       </div>
 
       {pending.length === 0 && (
         <p className="text-sm text-gray-500 mb-6">No orders ready to dispatch.</p>
       )}
 
-      <div className="flex flex-col gap-3 mb-8">
-        {pending.map(o => renderCard(o, false))}
+      <div className="mb-8">
+        {renderDispatchTable(pending, false)}
       </div>
 
       {dispatched.length > 0 && (
         <>
           <h2 className="text-lg font-semibold mb-3">Dispatched</h2>
-          <div className="flex flex-col gap-3">
-            {dispatched.map(o => renderCard(o, true))}
-          </div>
+          {renderDispatchTable(dispatched, true)}
         </>
       )}
     </div>
