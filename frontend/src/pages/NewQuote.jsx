@@ -23,6 +23,11 @@ function weight(n) {
   return Number(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
 }
 
+function finalUnitPrice(line) {
+  if (line.unit_price === null || line.unit_price === undefined) return null
+  return line.unit_price + (line.core_deposit || 0)
+}
+
 export default function NewQuote() {
   const { id } = useParams()
   const editMode = Boolean(id)
@@ -41,6 +46,7 @@ export default function NewQuote() {
   const [previewing, setPreviewing] = useState(false)
   const [confirmBack, setConfirmBack] = useState(false)
   const [quoteNumber, setQuoteNumber] = useState(null)
+  const [shippingCost, setShippingCost] = useState('')
 
   useEffect(() => {
     if (!id) return
@@ -49,6 +55,7 @@ export default function NewQuote() {
         setClientName(q.client_name || '')
         setPriceLevel(q.price_level || 'US_LIST')
         setQuoteNumber(q.quote_number)
+        setShippingCost(q.shipping_cost ?? '')
       })
       .catch(e => setError(e.message))
   }, [id])
@@ -96,6 +103,13 @@ export default function NewQuote() {
     setOriginalQty(prev => ({ ...prev, [itemNumber]: Number.isNaN(v) ? prev[itemNumber] : v }))
   }
 
+  function updateCoreDeposit(itemNumber, value) {
+    const v = value === '' ? null : parseFloat(value)
+    setLines(prev => prev.map(l =>
+      l.item_number === itemNumber ? { ...l, core_deposit: (v === null || Number.isNaN(v)) ? null : v } : l
+    ))
+  }
+
   function removeLine(itemNumber) {
     setLines(prev => prev.filter(l => l.item_number !== itemNumber))
     setOriginalQty(prev => {
@@ -106,16 +120,38 @@ export default function NewQuote() {
   }
 
   async function recalculate() {
+    if (editMode) {
+      const ok = window.confirm('Recalcular puede afectar los Core Deposit de este quote guardado. Si alguna línea traía core incluido en el precio, revísalo después de recalcular. ¿Continuar?')
+      if (!ok) return
+    }
     setLoading(true)
     setError(null)
     try {
+      const coreMap = {}
+      lines.forEach(l => { coreMap[l.item_number] = l.core_deposit ?? null })
       const calc = await calculateQuote(priceLevel, lines)
-      setLines(calc.lines)
+      const merged = calc.lines.map(l => ({ ...l, core_deposit: coreMap[l.item_number] ?? null }))
+      setLines(merged)
     } catch (e) {
       setError(e.message)
     } finally {
       setLoading(false)
     }
+  }
+
+  function linesForPayload() {
+    return lines.map(l => {
+      const core = l.core_deposit || 0
+      const base = (l.unit_price === null || l.unit_price === undefined) ? null : l.unit_price
+      const finalPrice = base === null ? null : base + core
+      let notes = l.notes || ''
+      if (core > 0) {
+        notes = notes ? `${notes} · Core deposit included` : 'Core deposit included'
+      }
+      const rest = { ...l }
+      delete rest.core_deposit
+      return { ...rest, unit_price: finalPrice, notes }
+    })
   }
 
   async function openPreview() {
@@ -129,8 +165,8 @@ export default function NewQuote() {
       const payload = {
         client_name: clientName.trim(),
         price_level: priceLevel,
-        shipping_cost: null,
-        lines,
+        shipping_cost: shippingCost === '' ? null : Number(shippingCost),
+        lines: linesForPayload(),
       }
       const html = await previewQuote(payload)
       setPreviewHtml(html)
@@ -156,8 +192,8 @@ export default function NewQuote() {
       const payload = {
         client_name: clientName.trim(),
         price_level: priceLevel,
-        shipping_cost: null,
-        lines,
+        shipping_cost: shippingCost === '' ? null : Number(shippingCost),
+        lines: linesForPayload(),
       }
       const result = editMode ? await updateQuote(id, payload) : await createQuote(payload)
       setCreatedQuote(result)
@@ -187,9 +223,13 @@ export default function NewQuote() {
     setCreatedQuote(null)
     setPreviewHtml(null)
     setError(null)
+    setShippingCost('')
   }
 
-  const totalAmount = lines.reduce((sum, l) => sum + (l.unit_price ? l.unit_price * l.quantity : 0), 0)
+  const totalAmount = lines.reduce((sum, l) => {
+    const fp = (l.unit_price === null || l.unit_price === undefined) ? 0 : l.unit_price + (l.core_deposit || 0)
+    return sum + fp * l.quantity
+  }, 0)
   const hasLines = lines.length > 0
 
   return (
@@ -285,6 +325,21 @@ export default function NewQuote() {
                 {PRICE_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
+            <div className="w-40">
+              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">Costo de envío</label>
+              <div className="flex items-center gap-1">
+                <span className="text-sm text-gray-500">$</span>
+                <input
+                  type="number"
+                  min="0"
+                  step="0.01"
+                  value={shippingCost}
+                  onChange={e => setShippingCost(e.target.value)}
+                  placeholder="—"
+                  className={input}
+                />
+              </div>
+            </div>
             <div className="text-xs text-gray-500 flex items-center gap-1 pb-2">
               <span className="text-srg-green">✓</span> {fileName}
             </div>
@@ -328,6 +383,7 @@ export default function NewQuote() {
                   <th className={`${table.th} text-center`}>Min Qty</th>
                   <th className={table.th}>Reemplaza</th>
                   <th className={table.th}>Notes</th>
+                  <th className={`${table.th} text-right`}>Core Deposit</th>
                   <th className={`${table.th} text-center`}></th>
                 </tr>
               </thead>
@@ -335,7 +391,7 @@ export default function NewQuote() {
                 {lines.map(line => {
                   const orig = originalQty[line.item_number]
                   const rounded = orig !== undefined && orig !== line.quantity
-                  const totalPrice = line.unit_price ? line.unit_price * line.quantity : null
+                  const totalPrice = finalUnitPrice(line) !== null ? finalUnitPrice(line) * line.quantity : null
                   const totalWeight = line.unit_weight ? line.unit_weight * line.quantity : null
                   const isShifted = line.notes && line.notes.toLowerCase().includes('corrida')
                   return (
@@ -357,7 +413,7 @@ export default function NewQuote() {
                       <td className={`${table.td} font-mono`}>{line.part_number}</td>
                       <td className={`${table.td} ${isShifted ? 'text-srg-red' : ''}`}>{line.description}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{money(line.madisa_cost)}</td>
-                      <td className={`${table.td} text-right font-semibold`}>{line.unit_price === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(line.unit_price)}</td>
+                      <td className={`${table.td} text-right font-semibold`}>{finalUnitPrice(line) === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(finalUnitPrice(line))}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{totalPrice === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(totalPrice)}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{weight(line.unit_weight)}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{weight(totalWeight)}</td>
@@ -380,6 +436,21 @@ export default function NewQuote() {
                             : line.notes === 'Built to Order'
                               ? <span className="text-srg-amber font-semibold text-xs">Built to Order</span>
                               : <span className="text-gray-500 text-xs">{line.notes}</span>}
+                      </td>
+                      <td className={`${table.td} text-center`}>
+                        <div className="flex items-center justify-end gap-1">
+                          <span className={`text-sm ${line.unit_price === null ? 'text-gray-300' : 'text-gray-500'}`}>$</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={line.core_deposit ?? ''}
+                            disabled={line.unit_price === null}
+                            onChange={e => updateCoreDeposit(line.item_number, e.target.value)}
+                            className="w-20 border border-srg-border rounded px-2 py-0.5 text-right text-sm bg-white focus:outline-none focus:border-srg-yellow disabled:bg-gray-100 disabled:cursor-not-allowed"
+                            placeholder="—"
+                          />
+                        </div>
                       </td>
                       <td className={`${table.td} text-center`}>
                         <button onClick={() => removeLine(line.item_number)} className="text-gray-400 hover:text-srg-red text-sm" title="Quitar línea">✕</button>

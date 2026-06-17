@@ -137,6 +137,8 @@ def _build_html(quote: dict, internal: bool = False) -> str:
 
     # total de precio: viene calculado del helper (fuente de verdad)
     total_amount = quote.get("total_amount") or 0
+    ship = quote.get("shipping_cost")
+    ship_s = _money(ship) if ship not in (None, 0) else "Pendiente"
 
     meta = {
         "quote_number": _esc(quote.get("quote_number")),
@@ -228,7 +230,7 @@ table.items tfoot td {{ padding:5px 4px; font-size:9pt;
     </tr>
     <tr>
       <td class="t-lbl" colspan="{span_total}">Shipping cost (USD)</td>
-      <td class="t-val">Pendiente</td>
+      <td class="t-val">{ship_s}</td>
       <td colspan="{span_ship_end}"></td>
     </tr>
   </tfoot>
