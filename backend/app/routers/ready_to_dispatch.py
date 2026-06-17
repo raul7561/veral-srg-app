@@ -37,9 +37,6 @@ def get_inv_completion(supplier_inv_id: str) -> bool:
 def get_ready_orders():
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
-    sales_orders = supabase.table("sales_orders").select("so_number, client").execute().data
-
-    so_client_map = {s["so_number"]: s["client"] for s in sales_orders}
 
     results = []
     for so in supplier_orders:
@@ -69,7 +66,7 @@ def get_ready_orders():
         results.append({
             "so_number": so["so_number"],
             "po_number": so.get("po_number"),
-            "client": so_client_map.get(so["so_number"], "—"),
+            "client": so.get("client", "—"),
             "order_date": so.get("order_date"),
             "dispatch_status": so_dispatch_status,
             "dispatched_at": so.get("dispatched_at"),

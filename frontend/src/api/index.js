@@ -1,6 +1,5 @@
 import {
   mockCustomerDocuments,
-  mockReadyToDispatch,
   mockReceivingHistory,
   mockReceivingHistoryDetails,
   mockSupplierOrderLinesBySo,
@@ -78,7 +77,6 @@ export function getSupplierOrderLinesBySo(soNumber) {
 }
 
 export function getReadyToDispatch() {
-  if (USE_MOCK) return mockResponse(mockReadyToDispatch);
   return getJson("/ready-to-dispatch/orders");
 }
 
