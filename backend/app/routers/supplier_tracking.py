@@ -70,9 +70,6 @@ def get_supplier_orders(page: int = 1, limit: int = 25):
     all_lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").execute().data
     all_invs = supabase.table("supplier_invs").select("*").execute().data
     all_vex = supabase.table("supplier_vex").select("*").execute().data
-    sales_orders = supabase.table("sales_orders").select("so_number, client").execute().data
-
-    so_client_map = {s["so_number"]: s["client"] for s in sales_orders}
 
     result = []
     for order in orders:
@@ -96,7 +93,7 @@ def get_supplier_orders(page: int = 1, limit: int = 25):
 
         result.append({
             **order,
-            "client": order.get("client") or so_client_map.get(order["so_number"], "—"),
+            "client": order.get("client") or "—",
             "total_lines": total,
             "received_lines": received,
             "fulfillment": fulfillment,
