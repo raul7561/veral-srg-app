@@ -28,10 +28,10 @@ export default function ReadyToDispatch() {
   const confirmAction = () => {
     const { type, inv_id, so_number } = confirming
     const url = type === 'so_ready'
-      ? `http://localhost:8000/ready-to-dispatch/so/${so_number}/ready`
+      ? `${import.meta.env.VITE_API_URL}/ready-to-dispatch/so/${so_number}/ready`
       : type === 'so_dispatch'
-        ? `http://localhost:8000/ready-to-dispatch/so/${so_number}/dispatch`
-        : `http://localhost:8000/ready-to-dispatch/inv/${inv_id}/${type}`
+        ? `${import.meta.env.VITE_API_URL}/ready-to-dispatch/so/${so_number}/dispatch`
+        : `${import.meta.env.VITE_API_URL}/ready-to-dispatch/inv/${inv_id}/${type}`
     fetch(url, { method: 'PATCH' })
       .then(r => r.json())
       .then(() => {

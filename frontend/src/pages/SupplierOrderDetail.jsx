@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom"
 import { getSupplierOrderLinesBySo, getSupplierTracking, openSignedPdf } from "../api"
 import { table } from "../styles"
 
-const API = "http://localhost:8000/supplier-tracking"
+const API = `${import.meta.env.VITE_API_URL}/supplier-tracking`
 
 export default function SupplierOrderDetail() {
   const { soNumber } = useParams()
@@ -286,7 +286,7 @@ function VexUploader({ soNumber, invNumber, onSuccess }) {
     formData.append("file", file)
     try {
       const res = await fetch(
-        `http://localhost:8000/supplier-tracking/orders/${soNumber}/inv/${invNumber}/vex`,
+        `${API}/orders/${soNumber}/inv/${invNumber}/vex`,
         { method: "POST", body: formData }
       )
       const data = await res.json()

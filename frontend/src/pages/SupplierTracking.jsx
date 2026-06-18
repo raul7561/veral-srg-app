@@ -57,7 +57,7 @@ export default function SupplierTracking() {
     const formData = new FormData()
     formData.append("file", file)
     try {
-      const res = await fetch("http://localhost:8000/supplier-tracking/sync/madisa", {
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/supplier-tracking/sync/madisa`, {
         method: "POST",
         body: formData,
       })

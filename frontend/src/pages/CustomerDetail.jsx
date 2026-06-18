@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { getCustomerDocuments, getCustomers, openSignedPdf } from "../api";
 import { btn, table } from "../styles";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_URL;
 
 export default function CustomerDetail() {
   const { id } = useParams();

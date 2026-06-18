@@ -11,9 +11,9 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
 
   function getEndpoint() {
     if (activeTab === "vex") {
-      return `http://localhost:8000/supplier-tracking/orders/${soNumber}/inv/${selectedInv}/vex`
+      return `${import.meta.env.VITE_API_URL}/supplier-tracking/orders/${soNumber}/inv/${selectedInv}/vex`
     }
-    return "http://localhost:8000/supplier-tracking/attach/inv"
+    return `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/inv`
   }
 
   function handleDragOver(e) {

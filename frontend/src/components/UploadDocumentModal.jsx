@@ -9,10 +9,10 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
   const dragRef = useRef(null)
 
   const tabConfig = {
-    so: { label: "SO", endpoint: "http://localhost:8000/supplier-tracking/orders" },
-    po: { label: "PO", endpoint: "http://localhost:8000/supplier-tracking/attach/po" },
-    ferral_ov: { label: "Ferral OV", endpoint: "http://localhost:8000/supplier-tracking/attach/ferral-ov" },
-    inv: { label: "INV", endpoint: "http://localhost:8000/supplier-tracking/attach/inv" },
+    so: { label: "SO", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/orders` },
+    po: { label: "PO", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/po` },
+    ferral_ov: { label: "Ferral OV", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/ferral-ov` },
+    inv: { label: "INV", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/inv` },
   }
 
   function handleDragOver(e) {

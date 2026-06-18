@@ -3,7 +3,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getCustomers } from "../api";
 import { btn, pageTitle, table } from "../styles";
 
-const API = "http://localhost:8000";
+const API = import.meta.env.VITE_API_URL;
 
 const PRIORITY_COUNTRIES = [
   "United States", "Chile", "Peru", "Argentina", "Bolivia",
