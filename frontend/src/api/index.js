@@ -1,3 +1,4 @@
+import { supabase } from "../lib/supabaseClient";
 import {
   mockCustomerDocuments,
   mockReceivingHistory,
@@ -96,4 +97,23 @@ export function getReceivingHistoryDetail(soNumber) {
     return mockResponse(mockReceivingHistoryDetails[soNumber] || null);
   }
   return getJson(`/receiving-history/orders/${soNumber}`);
+}
+
+export async function openSignedPdf(publicUrl) {
+  if (!publicUrl) return
+  // Extraer la ruta dentro del bucket: lo que sigue a "/documents/"
+  const marker = "/documents/"
+  const idx = publicUrl.indexOf(marker)
+  const path = idx !== -1 ? publicUrl.slice(idx + marker.length) : publicUrl
+  const { data } = await supabase.auth.getSession()
+  const token = data?.session?.access_token
+  const res = await fetch(`${API_URL}/documents/signed-url?path=${encodeURIComponent(path)}`, {
+    headers: token ? { Authorization: `Bearer ${token}` } : {},
+  })
+  if (!res.ok) {
+    console.error("No se pudo obtener la URL firmada")
+    return
+  }
+  const json = await res.json()
+  window.open(json.signed_url, "_blank", "noopener,noreferrer")
 }

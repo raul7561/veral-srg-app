@@ -1,5 +1,15 @@
+import { supabase } from "../lib/supabaseClient"
+
 const API_URL = import.meta.env.VITE_API_URL
-const USE_MOCK = import.meta.env.VITE_USE_MOCK === "true"
+
+async function authHeaders(extra = {}) {
+  const { data } = await supabase.auth.getSession()
+  const token = data?.session?.access_token
+  return {
+    ...extra,
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
 
 async function getJson(path) {
   const res = await fetch(`${API_URL}${path}`)
@@ -41,7 +51,7 @@ export async function calculateQuote(priceLevel, lines) {
 export async function createQuote(payload) {
   const res = await fetch(`${API_URL}/api/quotes`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
@@ -54,7 +64,7 @@ export async function createQuote(payload) {
 export async function updateQuote(id, payload) {
   const res = await fetch(`${API_URL}/api/quotes/${id}`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   })
   if (!res.ok) {
@@ -67,7 +77,7 @@ export async function updateQuote(id, payload) {
 export async function convertQuote(id, payload) {
   const res = await fetch(`${API_URL}/api/quotes/${id}/convert`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   })
   if (!res.ok) {

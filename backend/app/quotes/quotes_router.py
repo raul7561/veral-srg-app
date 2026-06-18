@@ -3,7 +3,9 @@ from datetime import date, datetime
 from pathlib import Path
 
 from fastapi import APIRouter, Form, HTTPException, Response, UploadFile
+from fastapi import Depends
 
+from app.auth import get_current_user
 from app.quotes.models import (
     CalculateRequest,
     CalculateResponse,
@@ -157,13 +159,13 @@ def preview_quote(request: CreateQuoteRequest):
 
 
 @router.post("", response_model=QuoteDetail, status_code=201)
-def create_quote(request: CreateQuoteRequest):
+def create_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_user)):
     recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
     request = request.model_copy(update={"lines": recalculated_lines})
     quote = quotes_repo.create_quote(
         request=request,
-        sales_rep_name=PLACEHOLDER_SALES_REP,
-        user_id=None,
+        sales_rep_name=user["full_name"],
+        user_id=user["id"],
     )
     return quote
 
@@ -289,13 +291,12 @@ def update_quote(quote_id: int, request: UpdateQuoteRequest):
 
 
 @router.post("/{quote_id}/cancel", response_model=QuoteDetail)
-def cancel_quote(quote_id: int, request: CancelQuoteRequest):
-    # TODO Auth: voided_by sale del usuario logueado. None hasta que entre Supabase Auth.
+def cancel_quote(quote_id: int, request: CancelQuoteRequest, user: dict = Depends(get_current_user)):
     try:
         quote = quotes_repo.cancel_quote(
             quote_id=quote_id,
             reason=request.cancelled_reason,
-            user_id=None,
+            user_id=user["id"],
         )
     except QuoteNotFound:
         raise HTTPException(status_code=404, detail="Quote no encontrado")

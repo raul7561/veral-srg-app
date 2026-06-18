@@ -1,6 +1,6 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getSupplierOrderLinesBySo, getSupplierTracking } from "../api"
+import { getSupplierOrderLinesBySo, getSupplierTracking, openSignedPdf } from "../api"
 import { table } from "../styles"
 
 const API = "http://localhost:8000/supplier-tracking"
@@ -12,9 +12,7 @@ export default function SupplierOrderDetail() {
   const [lines, setLines] = useState([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => { fetchOrder() }, [soNumber])
-
-  async function fetchOrder() {
+  const fetchOrder = useCallback(async () => {
     try {
       const [ordersRes, linesRes] = await Promise.all([
         getSupplierTracking(),
@@ -30,7 +28,9 @@ export default function SupplierOrderDetail() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [soNumber])
+
+  useEffect(() => { queueMicrotask(() => fetchOrder()) }, [soNumber, fetchOrder])
 
   if (loading) return <div className="p-8">Loading...</div>
   if (!order) return <div className="p-8">Order {soNumber} not found.</div>
@@ -209,7 +209,7 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm">{value}</span>
           {pdfUrl && (
-            <a href={pdfUrl} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ PDF</a>
+            <button type="button" onClick={() => openSignedPdf(pdfUrl)} className="text-xs text-srg-black hover:underline">↓ PDF</button>
           )}
         </div>
       ) : (

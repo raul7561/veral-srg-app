@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { convertQuote, getClients, getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
 import { btn, input, pageTitle, table } from '../styles'
@@ -26,7 +26,7 @@ export default function Historial() {
   const navigate = useNavigate()
   const location = useLocation()
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -40,9 +40,9 @@ export default function Historial() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [page, search])
 
-  useEffect(() => { queueMicrotask(() => load()) }, [page])
+  useEffect(() => { queueMicrotask(() => load()) }, [page, load])
 
   useEffect(() => {
     const qid = location.state?.returnToConvertQuoteId
@@ -54,7 +54,7 @@ export default function Historial() {
     } else if (!loading) {
       queueMicrotask(() => load())
     }
-  }, [location.state, quotes])
+  }, [location.state, quotes]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const filteredClients = clientResults
     .filter(c => c.id)

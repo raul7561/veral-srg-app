@@ -367,8 +367,8 @@ export default function Customers() {
         <p className="text-gray-400">Loading...</p>
       ) : (
         <>
-          <CustomerGroup title="International" customers={international} onEdit={() => {}} onDelete={id => setConfirmDelete(id)} />
-          <CustomerGroup title="Domestic" customers={domestic} onEdit={() => {}} onDelete={id => setConfirmDelete(id)} />
+          <CustomerGroup title="International" customers={international} onDelete={id => setConfirmDelete(id)} />
+          <CustomerGroup title="Domestic" customers={domestic} onDelete={id => setConfirmDelete(id)} />
         </>
       )}
 
@@ -388,7 +388,7 @@ export default function Customers() {
   );
 }
 
-function CustomerGroup({ title, customers, onEdit, onDelete }) {
+function CustomerGroup({ title, customers, onDelete }) {
   if (customers.length === 0) return null;
   return (
     <div className="mb-8">

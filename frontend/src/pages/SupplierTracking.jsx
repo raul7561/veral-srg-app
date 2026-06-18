@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useCallback } from "react"
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getSupplierTracking } from "../api"
 import Pagination from "../components/Pagination"
@@ -33,9 +33,7 @@ export default function SupplierTracking() {
   const page = parseInt(searchParams.get('page') || '1', 10)
   const syncInputRef = useRef(null)
 
-  useEffect(() => { fetchOrders(page) }, [page])
-
-  async function fetchOrders(p = page) {
+  const fetchOrders = useCallback(async (p = page) => {
     try {
       const data = await getSupplierTracking({ page: p, limit: LIMIT })
       setOrders(data?.rows || [])
@@ -45,7 +43,9 @@ export default function SupplierTracking() {
       setOrders([])
       setTotal(0)
     }
-  }
+  }, [page])
+
+  useEffect(() => { queueMicrotask(() => fetchOrders(page)) }, [page, fetchOrders])
 
   const goToPage = (p) => setSearchParams({ page: String(p) })
 

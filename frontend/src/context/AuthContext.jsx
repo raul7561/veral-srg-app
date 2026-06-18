@@ -1,33 +1,50 @@
 /* eslint-disable react-refresh/only-export-components */
-import { createContext, useContext, useState } from 'react'
+import { createContext, useContext, useState, useEffect } from 'react'
 import CurtainCover from '../components/CurtainCover'
+import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [isAuthenticated, setIsAuthenticated] = useState(
-    () => localStorage.getItem('srg_auth') === 'true'
-  )
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [coveringOut, setCoveringOut] = useState(false)
 
-  const login = () => {
-    setIsAuthenticated(true)
-    localStorage.setItem('srg_auth', 'true')
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session)
+      setLoading(false)
+    })
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session)
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
+  }, [])
+
+  const login = async (email, password) => {
+    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    if (error) {
+      return { success: false, message: error.message }
+    }
+    return { success: true }
   }
 
   const logout = () => {
     setCoveringOut(true)
   }
 
-  const handleCovered = () => {
-    setIsAuthenticated(false)
-    localStorage.removeItem('srg_auth')
+  const handleCovered = async () => {
+    await supabase.auth.signOut()
     sessionStorage.setItem('srg_just_logged_out', 'true')
     setCoveringOut(false)
   }
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
       {children}
       {coveringOut && <CurtainCover onCovered={handleCovered} />}
     </AuthContext.Provider>

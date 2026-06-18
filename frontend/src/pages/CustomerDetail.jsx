@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCustomerDocuments, getCustomers } from "../api";
+import { getCustomerDocuments, getCustomers, openSignedPdf } from "../api";
 import { btn, table } from "../styles";
 
 const API = "http://localhost:8000";
@@ -21,15 +21,7 @@ export default function CustomerDetail() {
   const [showUploadForm, setShowUploadForm] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
 
-  useEffect(() => { fetchAll(); }, [id]);
-
-  useEffect(() => {
-    if (customer) {
-      setUploadType(customer.type === "domestic" ? "tax_certificate" : "other");
-    }
-  }, [customer]);
-
-  async function fetchAll() {
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     const [allCustomers, docs] = await Promise.all([
       getCustomers(),
@@ -37,9 +29,14 @@ export default function CustomerDetail() {
     ]);
     const found = allCustomers.find(c => c.id === id);
     setCustomer(found || null);
+    if (found) {
+      setUploadType(found.type === "domestic" ? "tax_certificate" : "other");
+    }
     setDocuments(docs);
     setLoading(false);
-  }
+  }, [id]);
+
+  useEffect(() => { queueMicrotask(() => fetchAll()); }, [id, fetchAll]);
 
   async function handleUpload() {
     if (!uploadFile) return;
@@ -243,7 +240,7 @@ export default function CustomerDetail() {
                   {taxCert.expiry_date && <span className="text-gray-400">· Expires {taxCert.expiry_date}</span>}
                 </div>
                 <div className="flex items-center gap-4">
-                  <a href={taxCert.file_url} target="_blank" rel="noreferrer" className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</a>
+                  <button type="button" onClick={() => openSignedPdf(taxCert.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
                   <button onClick={() => setConfirmDelete(taxCert.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                 </div>
               </div>
@@ -267,7 +264,7 @@ export default function CustomerDetail() {
                 <div key={doc.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i > 0 ? "border-t" : ""}`}>
                   <span className="font-medium">{doc.label || doc.file_name}</span>
                   <div className="flex items-center gap-4">
-                    <a href={doc.file_url} target="_blank" rel="noreferrer" className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</a>
+                    <button type="button" onClick={() => openSignedPdf(doc.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
                     <button onClick={() => setConfirmDelete(doc.id)} className="text-xs text-srg-red hover:underline">Delete</button>
                   </div>
                 </div>
