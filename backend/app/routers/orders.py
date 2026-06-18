@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.database import supabase
+from app.database import supabase_admin as supabase
 import numpy as np
 from datetime import date
 

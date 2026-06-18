@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException
-from app.database import supabase, supabase_admin
+from app.database import supabase_admin as supabase, supabase_admin
 from app.parsers.so_parser import parse_so_pdf
 
 router = APIRouter(prefix="/supplier-tracking", tags=["supplier-tracking"])

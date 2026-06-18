@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException
-from app.database import supabase
+from app.database import supabase_admin as supabase
 from datetime import datetime, timezone
 
 router = APIRouter(prefix="/ready-to-dispatch", tags=["Ready to Dispatch"])

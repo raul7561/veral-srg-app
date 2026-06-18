@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from app.database import supabase
+from app.database import supabase_admin as supabase
 
 router = APIRouter(prefix="/receiving-history", tags=["Receiving History"])
 
