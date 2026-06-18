@@ -59,11 +59,11 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
       <nav
         className={`fixed top-14 bottom-0 left-0 z-40 w-64 shrink-0 bg-srg-black flex flex-col px-4 py-6 transition-all duration-200 transform ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:static md:translate-x-0 md:self-stretch`}
+        } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:self-start`}
       >
         <div className="h-px bg-srg-yellow mb-4" />
 
-        <div className="flex flex-col gap-1 flex-1">
+        <div className="flex flex-col gap-1 flex-1 min-h-0 overflow-y-auto">
           {links.map(({ path, key, Icon }) => (
             <Link
               key={key}
@@ -144,6 +144,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
           )}
         </div>
 
+        <div className="shrink-0">
         <div className="h-px bg-srg-yellow mb-4" />
 
         <button
@@ -170,6 +171,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
             {i18n.language === 'en' ? 'Log out' : 'Cerrar sesión'}
           </span>
         </button>
+        </div>
       </nav>
     </>
   )

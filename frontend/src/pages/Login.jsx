@@ -1,8 +1,7 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import hero from '../assets/hero.png'
 import logo from '../assets/srg_logo.png'
-import CurtainReveal from '../components/CurtainReveal'
 import { useAuth } from '../context/AuthContext'
 import { btn, input, label } from '../styles'
 
@@ -11,16 +10,8 @@ export default function Login() {
   const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [showCurtain, setShowCurtain] = useState(false)
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-
-  useEffect(() => {
-    if (sessionStorage.getItem('srg_just_logged_out') === 'true') {
-      setShowCurtain(true)
-      sessionStorage.removeItem('srg_just_logged_out')
-    }
-  }, [])
 
   const handleSubmit = async () => {
     setError('')
@@ -39,8 +30,6 @@ export default function Login() {
 
   return (
     <div style={{ background: 'var(--color-srg-black)', minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
-      {showCurtain && <CurtainReveal />}
-
       <div style={{ position: 'relative', width: '100%', height: '45vh' }}>
         <img src={hero} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', objectPosition: 'center' }} />
         <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(to bottom, transparent 0%, transparent 60%, var(--color-srg-black) 100%)' }} />

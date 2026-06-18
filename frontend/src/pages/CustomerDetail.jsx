@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCustomerDocuments, getCustomers, openSignedPdf } from "../api";
+import CustomerForm, { INITIAL_FORM, customerToForm, formToPayload } from "../components/CustomerForm";
 import { btn, table } from "../styles";
 
 const API = import.meta.env.VITE_API_URL;
@@ -12,6 +13,9 @@ export default function CustomerDetail() {
   const [customer, setCustomer] = useState(null);
   const [documents, setDocuments] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [showEditForm, setShowEditForm] = useState(false);
+  const [editForm, setEditForm] = useState(INITIAL_FORM);
+  const [savingCustomer, setSavingCustomer] = useState(false);
 
   const [uploading, setUploading] = useState(false);
   const [uploadType, setUploadType] = useState(customer?.type === "domestic" ? "tax_certificate" : "other");
@@ -37,6 +41,28 @@ export default function CustomerDetail() {
   }, [id]);
 
   useEffect(() => { queueMicrotask(() => fetchAll()); }, [id, fetchAll]);
+
+  function openEditForm() {
+    setEditForm(customerToForm(customer));
+    setShowEditForm(true);
+  }
+
+  async function handleSaveCustomer() {
+    if (!editForm.name.trim() || !editForm.country || editForm.country === "---") return;
+    if (!editForm.primary_contact.name.trim()) return;
+    setSavingCustomer(true);
+    try {
+      await fetch(`${API}/customers/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formToPayload(editForm)),
+      });
+      setShowEditForm(false);
+      await fetchAll();
+    } finally {
+      setSavingCustomer(false);
+    }
+  }
 
   async function handleUpload() {
     if (!uploadFile) return;
@@ -95,10 +121,26 @@ export default function CustomerDetail() {
       </button>
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold uppercase tracking-wide">{customer.name}</h1>
+      <div className="mb-8 flex items-start justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold uppercase tracking-wide">{customer.name}</h1>
         <p className="text-sm text-gray-500 mt-1">{customer.country} · {customer.type === "international" ? "International" : "Domestic"}</p>
+        </div>
+        <button onClick={openEditForm} className={btn.secondary}>
+          Edit
+        </button>
       </div>
+
+      {showEditForm && (
+        <CustomerForm
+          form={editForm}
+          setForm={setEditForm}
+          saving={savingCustomer}
+          isEditing
+          onSubmit={handleSaveCustomer}
+          onCancel={() => setShowEditForm(false)}
+        />
+      )}
 
       {/* Contacts */}
       <section className="mb-8">

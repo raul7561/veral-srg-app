@@ -1,6 +1,5 @@
 /* eslint-disable react-refresh/only-export-components */
 import { createContext, useContext, useState, useEffect } from 'react'
-import CurtainCover from '../components/CurtainCover'
 import { supabase } from '../lib/supabaseClient'
 
 const AuthContext = createContext(null)
@@ -8,7 +7,6 @@ const AuthContext = createContext(null)
 export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [loading, setLoading] = useState(true)
-  const [coveringOut, setCoveringOut] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -33,20 +31,13 @@ export function AuthProvider({ children }) {
     return { success: true }
   }
 
-  const logout = () => {
-    setCoveringOut(true)
-  }
-
-  const handleCovered = async () => {
+  const logout = async () => {
     await supabase.auth.signOut()
-    sessionStorage.setItem('srg_just_logged_out', 'true')
-    setCoveringOut(false)
   }
 
   return (
     <AuthContext.Provider value={{ isAuthenticated, loading, login, logout }}>
       {children}
-      {coveringOut && <CurtainCover onCovered={handleCovered} />}
     </AuthContext.Provider>
   )
 }

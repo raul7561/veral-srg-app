@@ -14,7 +14,6 @@ import {
   YAxis,
 } from 'recharts'
 import { getOrders, getQuotesThisMonthCount } from '../api'
-import CurtainReveal from '../components/CurtainReveal'
 import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
 const LAG_STYLES = {
@@ -51,7 +50,6 @@ export default function Orders() {
   const [search, setSearch] = useState('')
   const [sortBy, setSortBy] = useState('lag')
   const [activeFilter, setActiveFilter] = useState(null)
-  const [cameFromLogin, setCameFromLogin] = useState(false)
   const [quotesThisMonth, setQuotesThisMonth] = useState(0)
 
   useEffect(() => {
@@ -61,14 +59,6 @@ export default function Orders() {
     getQuotesThisMonthCount()
       .then(setQuotesThisMonth)
       .catch(() => setQuotesThisMonth(0))
-  }, [])
-
-  useEffect(() => {
-    if (sessionStorage.getItem('srg_just_logged_in') === 'true') {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setCameFromLogin(true)
-      sessionStorage.removeItem('srg_just_logged_in')
-    }
   }, [])
 
   const metricCounts = useMemo(() => ({
@@ -147,8 +137,6 @@ export default function Orders() {
 
   return (
     <>
-      {cameFromLogin && <CurtainReveal />}
-
       <div className="p-8">
       <h1 className={pageTitle}>
         {t('nav.orders')}

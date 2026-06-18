@@ -3,7 +3,7 @@ import logo from '../assets/srg_logo_completo.png'
 
 export default function Header({ onToggle }) {
   return (
-    <header className="h-14 w-full bg-srg-black px-4 flex items-center justify-between">
+    <header className="sticky top-0 z-50 h-14 w-full bg-srg-black px-4 flex items-center justify-between">
       <div className="flex items-center gap-4">
         <button
           type="button"
