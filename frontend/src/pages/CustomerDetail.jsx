@@ -100,6 +100,19 @@ export default function CustomerDetail() {
 
   const primary = customer.contacts?.find(c => c.is_primary) || {};
   const extras = customer.contacts?.filter(c => !c.is_primary) || [];
+  const hasBillingAddress = [
+    customer.billing_street,
+    customer.billing_city,
+    customer.billing_state,
+    customer.billing_postal_code,
+  ].some(Boolean);
+  const hasShippingAddress = [
+    customer.shipping_street,
+    customer.shipping_city,
+    customer.shipping_state,
+    customer.shipping_postal_code,
+    customer.shipping_country,
+  ].some(Boolean);
 
   const taxCert = documents.find(d => d.document_type === "tax_certificate");
   const otherDocs = documents.filter(d => d.document_type === "other");
@@ -172,6 +185,36 @@ export default function CustomerDetail() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+
+      {/* Address */}
+      <section className="mb-8">
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Address</h2>
+        <div className="grid grid-cols-2 gap-6">
+          <div>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Billing</p>
+            {hasBillingAddress ? (
+              <p className="text-sm text-gray-700">
+                {customer.billing_street || "—"}<br />
+                {[customer.billing_city, customer.billing_state, customer.billing_postal_code].filter(Boolean).join(", ") || "—"}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400">No address on file</p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Shipping</p>
+            {hasShippingAddress ? (
+              <p className="text-sm text-gray-700">
+                {customer.shipping_street || "—"}<br />
+                {[customer.shipping_city, customer.shipping_state, customer.shipping_postal_code].filter(Boolean).join(", ") || "—"}
+                {customer.shipping_country ? ` · ${customer.shipping_country}` : ""}
+              </p>
+            ) : (
+              <p className="text-sm text-gray-400">No address on file</p>
+            )}
+          </div>
         </div>
       </section>
 

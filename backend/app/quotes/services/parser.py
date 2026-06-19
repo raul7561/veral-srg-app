@@ -77,7 +77,7 @@ def parse_weight(value: Any) -> float | None:
 
 
 def extract_replacement(note: str) -> str | None:
-    match = re.search(r"Replaces Part #\s*\(([^)]+)\)", note)
+    match = re.search(r"Replaces Part\s*#\s*\(([^)]+)\)", note)
     if match:
         return match.group(1).strip()
     return None

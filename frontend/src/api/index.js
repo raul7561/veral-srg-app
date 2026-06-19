@@ -59,14 +59,14 @@ export function getCustomerDocuments(customerId) {
   return getJson(`/customers/${customerId}/documents`);
 }
 
-export function getSupplierTracking({ page = 1, limit = 25 } = {}) {
+export function getSupplierTracking({ page = 1, limit = 25, sortBy = "newest" } = {}) {
   if (USE_MOCK) {
     const total = mockSupplierTracking.length;
     const start = (page - 1) * limit;
     const rows = mockSupplierTracking.slice(start, start + limit);
     return mockResponse({ rows, total });
   }
-  const params = new URLSearchParams({ page, limit });
+  const params = new URLSearchParams({ page, limit, sort_by: sortBy });
   return getJson(`/supplier-tracking/orders?${params}`);
 }
 

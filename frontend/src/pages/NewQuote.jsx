@@ -107,6 +107,12 @@ export default function NewQuote() {
     ))
   }
 
+  function updateUserNote(itemNumber, value) {
+    setLines(prev => prev.map(l =>
+      l.item_number === itemNumber ? { ...l, user_note: value } : l
+    ))
+  }
+
   function updateQty(itemNumber, value) {
     const v = value === '' ? null : parseInt(value, 10)
     setLines(prev => prev.map(l =>
@@ -163,8 +169,13 @@ export default function NewQuote() {
       if (core > 0) {
         notes = notes ? `${notes} · Core deposit included` : 'Core deposit included'
       }
+      const userNote = (l.user_note || '').trim()
+      if (userNote) {
+        notes = notes ? `${notes} · ${userNote}` : userNote
+      }
       const rest = { ...l }
       delete rest.core_deposit
+      delete rest.user_note
       return { ...rest, unit_price: finalPrice, notes }
     })
   }
@@ -391,6 +402,7 @@ export default function NewQuote() {
                 <tr className={table.head}>
                   <th className={table.th}>#</th>
                   <th className={table.th}>Brand</th>
+                  <th className={`${table.th} text-center`}>Min Qty</th>
                   <th className={`${table.th} text-right`}>Qty</th>
                   <th className={table.th}>Part#</th>
                   <th className={table.th}>Description</th>
@@ -399,7 +411,6 @@ export default function NewQuote() {
                   <th className={`${table.th} text-right`}>Total Price</th>
                   <th className={`${table.th} text-right`}>Unit Wt</th>
                   <th className={`${table.th} text-right`}>Total Wt</th>
-                  <th className={`${table.th} text-center`}>Min Qty</th>
                   <th className={table.th}>Reemplaza</th>
                   <th className={table.th}>Notes</th>
                   <th className={`${table.th} text-right`}>Core Deposit</th>
@@ -417,6 +428,16 @@ export default function NewQuote() {
                     <tr key={line.item_number} className={`${table.row} ${isShifted ? 'bg-red-50' : ''}`}>
                       <td className={`${table.td} text-gray-400`}>{line.item_number}</td>
                       <td className={`${table.td} text-gray-500`}>{line.brand}</td>
+                      <td className={`${table.td} text-center`}>
+                        <input
+                          type="number"
+                          min="1"
+                          value={line.minimum_qty ?? ''}
+                          onChange={e => updateMinQty(line.item_number, e.target.value)}
+                          className="w-16 border border-srg-border rounded px-2 py-0.5 text-center text-sm bg-white focus:outline-none focus:border-srg-yellow"
+                          placeholder="—"
+                        />
+                      </td>
                       <td className={`${table.td} text-right`}>
                         <div className="flex items-center justify-end gap-1">
                           {rounded && <span className="text-srg-green font-semibold">{line.quantity}</span>}
@@ -433,28 +454,29 @@ export default function NewQuote() {
                       <td className={`${table.td} ${isShifted ? 'text-srg-red' : ''}`}>{line.description}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{money(line.madisa_cost)}</td>
                       <td className={`${table.td} text-right font-semibold`}>{finalUnitPrice(line) === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(finalUnitPrice(line))}</td>
-                      <td className={`${table.td} text-right text-gray-500`}>{totalPrice === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(totalPrice)}</td>
+                      <td className={`${table.td} text-right`}>{totalPrice === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(totalPrice)}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{weight(line.unit_weight)}</td>
-                      <td className={`${table.td} text-right text-gray-500`}>{weight(totalWeight)}</td>
-                      <td className={`${table.td} text-center`}>
-                        <input
-                          type="number"
-                          min="1"
-                          value={line.minimum_qty ?? ''}
-                          onChange={e => updateMinQty(line.item_number, e.target.value)}
-                          className="w-16 border border-srg-border rounded px-2 py-0.5 text-center text-sm bg-white focus:outline-none focus:border-srg-yellow"
-                          placeholder="—"
-                        />
-                      </td>
+                      <td className={`${table.td} text-right`}>{weight(totalWeight)}</td>
                       <td className={`${table.td} font-mono text-srg-blue`}>{line.replaces_part_number || <span className="text-gray-300">—</span>}</td>
                       <td className={table.td}>
-                        {isShifted
-                          ? <span className="text-srg-red font-semibold text-xs">⚠ {line.notes}</span>
-                          : line.notes === 'No stock'
-                            ? <span className="text-srg-orange font-semibold text-xs">No stock</span>
-                            : line.notes === 'Built to Order'
-                              ? <span className="text-srg-amber font-semibold text-xs">Built to Order</span>
-                              : <span className="text-gray-500 text-xs">{line.notes}</span>}
+                        <div className="flex flex-col gap-1">
+                          {isShifted
+                            ? <span className="text-srg-red font-semibold text-xs">⚠ {line.notes}</span>
+                            : line.notes === 'No stock'
+                              ? <span className="text-srg-orange font-semibold text-xs">No stock</span>
+                              : line.notes === 'Built to Order'
+                                ? <span className="text-srg-amber font-semibold text-xs">Built to Order</span>
+                                : line.notes
+                                  ? <span className="text-gray-500 text-xs">{line.notes}</span>
+                                  : null}
+                          <input
+                            type="text"
+                            value={line.user_note ?? ''}
+                            onChange={e => updateUserNote(line.item_number, e.target.value)}
+                            placeholder="Nota..."
+                            className="w-40 border border-srg-border rounded px-2 py-0.5 text-xs bg-white focus:outline-none focus:border-srg-yellow"
+                          />
+                        </div>
                       </td>
                       <td className={`${table.td} text-center`}>
                         <div className="flex items-center justify-end gap-1">

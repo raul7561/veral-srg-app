@@ -5,6 +5,20 @@ from app.parsers.so_parser import parse_so_pdf
 router = APIRouter(prefix="/supplier-tracking", tags=["supplier-tracking"])
 
 
+def fetch_all(table_name, select_clause):
+    rows = []
+    start = 0
+    page_size = 1000
+    while True:
+        resp = supabase.table(table_name).select(select_clause).range(start, start + page_size - 1).execute()
+        batch = resp.data
+        rows.extend(batch)
+        if len(batch) < page_size:
+            break
+        start += page_size
+    return rows
+
+
 @router.post("/orders")
 async def create_supplier_order(file: UploadFile = File(...)):
     content = await file.read()
@@ -61,15 +75,22 @@ async def create_supplier_order(file: UploadFile = File(...)):
 
 
 @router.get("/orders")
-def get_supplier_orders(page: int = 1, limit: int = 25):
+def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest"):
     start = (page - 1) * limit
     end = start + limit - 1
-    resp = supabase.table("supplier_orders").select("*", count="exact").order("created_at", desc=True).range(start, end).execute()
+    query = supabase.table("supplier_orders").select("*", count="exact")
+    if sort_by == "oldest":
+        query = query.order("order_date", desc=False)
+    elif sort_by == "az":
+        query = query.order("client", desc=False)
+    else:
+        query = query.order("created_at", desc=True)
+    resp = query.range(start, end).execute()
     orders = resp.data
     total_count = resp.count
-    all_lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").execute().data
-    all_invs = supabase.table("supplier_invs").select("*").execute().data
-    all_vex = supabase.table("supplier_vex").select("*").execute().data
+    all_lines = fetch_all("supplier_order_lines", "supplier_order_id, status")
+    all_invs = fetch_all("supplier_invs", "*")
+    all_vex = fetch_all("supplier_vex", "*")
 
     result = []
     for order in orders:
@@ -112,7 +133,7 @@ def get_supplier_order_by_number(so_number: str):
     oid = order["id"]
     lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").eq("supplier_order_id", oid).execute().data
     invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", oid).execute().data
-    all_vex = supabase.table("supplier_vex").select("*").execute().data
+    all_vex = fetch_all("supplier_vex", "*")
 
     total = len(lines)
     received = sum(1 for l in lines if l["status"] == "received")

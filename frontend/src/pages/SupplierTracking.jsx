@@ -35,7 +35,7 @@ export default function SupplierTracking() {
 
   const fetchOrders = useCallback(async (p = page) => {
     try {
-      const data = await getSupplierTracking({ page: p, limit: LIMIT })
+      const data = await getSupplierTracking({ page: p, limit: LIMIT, sortBy })
       setOrders(data?.rows || [])
       setTotal(data?.total || 0)
     } catch (err) {
@@ -43,7 +43,7 @@ export default function SupplierTracking() {
       setOrders([])
       setTotal(0)
     }
-  }, [page])
+  }, [page, sortBy])
 
   useEffect(() => { queueMicrotask(() => fetchOrders(page)) }, [page, fetchOrders])
 
@@ -90,13 +90,6 @@ export default function SupplierTracking() {
       const matchesClient = filterClient ? (o.client || "") === filterClient : true
       const matchesPO = filterPO ? (o.po_number || "") === filterPO : true
       return matchesText && matchesSO && matchesClient && matchesPO
-    })
-    .slice()
-    .sort((a, b) => {
-      if (sortBy === 'newest') return new Date(b.order_date || 0) - new Date(a.order_date || 0)
-      if (sortBy === 'oldest') return new Date(a.order_date || 0) - new Date(b.order_date || 0)
-      if (sortBy === 'az') return (a.client || '').localeCompare(b.client || '')
-      return 0
     })
 
   return (
