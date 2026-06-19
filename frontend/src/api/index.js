@@ -77,6 +77,14 @@ export function getSupplierOrderLinesBySo(soNumber) {
   return getJson(`/supplier-tracking/orders/${soNumber}/lines-by-so`);
 }
 
+export function getSupplierOrderByNumber(soNumber) {
+  if (USE_MOCK) {
+    const found = mockSupplierTracking.find((o) => o.so_number === soNumber);
+    return mockResponse(found || null);
+  }
+  return getJson(`/supplier-tracking/orders/by-number/${soNumber}`);
+}
+
 export function getReadyToDispatch() {
   return getJson("/ready-to-dispatch/orders");
 }

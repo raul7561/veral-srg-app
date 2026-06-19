@@ -1,3 +1,5 @@
+import re
+
 from app.database import supabase_admin as supabase
 from app.quotes.models import CreateQuoteRequest
 
@@ -170,6 +172,11 @@ def update_quote(request, quote_id: int) -> dict:
     return response.data
 
 def convert_quote_to_so(quote_id: int, so_number: str, customer_id: str) -> dict:
+    digits = re.sub(r"\D", "", so_number or "")
+    if not digits:
+        raise ValueError("SO number must contain digits")
+    so_number = f"SO-{digits}"
+
     try:
         response = supabase.rpc(
             "convert_quote_to_so",

@@ -1,0 +1,16 @@
+﻿3: import { parseExport, calculateQuote, createQuote, updateQuote, getQuote, previewQuote, quotePdfUrl } from '../api/quotes'
+39:   const [fileName, setFileName] = useState(null)
+63:   async function handleFile(file) {
+68:       const result = await parseExport(file, priceLevel)
+74:       setFileName(file.name)
+89:     const v = value === '' ? null : parseInt(value, 10)
+96:     const v = value === '' ? null : parseInt(value, 10)
+107:     const v = value === '' ? null : parseFloat(value)
+221:     setFileName(null)
+300:             onChange={e => handleFile(e.target.files[0])}
+318:                 onChange={setClientName}
+324:               <select className={input} value={priceLevel} onChange={e => setPriceLevel(e.target.value)}>
+337:                   onChange={e => setShippingCost(e.target.value)}
+408:                             onChange={e => updateQty(line.item_number, e.target.value)}
+425:                           onChange={e => updateMinQty(line.item_number, e.target.value)}
+449:                             onChange={e => updateCoreDeposit(line.item_number, e.target.value)}

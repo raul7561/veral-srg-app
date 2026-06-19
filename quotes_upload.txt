@@ -1,0 +1,10 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [151]:                   type="file"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [121]:               type="file"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\CustomerDetail.jsx [244]:                 type="file"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [297]:             type="file"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [298]:             accept=".csv,.xlsx,.xltm,.xlsm"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\SupplierOrderDetail.jsx [214]:           <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\SupplierOrderDetail.jsx [259]:       <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\SupplierOrderDetail.jsx [305]:       <input ref={inputRef} type="file" accept=".pdf" onChange={handleUpload} className="hidden" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\SupplierTracking.jsx [150]:             type="file"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\SupplierTracking.jsx [151]:             accept=".xlsx"

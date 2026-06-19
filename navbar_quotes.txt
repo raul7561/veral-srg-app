@@ -1,0 +1,77 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\ClientAutocomplete.jsx [2]: import { getClients } from '../api/quotes'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\ConfirmDialog.jsx [34]:         <div className="border-t-4 border-srg-yellow rounded-t-lg" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\CustomerForm.jsx [298]:         className="mt-4 text-xs text-srg-yellow hover:underline uppercase font-semibold"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [20]: export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [23]:   const [quotesOpen, setQuotesOpen] = useState(location.pathname.startsWith('/quotes'))
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [43]:   const isActive = (path) =>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [62]:         } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:self-start`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [64]:         <div className="h-px bg-srg-yellow mb-4" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [73]:                 collapsed ? 'md:justify-center' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [75]:                 isActive(path)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [76]:                   ? 'bg-srg-yellow text-srg-black font-bold'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [81]:               <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t(`nav.${key}`)}</span>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [85]:           {collapsed ? (
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [87]:               to="/quotes/new"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [90]:                 collapsed ? 'md:justify-center' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [92]:                 location.pathname.startsWith('/quotes')
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [93]:                   ? 'bg-srg-yellow text-srg-black font-bold'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [98]:               <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t('nav.quotes')}</span>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [104]:                 onClick={() => setQuotesOpen(current => !current)}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [106]:                   collapsed ? 'md:justify-center' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [108]:                   location.pathname.startsWith('/quotes')
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [109]:                     ? 'bg-srg-yellow text-srg-black font-bold'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [114]:                 <span className={`whitespace-nowrap ${collapsed ? 'md:hidden' : ''}`}>{t('nav.quotes')}</span>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [117]:                   className={`ml-auto shrink-0 transition-transform ${quotesOpen ? 'rotate-180' : ''}`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [121]:               {quotesOpen && (
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [124]:                     { path: '/quotes/new', label: t('nav.quotesGenerate'), Icon: FilePlus },
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [125]:                     { path: '/quotes/history', label: t('nav.quotesHistory'), Icon: History },
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [133]:                           ? 'bg-srg-yellow text-srg-black font-bold'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [148]:         <div className="h-px bg-srg-yellow mb-4" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [154]:             collapsed ? 'md:justify-center' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [157]:           <Languages size={18} className={`shrink-0 ${collapsed ? '' : 'md:hidden'}`} />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [158]:           <span className={collapsed ? 'md:hidden' : ''}>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [166]:             collapsed ? 'md:justify-center' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Navbar.jsx [170]:           <span className={collapsed ? 'md:hidden' : ''}>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Pagination.jsx [45]:                 ? 'bg-srg-black text-srg-yellow'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\Spinner.jsx [4]:       <div className="h-8 w-8 rounded-full border-2 border-srg-border border-t-srg-yellow animate-spin" />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\CustomerDetail.jsx [163]:                 <td className={table.td}><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">Primary</span></td>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\CustomerDetail.jsx [184]:             className="text-xs uppercase font-semibold text-srg-yellow hover:underline"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\CustomerDetail.jsx [285]:                   <button type="button" onClick={() => openSignedPdf(taxCert.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\CustomerDetail.jsx [309]:                     <button type="button" onClick={() => openSignedPdf(doc.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Customers.jsx [43]:         navigate('/quotes/history', { state: { returnToConvertQuoteId: returnId } });
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [3]: import { convertQuote, getClients, getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [12]:   const [quotes, setQuotes] = useState([])
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [35]:       const data = await getQuotes(params)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [36]:       setQuotes(data.items || [])
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [50]:     const q = quotes.find(x => x.id === qid)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [57]:   }, [location.state, quotes]) // eslint-disable-line react-hooks/exhaustive-deps
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [114]:               <button onClick={() => navigate(`/quotes/${selected.id}/edit`)} className={btn.secondary}>↻ Actualizar stock</button>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [148]:                         selectedClient?.id === client.id ? 'bg-srg-yellow text-srg-black font-bold' : ''
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [224]:       {!loading && quotes.length === 0 && (
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [225]:         <div className="text-gray-500">No hay quotes activos.</div>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [228]:       {!loading && quotes.length > 0 && (
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [243]:                 {quotes.map(q => (
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Login.jsx [55]:             className={`${input} !border-[#333333] !bg-[#1c1c1c] !text-white placeholder:text-gray-500 focus:!border-srg-yellow`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Login.jsx [70]:             className={`${input} !border-[#333333] !bg-[#1c1c1c] !text-white placeholder:text-gray-500 focus:!border-srg-yellow`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Login.jsx [84]:           className={`${btn.primary} w-full !bg-srg-yellow !py-2.5 !text-srg-black hover:!bg-[#ffc247] disabled:opacity-50`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [3]: import { parseExport, calculateQuote, createQuote, updateQuote, getQuote, previewQuote, quotePdfUrl } from '../api/quotes'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [268]:         <button onClick={() => navigate('/quotes/history')} className={`${btn.ghost} mb-2`}>← Volver al historial</button>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [428]:                             className="w-16 border border-srg-border rounded px-2 py-0.5 text-right text-sm bg-white focus:outline-none focus:border-srg-yellow"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [445]:                           className="w-16 border border-srg-border rounded px-2 py-0.5 text-center text-sm bg-white focus:outline-none focus:border-srg-yellow"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\NewQuote.jsx [469]:                             className="w-20 border border-srg-border rounded px-2 py-0.5 text-right text-sm bg-white focus:outline-none focus:border-srg-yellow disabled:bg-gray-100 disabled:cursor-not-allowed"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [16]: import { getOrders, getQuotesThisMonthCount } from '../api'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [53]:   const [quotesThisMonth, setQuotesThisMonth] = useState(0)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [59]:     getQuotesThisMonthCount()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [60]:       .then(setQuotesThisMonth)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [61]:       .catch(() => setQuotesThisMonth(0))
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [147]:           const isActive = activeFilter === metric.key
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [153]:               onClick={() => setActiveFilter(isActive ? null : metric.key)}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [154]:               className={`${card} ${isActive ? `border-2 ${metric.activeBorder}` : ''} p-4 text-left hover:bg-srg-cream transition-colors cursor-pointer`}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [167]:             {quotesThisMonth}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Orders.jsx [170]:             Quotes this month
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [22]:   const [collapsed, setCollapsed] = useState(false)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [26]:     setCollapsed(current => !current)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [35]:           collapsed={collapsed}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [60]:           <Route path="/quotes/new" element={<ProtectedRoute><AppLayout><NewQuote /></AppLayout></ProtectedRoute>} />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [61]:           <Route path="/quotes/:id/edit" element={<ProtectedRoute><AppLayout><NewQuote /></AppLayout></ProtectedRoute>} />
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\App.jsx [62]:           <Route path="/quotes/history" element={<ProtectedRoute><AppLayout><Historial /></AppLayout></ProtectedRoute>} />

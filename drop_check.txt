@@ -1,0 +1,2 @@
+﻿63:   async function handleFile(file) {
+300:             onChange={e => handleFile(e.target.files[0])}

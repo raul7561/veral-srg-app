@@ -1,0 +1,24 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [10]:   const dragRef = useRef(null)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [19]:   function handleDragOver(e) {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [22]:     dragRef.current?.classList.add("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [25]:   function handleDragLeave(e) {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [28]:     dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [34]:     dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [141]:               {/* Drag and Drop */}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [143]:                 ref={dragRef}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [144]:                 onDragOver={handleDragOver}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [145]:                 onDragLeave={handleDragLeave}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [146]:                 onDrop={handleDrop}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\AttachDocumentModal.jsx [158]:                 <p className="text-sm text-gray-600 mb-1">Drag and drop PDF files here</p>
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [9]:   const dragRef = useRef(null)
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [18]:   function handleDragOver(e) {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [21]:     dragRef.current?.classList.add("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [24]:   function handleDragLeave(e) {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [27]:     dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [33]:     dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [111]:           {/* Drag and Drop */}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [113]:             ref={dragRef}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [114]:             onDragOver={handleDragOver}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [115]:             onDragLeave={handleDragLeave}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [116]:             onDrop={handleDrop}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\components\UploadDocumentModal.jsx [128]:             <p className="text-sm text-gray-600 mb-1">Drag and drop PDF files here</p>

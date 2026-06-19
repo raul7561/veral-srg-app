@@ -103,7 +103,12 @@ export default function Historial() {
       <div className="p-8">
         <button onClick={() => setSelected(null)} className={`${btn.ghost} mb-2`}>← Volver al historial</button>
         <div className="flex items-center justify-between mb-4">
-          <h1 className={`${pageTitle} mb-0`}>Quote {selected.quote_number}</h1>
+          <div className="flex items-baseline gap-3">
+            <h1 className={`${pageTitle} mb-0`}>Quote {selected.quote_number}</h1>
+            {selected.so_number && (
+              <span className="font-mono text-3xl font-extrabold text-srg-green">→ {selected.so_number}</span>
+            )}
+          </div>
           <div className="flex gap-2">
             {!selected.so_number && (
               <button onClick={() => navigate(`/quotes/${selected.id}/edit`)} className={btn.secondary}>↻ Actualizar stock</button>
@@ -237,7 +242,12 @@ export default function Historial() {
               <tbody>
                 {quotes.map(q => (
                   <tr key={q.id} onClick={() => setSelected(q)} className={`${table.row} cursor-pointer`}>
-                    <td className={`${table.td} font-mono font-semibold`}>{q.quote_number}</td>
+                    <td className={`${table.td} font-mono font-semibold`}>
+                      {q.quote_number}
+                      {q.so_number && (
+                        <span className="ml-2 font-mono text-xs text-srg-green">{q.so_number}</span>
+                      )}
+                    </td>
                     <td className={table.td}>{q.quote_date}</td>
                     <td className={table.td}>{q.client_name}</td>
                     <td className={table.td}>{q.sales_rep_name}</td>

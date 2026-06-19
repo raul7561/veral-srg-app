@@ -1,0 +1,11 @@
+﻿6: import ClientAutocomplete from '../components/ClientAutocomplete'
+37:   const [clientName, setClientName] = useState('')
+55:         setClientName(q.client_name || '')
+173:     if (!clientName.trim()) {
+181:         client_name: clientName.trim(),
+200:     if (!clientName.trim()) {
+208:         client_name: clientName.trim(),
+234:     setClientName('')
+335:               <ClientAutocomplete
+336:                 value={clientName}
+337:                 onChange={setClientName}

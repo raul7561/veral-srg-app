@@ -1,0 +1,5 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\clients_router.py [3]: from app.quotes.models import ClientItem, ClientListResponse
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\clients_router.py [12]:     items = [ClientItem(id=c["id"], name=c["name"]) for c in names]
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\models.py [85]: class ClientItem(BaseModel):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\models.py [90]: class ClientListResponse(BaseModel):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\models.py [91]:     items: list[ClientItem]

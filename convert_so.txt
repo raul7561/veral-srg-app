@@ -1,0 +1,7 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Customers.jsx [41]:       const returnId = location.state?.returnToConvertQuoteId;
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Customers.jsx [43]:         navigate('/quotes/history', { state: { returnToConvertQuoteId: returnId } });
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [3]: import { convertQuote, getClients, getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [48]:     const qid = location.state?.returnToConvertQuoteId
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [82]:       const updated = await convertQuote(selected.id, {
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [84]:         customer_id: selectedClient.id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\frontend\src\pages\Historial.jsx [159]:                         navigate('/customers', { state: { returnToConvertQuoteId: selected.id } })

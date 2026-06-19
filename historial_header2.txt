@@ -1,0 +1,25 @@
+﻿        <button onClick={() => setSelected(null)} className={`${btn.ghost} mb-2`}>â† Volver al historial</button>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-baseline gap-3">
+            <h1 className={`${pageTitle} mb-0`}>Quote {selected.quote_number}</h1>
+            {selected.so_number && (
+              <span className="font-mono text-xl font-bold text-srg-green">â†’ {selected.so_number}</span>
+            )}
+          </div>
+          <div className="flex gap-2">
+            {!selected.so_number && (
+              <button onClick={() => navigate(`/quotes/${selected.id}/edit`)} className={btn.secondary}>â†» Actualizar stock</button>
+            )}
+            {!selected.so_number && (
+              <button onClick={() => openConvertModal()} className={btn.primary}>â†’ Convertir a SO</button>
+            )}
+            <button onClick={() => window.open(quotePdfUrl(selected.id), '_blank')} className={btn.secondary}>â†“ Descargar PDF</button>
+            <button onClick={() => window.open(quoteExcelUrl(selected.id), '_blank')} className={btn.secondary}>â†“ Descargar Excel</button>
+          </div>
+        </div>
+        {convertOpen && (
+          <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-[28rem] max-w-[calc(100vw-2rem)] shadow-xl">
+              <p className="font-semibold mb-4">Convertir quote a SO</p>
+              <div className="mb-4">
+                <label className="text-xs uppercase font-semibold text-gray-500">Cliente</label>

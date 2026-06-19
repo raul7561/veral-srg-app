@@ -1,0 +1,37 @@
+﻿C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\models.py [82]:     customer_id: str
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\quotes_router.py [313]:         quote = quotes_repo.convert_quote_to_so(
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\quotes_router.py [316]:             customer_id=request.customer_id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [48]:             "p_customer_id": None,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [83]:         query = query.ilike("sales_rep_name", f"%{sales_rep}%")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [85]:         query = query.ilike("client_name", f"%{client_name}%")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [87]:         query = query.ilike("quote_number", f"%{search}%")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [172]: def convert_quote_to_so(quote_id: int, so_number: str, customer_id: str) -> dict:
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [175]:             "convert_quote_to_so",
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\quotes\repositories\quotes_repo.py [179]:                 "p_customer_id": customer_id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [59]:         c["contacts"] = [ct for ct in all_contacts if ct["customer_id"] == c["id"]]
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [88]:     customer_id = result.data[0]["id"]
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [92]:             "customer_id": customer_id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [102]: @router.patch("/{customer_id}")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [103]: def update_customer(customer_id: str, data: CustomerUpdate):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [113]:         result = supabase.table("customers").update(payload).eq("id", customer_id).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [118]:         supabase.table("customer_contacts").delete().eq("customer_id", customer_id).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [121]:                 "customer_id": customer_id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [128]:     return {"updated": customer_id}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [131]: @router.delete("/{customer_id}")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [132]: def delete_customer(customer_id: str):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [133]:     result = supabase.table("customers").delete().eq("id", customer_id).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [136]:     return {"deleted": customer_id}
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [141]: @router.get("/{customer_id}/documents")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [142]: def list_documents(customer_id: str):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [143]:     result = supabase.table("customer_documents").select("*").eq("customer_id", customer_id).order("uploaded_at", desc=True).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [147]: @router.post("/{customer_id}/documents")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [149]:     customer_id: str,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [159]:     file_path = f"customers/{customer_id}/{uuid.uuid4()}_{file.filename}"
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [170]:         "customer_id": customer_id,
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [182]: @router.delete("/{customer_id}/documents/{document_id}")
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [183]: def delete_document(customer_id: str, document_id: str):
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\customers.py [184]:     result = supabase.table("customer_documents").delete().eq("id", document_id).eq("customer_id", customer_id).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\supplier_tracking.py [22]:     customer_id = None
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\supplier_tracking.py [24]:         customer_match = supabase.table("customers").select("id").ilike("name", parsed["client"]).execute()
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\supplier_tracking.py [26]:             customer_id = customer_match.data[0]["id"]
+C:\Users\rault\OneDrive\Documents\Veral Goup\Proyectos\veral-srg-app\backend\app\routers\supplier_tracking.py [32]:         "customer_id": customer_id,

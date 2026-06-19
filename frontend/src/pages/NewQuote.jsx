@@ -85,6 +85,21 @@ export default function NewQuote() {
     }
   }
 
+  function handleDragOver(e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  function handleDragLeave(e) {
+    e.preventDefault()
+    e.stopPropagation()
+  }
+  function handleDrop(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    const dropped = e.dataTransfer.files[0]
+    if (dropped) handleFile(dropped)
+  }
+
   function updateMinQty(itemNumber, value) {
     const v = value === '' ? null : parseInt(value, 10)
     setLines(prev => prev.map(l =>
@@ -264,9 +279,8 @@ export default function NewQuote() {
             {createdQuote.client_name} · {createdQuote.total_items} líneas · ${Number(createdQuote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex gap-3">
-            <button onClick={resetForm} className={btn.primary}>+ Nuevo quote</button>
+            <button onClick={resetForm} className={btn.primary}>Listo</button>
             <button onClick={() => window.open(quotePdfUrl(createdQuote.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
-            <button disabled title="Disponible cuando esté listo el generador de Excel" className={`${btn.secondary} opacity-50 cursor-not-allowed`}>↓ Excel</button>
           </div>
         </div>
       )}
@@ -292,7 +306,12 @@ export default function NewQuote() {
       )}
 
       {!hasLines && !createdQuote && (
-        <label className="block border-2 border-dashed border-srg-border rounded-lg p-10 text-center bg-srg-surface cursor-pointer hover:bg-srg-cream transition-colors">
+        <label
+          className="block border-2 border-dashed border-srg-border rounded-lg p-10 text-center bg-srg-surface cursor-pointer hover:bg-srg-cream transition-colors"
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+        >
           <input
             type="file"
             accept=".csv,.xlsx,.xltm,.xlsm"

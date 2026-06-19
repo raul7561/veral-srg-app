@@ -1,0 +1,65 @@
+﻿33:       const params = { page, page_size: 20, status: 'activo' }
+83:         so_number: soNumber.trim(),
+103:       <div className="p-8">
+104:         <button onClick={() => setSelected(null)} className={`${btn.ghost} mb-2`}>← Volver al historial</button>
+105:         <div className="flex items-center justify-between mb-4">
+106:           <h1 className={`${pageTitle} mb-0`}>Quote {selected.quote_number}</h1>
+107:           <div className="flex gap-2">
+108:             {!selected.so_number && (
+109:               <button onClick={() => navigate(`/quotes/${selected.id}/edit`)} className={btn.secondary}>↻ Actualizar stock</button>
+111:             {!selected.so_number && (
+112:               <button onClick={() => openConvertModal()} className={btn.primary}>→ Convertir a SO</button>
+114:             <button onClick={() => window.open(quotePdfUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
+115:             <button onClick={() => window.open(quoteExcelUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar Excel</button>
+119:           <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+120:             <div className="bg-white rounded-lg p-6 w-[28rem] max-w-[calc(100vw-2rem)] shadow-xl">
+121:               <p className="font-semibold mb-4">Convertir quote a SO</p>
+122:               <div className="mb-4">
+123:                 <label className="text-xs uppercase font-semibold text-gray-500">Cliente</label>
+125:                   className={`${input} mt-1`}
+133:                 <div className="mt-2 max-h-48 overflow-y-auto border border-srg-border rounded">
+134:                   {filteredClients.map(client => (
+142:                       className={`block w-full text-left px-3 py-2 text-sm hover:bg-srg-cream ${
+150:                     <div className="px-3 py-2 text-sm text-gray-400">No hay coincidencias.</div>
+154:                   <div className="mt-3 rounded border border-srg-border p-3">
+155:                     <p className="text-sm text-gray-500 mb-3">Este cliente aun no esta registrado en Customers</p>
+161:                       className={btn.secondary}
+168:               <div className="mb-4">
+169:                 <label className="text-xs uppercase font-semibold text-gray-500">Numero de SO</label>
+171:                   className={`${input} mt-1`}
+177:               {convertError && <p className="text-sm text-srg-red mb-4">{convertError}</p>}
+178:               <div className="flex gap-3">
+182:                   className={btn.primary}
+186:                 <button onClick={() => setConvertOpen(false)} className={btn.secondary}>Cancelar</button>
+193:           title={`Quote ${selected.quote_number}`}
+194:           className="w-full border border-srg-border rounded bg-white"
+202:     <div className="p-8">
+203:       <h1 className={pageTitle}>Historial</h1>
+205:       <div className="flex gap-3 mb-4">
+207:           className={input}
+213:         <button onClick={doSearch} className={btn.secondary}>Buscar</button>
+216:       {loading && <div className="text-gray-500">Cargando...</div>}
+217:       {error && <div className="text-srg-red font-medium">{error}</div>}
+220:         <div className="text-gray-500">No hay quotes activos.</div>
+225:           <div className={table.wrapper}>
+226:             <table className={table.base}>
+228:                 <tr className={table.head}>
+229:                   <th className={table.th}>Número</th>
+230:                   <th className={table.th}>Fecha</th>
+231:                   <th className={table.th}>Cliente</th>
+232:                   <th className={table.th}>Vendedor</th>
+233:                   <th className={`${table.th} text-right`}>Total</th>
+234:                   <th className={`${table.th} text-center`}>Ítems</th>
+238:                 {quotes.map(q => (
+239:                   <tr key={q.id} onClick={() => setSelected(q)} className={`${table.row} cursor-pointer`}>
+240:                     <td className={`${table.td} font-mono font-semibold`}>{q.quote_number}</td>
+241:                     <td className={table.td}>{q.quote_date}</td>
+242:                     <td className={table.td}>{q.client_name}</td>
+243:                     <td className={table.td}>{q.sales_rep_name}</td>
+244:                     <td className={`${table.td} text-right`}>{money(q.total_amount)}</td>
+245:                     <td className={`${table.td} text-center`}>{q.total_items}</td>
+252:           <div className="flex justify-between items-center mt-4">
+253:             <div className="text-sm text-gray-500">Página {page} de {totalPages}</div>
+254:             <div className="flex gap-2">
+255:               <button onClick={() => setPage(p => Math.max(1, p - 1))} disabled={page <= 1} className={btn.secondary}>← Anterior</button>
+256:               <button onClick={() => setPage(p => Math.min(totalPages, p + 1))} disabled={page >= totalPages} className={btn.secondary}>Siguiente →</button>

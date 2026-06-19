@@ -1,0 +1,328 @@
+﻿{
+    "items":  [
+                  {
+                      "id":  "c715a083-89da-437f-9393-db03a92e9601",
+                      "name":  "ACT- American Crane \u0026 Tractor Parts, Inc."
+                  },
+                  {
+                      "id":  "3d68aeb6-6432-46f2-a24a-baa7d196bf6e",
+                      "name":  "AFT ANTON FAHRZEUGTECHNIK OHG"
+                  },
+                  {
+                      "id":  "45f1eba5-bea7-4feb-b630-ce2de02f52f2",
+                      "name":  "All Parts Specialist"
+                  },
+                  {
+                      "id":  "8384e25f-ddf3-4aaa-8c74-5a9241dd97bc",
+                      "name":  "American Parts \u0026 Services of Florida, Inc"
+                  },
+                  {
+                      "id":  "7c1f082b-c2fa-46f1-be6e-384ff4986411",
+                      "name":  "BE MASTER LLC"
+                  },
+                  {
+                      "id":  "04f9cc5f-b676-4db7-9776-04da2f00e10c",
+                      "name":  "BURG SpA"
+                  },
+                  {
+                      "id":  "8fd62153-97a2-4eb6-9637-48fe71db6bd8",
+                      "name":  "CADECO, S.A. DE C.V."
+                  },
+                  {
+                      "id":  "f9a2d8c8-e804-4df7-a14f-810ef951a40f",
+                      "name":  "CATERCU SRL"
+                  },
+                  {
+                      "id":  "d32bad1f-17db-45f5-915b-6b96f978e1ff",
+                      "name":  "CATERKOM MACHINERY \u0026 PARTS LLC"
+                  },
+                  {
+                      "id":  "9d7925db-8f84-43ac-96ef-17704d2702e4",
+                      "name":  "Catko Diesel S.A.S"
+                  },
+                  {
+                      "id":  "3584e579-0077-4a10-9921-37c6c7c4c813",
+                      "name":  "CENTRAL TURBOS"
+                  },
+                  {
+                      "id":  "91108d59-edb5-44c7-bd6c-36f52e7628cd",
+                      "name":  "CLS World Industry"
+                  },
+                  {
+                      "id":  "7115c0c2-c577-4f0d-ab29-293c7a70b505",
+                      "name":  "Construction Equipment Services Inc"
+                  },
+                  {
+                      "id":  "cd582825-776b-44df-8863-1074409a9539",
+                      "name":  "DASH ENERGY MOZAMBIQUE LDA"
+                  },
+                  {
+                      "id":  "2c26b5b6-aa4c-499e-a3cd-ecd2867c032d",
+                      "name":  "DIESEL \u0026 HE PARTS INC."
+                  },
+                  {
+                      "id":  "c7d8a40e-e44b-4898-a05e-1d1195255d8b",
+                      "name":  "DIESEL PRO PARTS \u0026 SERVICES, Inc."
+                  },
+                  {
+                      "id":  "a56f26e3-f03e-40db-b65e-b5bae91ee233",
+                      "name":  "EQUIPMENT SPARE PARTS Ltd"
+                  },
+                  {
+                      "id":  "3c798631-cd0b-4a3a-b60b-9dc92cf7102a",
+                      "name":  "ERUJ MICRO-PARTNERS TRADING NIGERIA"
+                  },
+                  {
+                      "id":  "634c51d8-1aa9-45ff-9a59-45e9392c936c",
+                      "name":  "Escalante Servicios Importaciones Repuest"
+                  },
+                  {
+                      "id":  "248d6ecb-8bd7-4710-aafe-abf8953bbe19",
+                      "name":  "Europarts S.R.L."
+                  },
+                  {
+                      "id":  "d31e014e-6274-43ba-ad8b-96d9ee99986c",
+                      "name":  "Fama Tracto Parts"
+                  },
+                  {
+                      "id":  "602c3ab9-6902-4187-8b2e-dd7491077e08",
+                      "name":  "G\u0026T Engine Parts"
+                  },
+                  {
+                      "id":  "aca01745-e3bb-402a-8693-b831b255954e",
+                      "name":  "General Earth Movers Ltd."
+                  },
+                  {
+                      "id":  "9eba1d45-0c00-4b50-b9ad-568d2933f8d2",
+                      "name":  "Georgio  Rocks Limited"
+                  },
+                  {
+                      "id":  "3887d93c-2aa0-4042-8b1e-11ef633e73a8",
+                      "name":  "GMS Brothers LLC"
+                  },
+                  {
+                      "id":  "39617553-c341-4b79-8c38-955b9e819430",
+                      "name":  "HEAVY MACHINERY PARTS LLC"
+                  },
+                  {
+                      "id":  "7c7464bd-d4b3-4082-a053-ff2182d12324",
+                      "name":  "HERBERT CALLISAYA CCATI"
+                  },
+                  {
+                      "id":  "2bb29f01-93db-4cab-b123-cda36400b556",
+                      "name":  "Hitek Parts"
+                  },
+                  {
+                      "id":  "a36a08a2-d6a4-402e-9715-2156fb60b4eb",
+                      "name":  "HZ Industry"
+                  },
+                  {
+                      "id":  "021968df-feb8-4057-9efa-0dd5c666d2e3",
+                      "name":  "ICP Miami Inc."
+                  },
+                  {
+                      "id":  "f032afc4-1273-4b2e-a4da-22712dd924f5",
+                      "name":  "IMMA Global Engineering Ltd."
+                  },
+                  {
+                      "id":  "9f2c31ac-41d6-4115-9091-6334509079ac",
+                      "name":  "IMTR"
+                  },
+                  {
+                      "id":  "dc39eb49-6efe-4e23-83d2-2b0cf6fd7f2f",
+                      "name":  "Induparts Supply"
+                  },
+                  {
+                      "id":  "43fc4f3c-dd5e-41bb-9856-077ac771d35d",
+                      "name":  "INDUSTRIAL TRADING SOLUTIONS CORP"
+                  },
+                  {
+                      "id":  "90234b64-2179-4c3c-8c25-16610ed01f5e",
+                      "name":  "Inter Worldwide Trading/ Skyone"
+                  },
+                  {
+                      "id":  "499bbae3-4c63-4fbd-bab2-2a97606afde8",
+                      "name":  "IPS International Part Solutions"
+                  },
+                  {
+                      "id":  "7a10113a-7f30-41d1-8f4e-6d7bb3a06ef6",
+                      "name":  "J \u0026 F MOTORS SAC"
+                  },
+                  {
+                      "id":  "34da1712-da4e-4c8f-b070-aa29efa42d82",
+                      "name":  "JMB Mining Chile"
+                  },
+                  {
+                      "id":  "2ceaa669-db27-4d6a-9fad-77923e4ea862",
+                      "name":  "Juan Leon"
+                  },
+                  {
+                      "id":  "328c24c5-493f-4b3e-863a-488cb68f7839",
+                      "name":  "KAMAX INTERNATIONAL"
+                  },
+                  {
+                      "id":  "37068c58-5d90-4755-b1d1-51e66912e0bb",
+                      "name":  "KENZ JORDAN INDUSTRIAL SUPPLY"
+                  },
+                  {
+                      "id":  "24abcc4d-bf8b-4502-8864-23b306f5d566",
+                      "name":  "KOMAK"
+                  },
+                  {
+                      "id":  "c7839411-983c-4197-9102-3170478ec486",
+                      "name":  "Komax"
+                  },
+                  {
+                      "id":  "2cd22464-1ce0-4849-99f4-5bf7695a2398",
+                      "name":  "La Llave"
+                  },
+                  {
+                      "id":  "c90881e6-56b5-4fc0-8502-1aa3178015e5",
+                      "name":  "LEiPARTS LLC"
+                  },
+                  {
+                      "id":  "9fc2fdb7-a2f2-4fc7-8abc-5bb4af4ca9ff",
+                      "name":  "MCW Parts"
+                  },
+                  {
+                      "id":  "41845c62-14b4-44bd-bbb9-8aeac9cadaf6",
+                      "name":  "METAPARTS LLC"
+                  },
+                  {
+                      "id":  "9cacc0bf-e11b-4186-a65b-4f238e52d349",
+                      "name":  "Mining Spare Parts"
+                  },
+                  {
+                      "id":  "2027d67f-1bee-45e5-bf0e-a23173de12e4",
+                      "name":  "MODIESEL S.R.L."
+                  },
+                  {
+                      "id":  "67e62a00-ea72-4856-83c6-04ec1dd590c8",
+                      "name":  "Overprime Manufacturing SAC"
+                  },
+                  {
+                      "id":  "129e90ca-405a-4371-bfad-430ae678ba94",
+                      "name":  "PARTS SOLUTION SERVICES"
+                  },
+                  {
+                      "id":  "66c8e0d9-37c6-4d44-b2bf-e4848232451d",
+                      "name":  "PATNERGY LIMITED"
+                  },
+                  {
+                      "id":  "d09ea5df-92b7-4dfa-b63a-58ba6fbc75cc",
+                      "name":  "PERIPARTS"
+                  },
+                  {
+                      "id":  "1b7ebf52-3e4f-461c-a55b-bdcacc81b071",
+                      "name":  "Power Parts Pro"
+                  },
+                  {
+                      "id":  "5fe23876-6d2c-4719-824d-b4a7bcb639fc",
+                      "name":  "POWER TECH SUPPLY INC"
+                  },
+                  {
+                      "id":  "575259f1-6c22-4d7e-b218-36b12e5c1b75",
+                      "name":  "Power Train Parts"
+                  },
+                  {
+                      "id":  "bebd95ed-b343-4e36-9ddb-a2fbdbef20ca",
+                      "name":  "PROESTAKIS LOGISTICS"
+                  },
+                  {
+                      "id":  "11d35337-112d-4960-bbc0-0d0c687b4b5b",
+                      "name":  "PROFESSIONAL PARTS LLC"
+                  },
+                  {
+                      "id":  "a6d3d327-2d96-4a89-8002-eccd2be72bf1",
+                      "name":  "Professional Parts SAS"
+                  },
+                  {
+                      "id":  "12f71be4-01f3-4bac-b9eb-f4e3589ea812",
+                      "name":  "R \u0026 T ROCCKCAT EIRL"
+                  },
+                  {
+                      "id":  "617e23a2-08d0-492c-83d6-58898ea51da5",
+                      "name":  "ROYALTY LOGISTICS, INC"
+                  },
+                  {
+                      "id":  "b04726d0-96ea-4988-b171-93281a304412",
+                      "name":  "RSOLE INC"
+                  },
+                  {
+                      "id":  "e763e422-3de2-4f64-a742-fcae9142f84e",
+                      "name":  "Sadguru Middle East FZE"
+                  },
+                  {
+                      "id":  "cf441e17-aa9e-445d-a9e1-09f00485ca72",
+                      "name":  "SERVICIOS Y COMERCIO FIERRAZOS E.I.R.L."
+                  },
+                  {
+                      "id":  "e6967975-2b52-41a3-9e91-084761b6f00f",
+                      "name":  "Shabeeb"
+                  },
+                  {
+                      "id":  null,
+                      "name":  "Sidco Industries"
+                  },
+                  {
+                      "id":  "0759b6ea-a930-4187-95ff-451b0980ce5d",
+                      "name":  "Supply Parts \u0026 Tractor"
+                  },
+                  {
+                      "id":  "9b66cdfd-a24e-42af-bd38-16a2fb8904c1",
+                      "name":  "THAT Group Inc."
+                  },
+                  {
+                      "id":  "ab77da35-3c97-4f91-894a-c14cec6dcd31",
+                      "name":  "That Parts"
+                  },
+                  {
+                      "id":  "0a95538a-2622-407d-9f00-9ac88fed8b9e",
+                      "name":  "Tracto Part Equipments Inc."
+                  },
+                  {
+                      "id":  "8023c62c-203e-43f5-adfd-fba362b7bfde",
+                      "name":  "TRACTODIESEL"
+                  },
+                  {
+                      "id":  "b5bd7403-313c-42cf-a125-084fa0011e1d",
+                      "name":  "TRACTOPARTES ORIENTE S.R.L."
+                  },
+                  {
+                      "id":  "749e177f-d5a2-4e9a-9b7d-22cd72fcea9f",
+                      "name":  "TSBC EQUIPMENT SALES LLC"
+                  },
+                  {
+                      "id":  "0f472c5e-4abe-46d4-aca0-d13bc2d0d874",
+                      "name":  "USA Mining Services International"
+                  },
+                  {
+                      "id":  "707497c8-5e2b-4945-92a8-0522c113b211",
+                      "name":  "VENFER SPA"
+                  },
+                  {
+                      "id":  "157ed0ac-2681-4a54-ba4c-5a8d7ae4f0f2",
+                      "name":  "Verde Ambiente S.R.L."
+                  },
+                  {
+                      "id":  "0ca27629-4edf-4efc-8c03-c4c686099c08",
+                      "name":  "Viento del Sur S.A."
+                  },
+                  {
+                      "id":  "ddb319b5-8284-4033-bb3b-5146ec530cc2",
+                      "name":  "VORAZ AMAZONIA S.A.C."
+                  },
+                  {
+                      "id":  "e25724c1-1c2a-4398-a77d-869d1b5ed97b",
+                      "name":  "Wajud Group"
+                  },
+                  {
+                      "id":  "bb30e88e-22c2-4a1b-9d61-7b8ea1cb2995",
+                      "name":  "WL PLUS, LLC"
+                  },
+                  {
+                      "id":  "7d6af74a-6a82-4cd5-b069-07539285014f",
+                      "name":  "Zagem Corp"
+                  }
+              ]
+}

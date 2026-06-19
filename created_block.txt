@@ -1,0 +1,18 @@
+﻿44:   const [createdQuote, setCreatedQuote] = useState(null)
+214:       setCreatedQuote(result)
+228:     resetForm()
+231:   function resetForm() {
+238:     setCreatedQuote(null)
+262:       {(hasLines || previewHtml) && !createdQuote && (
+270:       <h1 className={pageTitle}>{editMode ? `Actualizar Quote ${quoteNumber ?? ''}` : 'Nuevo Quote'}</h1>
+272:       {createdQuote && (
+277:           <div className="text-3xl font-extrabold mb-1">{createdQuote.quote_number}</div>
+279:             {createdQuote.client_name} · {createdQuote.total_items} líneas · ${Number(createdQuote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+282:             <button onClick={resetForm} className={btn.primary}>+ Nuevo quote</button>
+283:             <button onClick={() => window.open(quotePdfUrl(createdQuote.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
+284:             <button disabled title="Disponible cuando esté listo el generador de Excel" className={`${btn.secondary} opacity-50 cursor-not-allowed`}>↓ Excel</button>
+289:       {previewHtml && !createdQuote && (
+309:       {!hasLines && !createdQuote && (
+318:             accept=".csv,.xlsx,.xltm,.xlsm"
+324:           <div className="text-sm text-gray-500">CSV o Excel. Las líneas, precios y totales aparecen al cargar.</div>
+331:       {hasLines && !createdQuote && !previewHtml && (

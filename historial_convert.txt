@@ -1,0 +1,40 @@
+﻿    .filter(c => c.id)
+    .filter(c => (c.name || '').toLowerCase().includes(clientQuery.toLowerCase()))
+    .slice(0, 6)
+
+  function openConvertModal(quote = selected) {
+    if (quote) setSelected(quote)
+    setClientQuery(quote?.client_name || '')
+    setClientResults([])
+    setSelectedClient(null)
+    setSoNumber('')
+    setConvertError(null)
+    setConvertOpen(true)
+    getClients()
+      .then(d => setClientResults(d.items || []))
+      .catch(e => setConvertError(e.message))
+  }
+
+  async function doConvert() {
+    if (!selectedClient?.id || !soNumber.trim() || !selected) return
+    setConverting(true)
+    setConvertError(null)
+    try {
+      const updated = await convertQuote(selected.id, {
+        so_number: soNumber.trim(),
+        customer_id: selectedClient.id,
+      })
+      setConvertOpen(false)
+      setSelected(updated)
+      load()
+    } catch (e) {
+      setConvertError(e.message)
+    } finally {
+      setConverting(false)
+    }
+  }
+
+  function doSearch() {
+    setPage(1)
+    load()
+  }

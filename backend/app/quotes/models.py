@@ -83,7 +83,7 @@ class ConvertQuoteRequest(BaseModel):
 
 
 class ClientItem(BaseModel):
-    id: int | None = None
+    id: str | None = None
     name: str
 
 

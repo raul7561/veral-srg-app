@@ -103,6 +103,42 @@ def get_supplier_orders(page: int = 1, limit: int = 25):
     return {"rows": result, "total": total_count}
 
 
+@router.get("/orders/by-number/{so_number}")
+def get_supplier_order_by_number(so_number: str):
+    resp = supabase.table("supplier_orders").select("*").eq("so_number", so_number).execute()
+    if not resp.data:
+        raise HTTPException(status_code=404, detail=f"{so_number} not found")
+    order = resp.data[0]
+    oid = order["id"]
+    lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").eq("supplier_order_id", oid).execute().data
+    invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", oid).execute().data
+    all_vex = supabase.table("supplier_vex").select("*").execute().data
+
+    total = len(lines)
+    received = sum(1 for l in lines if l["status"] == "received")
+
+    for inv in invs:
+        inv["vex"] = [v for v in all_vex if v["supplier_inv_id"] == inv["id"]]
+
+    if total == 0:
+        fulfillment = "awaiting_parts"
+    elif received == 0:
+        fulfillment = "pending"
+    elif received < total:
+        fulfillment = "in_progress"
+    else:
+        fulfillment = "complete"
+
+    return {
+        **order,
+        "client": order.get("client") or "—",
+        "total_lines": total,
+        "received_lines": received,
+        "fulfillment": fulfillment,
+        "invs": invs,
+    }
+
+
 @router.get("/orders/{so_number}/lines-by-so")
 def get_lines_by_so(so_number: str):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()

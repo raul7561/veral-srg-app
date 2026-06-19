@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+﻿import { useEffect, useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -47,12 +47,10 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
     logout()
   }
 
-  const isActive = (path) => {
-    if (quotesOpen && !location.pathname.startsWith('/quotes')) return false
-    return path === '/'
+  const isActive = (path) =>
+    path === '/'
       ? location.pathname === '/'
       : location.pathname === path || location.pathname.startsWith(path + '/')
-  }
 
   return (
     <>
@@ -177,7 +175,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
         >
           <LogOut size={18} className="shrink-0" />
           <span className={collapsed ? 'md:hidden' : ''}>
-            {i18n.language === 'en' ? 'Log out' : 'Cerrar sesión'}
+            {i18n.language === 'en' ? 'Log out' : 'Cerrar sesiÃ³n'}
           </span>
         </button>
         </div>

@@ -1,0 +1,14 @@
+﻿4: import { btn, input, pageTitle, table } from '../styles'
+83:         so_number: soNumber.trim(),
+105:         <div className="flex items-center justify-between mb-4">
+106:           <div className="flex items-baseline gap-3">
+107:             <h1 className={`${pageTitle} mb-0`}>Quote {selected.quote_number}</h1>
+108:             {selected.so_number && (
+109:               <span className="font-mono text-xl font-bold text-srg-green">→ {selected.so_number}</span>
+113:             {!selected.so_number && (
+116:             {!selected.so_number && (
+208:       <h1 className={pageTitle}>Historial</h1>
+245:                     <td className={`${table.td} font-mono font-semibold`}>
+247:                       {q.so_number && (
+248:                         <span className="ml-2 font-mono text-xs text-srg-green">{q.so_number}</span>
+262:           <div className="flex justify-between items-center mt-4">

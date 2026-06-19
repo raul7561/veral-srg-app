@@ -1,0 +1,23 @@
+﻿  function handleDragOver(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragRef.current?.classList.add("border-blue-500", "bg-blue-50")
+  }
+
+  function handleDragLeave(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+  }
+
+  function handleDrop(e) {
+    e.preventDefault()
+    e.stopPropagation()
+    dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+    const dropped = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf")
+    if (dropped.length > 0) setFiles(prev => [...prev, ...dropped])
+  }
+
+  function handleFileInput(e) {
+    const selected = Array.from(e.target.files).filter(f => f.type === "application/pdf")
+    if (selected.length > 0) setFiles(prev => [...prev, ...selected])

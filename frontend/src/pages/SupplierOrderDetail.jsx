@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { getSupplierOrderLinesBySo, getSupplierTracking, openSignedPdf } from "../api"
+import { getSupplierOrderLinesBySo, getSupplierOrderByNumber, openSignedPdf } from "../api"
 import { table } from "../styles"
 
 const API = `${import.meta.env.VITE_API_URL}/supplier-tracking`
@@ -14,15 +14,12 @@ export default function SupplierOrderDetail() {
 
   const fetchOrder = useCallback(async () => {
     try {
-      const [ordersRes, linesRes] = await Promise.all([
-        getSupplierTracking(),
+      const [orderRes, linesRes] = await Promise.all([
+        getSupplierOrderByNumber(soNumber),
         getSupplierOrderLinesBySo(soNumber),
       ])
-      const orders = ordersRes
-      const found = orders.find(o => o.so_number === soNumber)
-      setOrder(found || null)
-      const linesData = linesRes
-      setLines(linesData)
+      setOrder(orderRes || null)
+      setLines(linesRes)
     } catch (err) {
       console.error(err)
     } finally {
@@ -49,7 +46,7 @@ export default function SupplierOrderDetail() {
         <span className="text-gray-600">{order.client}</span>
         <span className="text-gray-400 text-sm">{order.order_date || "—"}</span>
         {order.so_pdf_url && (
-          <a href={order.so_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ SO PDF</a>
+          <button type="button" onClick={() => openSignedPdf(order.so_pdf_url)} className="text-xs text-srg-black hover:underline cursor-pointer">↓ SO PDF</button>
         )}
       </div>
 
@@ -86,7 +83,7 @@ export default function SupplierOrderDetail() {
                       <span className="font-mono font-medium">{inv.inv_number}</span>
                       <span className="text-gray-400 text-xs">{inv.inv_date || "—"}</span>
                       {inv.inv_pdf_url && (
-                        <a href={inv.inv_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline">↓ PDF</a>
+                        <button type="button" onClick={() => openSignedPdf(inv.inv_pdf_url)} className="text-xs text-srg-black hover:underline cursor-pointer">↓ PDF</button>
                       )}
                     </div>
                     <div className="flex items-center gap-2 ml-4">
@@ -95,7 +92,7 @@ export default function SupplierOrderDetail() {
                         <span key={v.id} className="text-xs font-mono text-gray-600">
                           {v.vex_number}
                           {v.vex_pdf_url && (
-                            <a href={v.vex_pdf_url} target="_blank" rel="noopener noreferrer" className="text-xs text-srg-black hover:underline ml-1">↓</a>
+                            <button type="button" onClick={() => openSignedPdf(v.vex_pdf_url)} className="text-xs text-srg-black hover:underline ml-1 cursor-pointer">↓</button>
                           )}
                         </span>
                       ))}
