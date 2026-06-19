@@ -44,7 +44,6 @@ def get_order_detail(so_number: str):
     invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", supplier_order_id).execute().data
     vex = supabase.table("supplier_vex").select("*").execute().data
 
-    inv_map = {i["id"]: i for i in invs}
     vex_by_inv = {}
     for v in vex:
         vex_by_inv.setdefault(v["supplier_inv_id"], []).append(v)

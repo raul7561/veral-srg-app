@@ -1,7 +1,6 @@
 import pdfplumber
 import re
 import io
-from datetime import datetime
 
 
 def parse_vex_pdf(content: bytes) -> dict:

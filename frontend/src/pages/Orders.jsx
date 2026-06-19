@@ -17,10 +17,10 @@ import { getOrders, getQuotesThisMonthCount } from '../api'
 import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
 const LAG_STYLES = {
-  overdue: { dot: 'bg-srg-red', label: 'text-srg-red', text: 'Overdue' },
-  follow_up: { dot: 'bg-srg-orange', label: 'text-srg-orange', text: 'Follow Up' },
-  on_track: { dot: 'bg-srg-green', label: 'text-srg-green', text: 'On Track' },
-  unknown: { dot: 'bg-srg-border', label: 'text-srg-border', text: 'On Track' },
+  overdue: { dot: 'bg-srg-red', label: 'text-srg-red' },
+  follow_up: { dot: 'bg-srg-orange', label: 'text-srg-orange' },
+  on_track: { dot: 'bg-srg-green', label: 'text-srg-green' },
+  unknown: { dot: 'bg-srg-border', label: 'text-srg-border' },
 }
 
 const METRIC_FILTERS = [
@@ -48,9 +48,14 @@ export default function Orders() {
   const [orders, setOrders] = useState([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [sortBy, setSortBy] = useState('lag')
   const [activeFilter, setActiveFilter] = useState(null)
   const [quotesThisMonth, setQuotesThisMonth] = useState(0)
+
+  function getLagText(status) {
+    if (status === 'overdue') return t('orders.overdue')
+    if (status === 'follow_up') return t('orders.followUp')
+    return t('orders.onTrack')
+  }
 
   useEffect(() => {
     getOrders()
@@ -70,21 +75,21 @@ export default function Orders() {
 
   const ageData = useMemo(() => [
     {
-      name: 'On Track',
+      name: t('orders.onTrack'),
       count: orders.filter(order => order.business_days >= 0 && order.business_days <= 14).length,
       fill: BAR_COLORS.on_track,
     },
     {
-      name: 'Follow Up',
+      name: t('orders.followUp'),
       count: orders.filter(order => order.business_days >= 15 && order.business_days <= 19).length,
       fill: BAR_COLORS.follow_up,
     },
     {
-      name: 'Overdue',
+      name: t('orders.overdue'),
       count: orders.filter(order => order.business_days >= 20).length,
       fill: BAR_COLORS.overdue,
     },
-  ], [orders])
+  ], [orders, t])
 
   const dispatchData = useMemo(() => {
     const counts = { pending: 0, ready: 0, dispatched: 0 }
@@ -95,11 +100,11 @@ export default function Orders() {
     })
 
     return [
-      { name: 'Pending', key: 'pending', value: counts.pending },
-      { name: 'Ready', key: 'ready', value: counts.ready },
-      { name: 'Dispatched', key: 'dispatched', value: counts.dispatched },
+      { name: t('orders.pending'), key: 'pending', value: counts.pending },
+      { name: t('orders.ready'), key: 'ready', value: counts.ready },
+      { name: t('orders.dispatched'), key: 'dispatched', value: counts.dispatched },
     ]
-  }, [orders])
+  }, [orders, t])
 
   const filtered = useMemo(() => orders
     .filter(o => {
@@ -109,22 +114,8 @@ export default function Orders() {
         o.invoices.some(i => i.inv_number.toLowerCase().includes(q))
       const matchesActiveFilter = !activeFilter ||
         (activeFilter === 'no_inv' ? o.invoices.length === 0 : o.lag_status === activeFilter)
-
       return matchesText && matchesActiveFilter
-    })
-    .slice()
-    .sort((a, b) => {
-      if (sortBy === 'lag') {
-        const order = { overdue: 0, follow_up: 1, on_track: 2 }
-        const va = order[a.lag_status] ?? 3
-        const vb = order[b.lag_status] ?? 3
-        return va - vb
-      }
-      if (sortBy === 'newest') return new Date(b.so_date) - new Date(a.so_date)
-      if (sortBy === 'oldest') return new Date(a.so_date) - new Date(b.so_date)
-      if (sortBy === 'az') return a.client.localeCompare(b.client)
-      return 0
-    }), [activeFilter, orders, search, sortBy])
+    }), [activeFilter, orders, search])
 
   const topCritical = useMemo(
     () => [...filtered].sort((a, b) => (b.business_days ?? 0) - (a.business_days ?? 0)).slice(0, 10),
@@ -132,14 +123,14 @@ export default function Orders() {
   )
 
   if (loading) return (
-    <div className="p-8 text-srg-black font-['DM_Sans']">Loading...</div>
+    <div className="p-8 text-srg-black font-['DM_Sans']">{t('orders.loading')}</div>
   )
 
   return (
     <>
       <div className="p-8">
       <h1 className={pageTitle}>
-        {t('nav.orders')}
+        {t('orders.title')}
       </h1>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-5 gap-4 mb-6">
@@ -157,7 +148,15 @@ export default function Orders() {
                 {metricCounts[metric.key]}
               </div>
               <div className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-                {metric.label}
+                {metric.key === 'on_track'
+                  ? t('orders.onTrack')
+                  : metric.key === 'follow_up'
+                    ? t('orders.followUp')
+                    : metric.key === 'overdue'
+                      ? t('orders.overdue')
+                      : metric.key === 'no_inv'
+                        ? t('orders.noInv')
+                        : metric.label}
               </div>
             </button>
           )
@@ -167,14 +166,14 @@ export default function Orders() {
             {quotesThisMonth}
           </div>
           <div className="mt-2 text-xs font-bold uppercase tracking-widest text-gray-400">
-            Quotes this month
+            {t('orders.quotesThisMonth')}
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
         <div className={`${card} p-4`}>
-          <h2 className={sectionTitle}>Orders by age</h2>
+          <h2 className={sectionTitle}>{t('orders.ordersByAge')}</h2>
           <ResponsiveContainer width="100%" height={240}>
             <BarChart data={ageData}>
               <XAxis dataKey="name" />
@@ -190,7 +189,7 @@ export default function Orders() {
         </div>
 
         <div className={`${card} p-4`}>
-          <h2 className={sectionTitle}>INVs by dispatch status</h2>
+          <h2 className={sectionTitle}>{t('orders.invsByDispatch')}</h2>
           <ResponsiveContainer width="100%" height={240}>
             <PieChart>
               <Pie
@@ -214,36 +213,25 @@ export default function Orders() {
       <div className="mb-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
         <input
           type="text"
-          placeholder="Search by SO, client or INV..."
+          placeholder={t('orders.searchPlaceholder')}
           value={search}
           onChange={e => setSearch(e.target.value)}
           className={`${input} sm:max-w-md`}
         />
-
-        <select
-          value={sortBy}
-          onChange={e => setSortBy(e.target.value)}
-          className={`${input} sm:max-w-48`}
-        >
-          <option value="lag">By Lag</option>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="az">Client A–Z</option>
-        </select>
       </div>
 
-      <h2 className={sectionTitle}>Most critical orders</h2>
-      <p className="text-xs text-gray-400 mb-3">Top 10 by lag. Full list in Supplier Tracking.</p>
+      <h2 className={sectionTitle}>{t('orders.mostCritical')}</h2>
+      <p className="text-xs text-gray-400 mb-3">{t('orders.topHint')}</p>
 
       <div className={table.wrapper}>
         <table className={table.base}>
           <thead>
             <tr className={table.head}>
-              <th className={table.th}>Sales Order</th>
-              <th className={table.th}>Client</th>
-              <th className={table.th}>Date</th>
-              <th className={table.th}>INV</th>
-              <th className={`${table.th} text-right`}>Status</th>
+              <th className={table.th}>{t('orders.salesOrder')}</th>
+              <th className={table.th}>{t('orders.client')}</th>
+              <th className={table.th}>{t('orders.date')}</th>
+              <th className={table.th}>{t('orders.inv')}</th>
+              <th className={`${table.th} text-right`}>{t('orders.status')}</th>
             </tr>
           </thead>
           <tbody>
@@ -271,7 +259,7 @@ export default function Orders() {
                   <td className={`${table.td} text-right whitespace-nowrap`}>
                     <span className={`text-xs uppercase ${lag.label}`}>
                       <span className={`inline-block w-2 h-2 rounded-full mr-1 ${lag.dot}`} />
-                      {lag.text} ({so.business_days}d)
+                      {getLagText(so.lag_status)} ({so.business_days}d)
                     </span>
                   </td>
                 </tr>

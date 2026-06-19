@@ -1,12 +1,15 @@
 import { useCallback, useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
 import { getCustomerDocuments, getCustomers, openSignedPdf } from "../api";
-import CustomerForm, { INITIAL_FORM, customerToForm, formToPayload } from "../components/CustomerForm";
+import CustomerForm from "../components/CustomerForm";
+import { INITIAL_FORM, customerToForm, formToPayload } from "../components/customerFormHelpers";
 import { btn, table } from "../styles";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function CustomerDetail() {
+  const { t } = useTranslation();
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -95,8 +98,8 @@ export default function CustomerDetail() {
     fetchAll();
   }
 
-  if (loading) return <div className="p-8 text-gray-400">Loading...</div>;
-  if (!customer) return <div className="p-8 text-gray-400">Customer not found.</div>;
+  if (loading) return <div className="p-8 text-gray-400">{t('customers.loading')}</div>;
+  if (!customer) return <div className="p-8 text-gray-400">{t('customers.notFound')}</div>;
 
   const primary = customer.contacts?.find(c => c.is_primary) || {};
   const extras = customer.contacts?.filter(c => !c.is_primary) || [];
@@ -130,17 +133,17 @@ export default function CustomerDetail() {
         onClick={() => navigate("/customers")}
         className="text-xs uppercase font-semibold text-gray-400 hover:text-black mb-6 inline-block"
       >
-        ← Customers
+        {t('customers.back')}
       </button>
 
       {/* Header */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold uppercase tracking-wide">{customer.name}</h1>
-        <p className="text-sm text-gray-500 mt-1">{customer.country} · {customer.type === "international" ? "International" : "Domestic"}</p>
+        <p className="text-sm text-gray-500 mt-1">{customer.country} · {customer.type === "international" ? t('customers.international') : t('customers.domestic')}</p>
         </div>
         <button onClick={openEditForm} className={btn.secondary}>
-          Edit
+          {t('customers.edit')}
         </button>
       </div>
 
@@ -157,15 +160,15 @@ export default function CustomerDetail() {
 
       {/* Contacts */}
       <section className="mb-8">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Contacts</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">{t('customers.contacts')}</h2>
         <div className={table.wrapper}>
           <table className={table.base}>
             <thead>
               <tr className={table.head}>
-                <th className={table.th}>Name</th>
-                <th className={table.th}>Email</th>
-                <th className={table.th}>Phone</th>
-                <th className={table.th}>Role</th>
+                <th className={table.th}>{t('customers.name')}</th>
+                <th className={table.th}>{t('customers.email')}</th>
+                <th className={table.th}>{t('customers.phone')}</th>
+                <th className={table.th}>{t('customers.role')}</th>
               </tr>
             </thead>
             <tbody>
@@ -173,14 +176,14 @@ export default function CustomerDetail() {
                 <td className={table.td}>{primary.name || "—"}</td>
                 <td className={`${table.td} text-gray-600`}>{primary.email || "—"}</td>
                 <td className={`${table.td} text-gray-600`}>{primary.phone || "—"}</td>
-                <td className={table.td}><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">Primary</span></td>
+                <td className={table.td}><span className="text-xs bg-srg-yellow text-srg-black font-semibold px-2 py-0.5 rounded">{t('customers.primary')}</span></td>
               </tr>
               {extras.map((c, i) => (
                 <tr key={i} className={table.row}>
                   <td className={table.td}>{c.name || "—"}</td>
                   <td className={`${table.td} text-gray-600`}>{c.email || "—"}</td>
                   <td className={`${table.td} text-gray-600`}>{c.phone || "—"}</td>
-                  <td className={`${table.td} text-gray-400 text-xs`}>Additional</td>
+                  <td className={`${table.td} text-gray-400 text-xs`}>{t('customers.additional')}</td>
                 </tr>
               ))}
             </tbody>
@@ -190,21 +193,21 @@ export default function CustomerDetail() {
 
       {/* Address */}
       <section className="mb-8">
-        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">Address</h2>
+        <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400 mb-3">{t('customers.address')}</h2>
         <div className="grid grid-cols-2 gap-6">
           <div>
-            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Billing</p>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">{t('customers.billing')}</p>
             {hasBillingAddress ? (
               <p className="text-sm text-gray-700">
                 {customer.billing_street || "—"}<br />
                 {[customer.billing_city, customer.billing_state, customer.billing_postal_code].filter(Boolean).join(", ") || "—"}
               </p>
             ) : (
-              <p className="text-sm text-gray-400">No address on file</p>
+              <p className="text-sm text-gray-400">{t('customers.noAddress')}</p>
             )}
           </div>
           <div>
-            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Shipping</p>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">{t('customers.shipping')}</p>
             {hasShippingAddress ? (
               <p className="text-sm text-gray-700">
                 {customer.shipping_street || "—"}<br />
@@ -212,7 +215,7 @@ export default function CustomerDetail() {
                 {customer.shipping_country ? ` · ${customer.shipping_country}` : ""}
               </p>
             ) : (
-              <p className="text-sm text-gray-400">No address on file</p>
+              <p className="text-sm text-gray-400">{t('customers.noAddress')}</p>
             )}
           </div>
         </div>
@@ -221,12 +224,12 @@ export default function CustomerDetail() {
       {/* Documents */}
       <section>
         <div className="flex items-center justify-between mb-3">
-          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">Documents</h2>
+          <h2 className="text-xs font-bold uppercase tracking-widest text-gray-400">{t('customers.documents')}</h2>
           <button
             onClick={() => setShowUploadForm(!showUploadForm)}
             className="text-xs uppercase font-semibold text-srg-yellow hover:underline"
           >
-            + Upload
+            {t('customers.upload')}
           </button>
         </div>
 
@@ -234,21 +237,21 @@ export default function CustomerDetail() {
           <div className="border rounded-lg p-4 mb-4 bg-white">
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="text-xs uppercase font-semibold text-gray-500">Type</label>
+                <label className="text-xs uppercase font-semibold text-gray-500">{t('customers.type')}</label>
                 <select
                   className="w-full border rounded px-3 py-2 mt-1 text-sm"
                   value={uploadType}
                   onChange={e => setUploadType(e.target.value)}
                 >
                   {customer.type === "domestic" && (
-                    <option value="tax_certificate">Tax Certificate</option>
+                    <option value="tax_certificate">{t('customers.taxCertificate')}</option>
                   )}
-                  <option value="other">Document</option>
+                  <option value="other">{t('customers.document')}</option>
                 </select>
               </div>
               {uploadType === "tax_certificate" && (
                 <div>
-                  <label className="text-xs uppercase font-semibold text-gray-500">Expiry Date</label>
+                  <label className="text-xs uppercase font-semibold text-gray-500">{t('customers.expiryDate')}</label>
                   <input
                     type="date"
                     className="w-full border rounded px-3 py-2 mt-1 text-sm"
@@ -260,16 +263,16 @@ export default function CustomerDetail() {
               {uploadType === "other" && (
                 <>
                   <div>
-                    <label className="text-xs uppercase font-semibold text-gray-500">Label</label>
+                    <label className="text-xs uppercase font-semibold text-gray-500">{t('customers.label')}</label>
                     <input
                       className="w-full border rounded px-3 py-2 mt-1 text-sm"
                       value={uploadLabel}
                       onChange={e => setUploadLabel(e.target.value)}
-                      placeholder="e.g. W-9 Form"
+                      placeholder={t('customers.labelPlaceholder')}
                     />
                   </div>
                   <div>
-                    <label className="text-xs uppercase font-semibold text-gray-500">Expiry Date</label>
+                    <label className="text-xs uppercase font-semibold text-gray-500">{t('customers.expiryDate')}</label>
                     <input
                       type="date"
                       className="w-full border rounded px-3 py-2 mt-1 text-sm"
@@ -282,7 +285,7 @@ export default function CustomerDetail() {
               
             </div>
             <div className="mb-4">
-              <label className="text-xs uppercase font-semibold text-gray-500">File</label>
+              <label className="text-xs uppercase font-semibold text-gray-500">{t('customers.file')}</label>
               <input
                 type="file"
                 accept=".pdf"
@@ -296,13 +299,13 @@ export default function CustomerDetail() {
                 disabled={uploading || !uploadFile}
                 className={btn.primary}
               >
-                {uploading ? "Uploading..." : "Upload"}
+                {uploading ? t('customers.uploading') : t('customers.uploadBtn')}
               </button>
               <button
                 onClick={() => setShowUploadForm(false)}
                 className={btn.secondary}
               >
-                Cancel
+                {t('customers.cancel')}
               </button>
             </div>
           </div>
@@ -311,31 +314,31 @@ export default function CustomerDetail() {
         {/* Tax Certificate */}
         {customer.type === "domestic" ? (
           <div className="mb-4">
-            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Tax Certificate</p>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">{t('customers.taxCertificate')}</p>
             {!taxCert ? (
               <div className="border rounded-lg px-4 py-3 bg-white flex items-center gap-2 text-sm text-gray-400">
-                <span>⚠️</span> No tax certificate on file
+                <span>⚠️</span> {t('customers.noTaxCert')}
               </div>
             ) : (
               <div className={`border rounded-lg px-4 py-3 bg-white flex items-center justify-between text-sm ${taxExpired ? "border-srg-red" : taxExpiringSoon ? "border-srg-orange" : ""}`}>
                 <div className="flex items-center gap-3">
-                  {taxExpired && <span className="text-xs bg-srg-red text-white font-semibold px-2 py-0.5 rounded">Expired</span>}
-                  {taxExpiringSoon && <span className="text-xs bg-srg-orange text-srg-black font-semibold px-2 py-0.5 rounded">Expiring soon</span>}
+                  {taxExpired && <span className="text-xs bg-srg-red text-white font-semibold px-2 py-0.5 rounded">{t('customers.expired')}</span>}
+                  {taxExpiringSoon && <span className="text-xs bg-srg-orange text-srg-black font-semibold px-2 py-0.5 rounded">{t('customers.expiringSoon')}</span>}
                   <span className="font-medium">{taxCert.file_name}</span>
-                  {taxCert.expiry_date && <span className="text-gray-400">· Expires {taxCert.expiry_date}</span>}
+                  {taxCert.expiry_date && <span className="text-gray-400">· {t('customers.expires', { date: taxCert.expiry_date })}</span>}
                 </div>
                 <div className="flex items-center gap-4">
-                  <button type="button" onClick={() => openSignedPdf(taxCert.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
-                  <button onClick={() => setConfirmDelete(taxCert.id)} className="text-xs text-srg-red hover:underline">Delete</button>
+                  <button type="button" onClick={() => openSignedPdf(taxCert.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">{t('customers.download')}</button>
+                  <button onClick={() => setConfirmDelete(taxCert.id)} className="text-xs text-srg-red hover:underline">{t('customers.delete')}</button>
                 </div>
               </div>
             )}
           </div>
         ) : (
           <div className="mb-4">
-            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Tax Certificate</p>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">{t('customers.taxCertificate')}</p>
             <div className="border rounded-lg px-4 py-3 bg-white text-sm text-gray-400">
-              Not required for international customers. Proof of Export is managed per Sales Order in Supplier Tracking.
+              {t('customers.taxNotRequired')}
             </div>
           </div>
         )}
@@ -343,14 +346,14 @@ export default function CustomerDetail() {
         {/* Other docs */}
         {otherDocs.length > 0 && (
           <div>
-            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">Other</p>
+            <p className="text-xs uppercase font-semibold text-gray-400 mb-2">{t('customers.other')}</p>
             <div className="border rounded-lg overflow-hidden bg-white">
               {otherDocs.map((doc, i) => (
                 <div key={doc.id} className={`flex items-center justify-between px-4 py-3 text-sm ${i > 0 ? "border-t" : ""}`}>
                   <span className="font-medium">{doc.label || doc.file_name}</span>
                   <div className="flex items-center gap-4">
-                    <button type="button" onClick={() => openSignedPdf(doc.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">Download</button>
-                    <button onClick={() => setConfirmDelete(doc.id)} className="text-xs text-srg-red hover:underline">Delete</button>
+                    <button type="button" onClick={() => openSignedPdf(doc.file_url)} className="text-xs text-srg-yellow font-semibold hover:underline uppercase">{t('customers.download')}</button>
+                    <button onClick={() => setConfirmDelete(doc.id)} className="text-xs text-srg-red hover:underline">{t('customers.delete')}</button>
                   </div>
                 </div>
               ))}
@@ -363,11 +366,11 @@ export default function CustomerDetail() {
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 shadow-xl">
-            <p className="font-semibold mb-4">Delete this document?</p>
-            <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+            <p className="font-semibold mb-4">{t('customers.deleteDocTitle')}</p>
+            <p className="text-sm text-gray-500 mb-6">{t('customers.deleteWarning')}</p>
             <div className="flex gap-3">
-              <button onClick={() => handleDeleteDoc(confirmDelete)} className={btn.destructive}>Delete</button>
-              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>Cancel</button>
+              <button onClick={() => handleDeleteDoc(confirmDelete)} className={btn.destructive}>{t('customers.delete')}</button>
+              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>{t('customers.cancel')}</button>
             </div>
           </div>
         </div>

@@ -32,12 +32,26 @@ async def create_supplier_order(file: UploadFile = File(...)):
     if existing.data:
         raise HTTPException(status_code=409, detail=f"{so} already exists in Supplier Tracking")
 
+    if not parsed["parts"]:
+        raise HTTPException(
+            status_code=422,
+            detail=f"{so} no contiene líneas de partes. Verifica que el PDF sea el Sales Order correcto y no un packing list u otro documento.",
+        )
+
     # Buscar match en customers por nombre
     customer_id = None
     if parsed["client"] and parsed["client"] != "NOT FOUND":
         customer_match = supabase.table("customers").select("id").ilike("name", parsed["client"]).execute()
         if customer_match.data:
             customer_id = customer_match.data[0]["id"]
+
+    client_warning = None
+    if customer_id is None:
+        client_warning = (
+            f"El cliente '{parsed['client']}' no está registrado y la orden quedó sin vincular. "
+            "Agrégalo en Customers para habilitar funciones que dependen del tipo de cliente "
+            "(ej. Proof of Export)."
+        )
 
     result = supabase.table("supplier_orders").insert({
         "so_number": so,
@@ -70,7 +84,8 @@ async def create_supplier_order(file: UploadFile = File(...)):
     return {
         "so_number": so,
         "supplier_order_id": supplier_order_id,
-        "parts_count": len(parsed["parts"])
+        "parts_count": len(parsed["parts"]),
+        "client_warning": client_warning,
     }
 
 
@@ -81,8 +96,14 @@ def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest")
     query = supabase.table("supplier_orders").select("*", count="exact")
     if sort_by == "oldest":
         query = query.order("order_date", desc=False)
-    elif sort_by == "az":
+    elif sort_by == "so_asc":
+        query = query.order("so_number", desc=False)
+    elif sort_by == "so_desc":
+        query = query.order("so_number", desc=True)
+    elif sort_by == "client_az":
         query = query.order("client", desc=False)
+    elif sort_by == "client_za":
+        query = query.order("client", desc=True)
     else:
         query = query.order("created_at", desc=True)
     resp = query.range(start, end).execute()
@@ -92,12 +113,38 @@ def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest")
     all_invs = fetch_all("supplier_invs", "*")
     all_vex = fetch_all("supplier_vex", "*")
 
+    order_ids = [o["id"] for o in orders]
+    customer_ids = [o["customer_id"] for o in orders if o.get("customer_id")]
+
+    customer_types = {}
+    if customer_ids:
+        custs = (
+            supabase.table("customers")
+            .select("id, type")
+            .in_("id", customer_ids)
+            .execute()
+            .data
+        )
+        customer_types = {c["id"]: c["type"] for c in custs}
+
+    proof_order_ids = set()
+    if order_ids:
+        proofs = (
+            supabase.table("supplier_order_documents")
+            .select("supplier_order_id")
+            .eq("document_type", "proof_of_export")
+            .in_("supplier_order_id", order_ids)
+            .execute()
+            .data
+        )
+        proof_order_ids = {p["supplier_order_id"] for p in proofs}
+
     result = []
     for order in orders:
         oid = order["id"]
-        lines = [l for l in all_lines if l["supplier_order_id"] == oid]
+        lines = [line for line in all_lines if line["supplier_order_id"] == oid]
         total = len(lines)
-        received = sum(1 for l in lines if l["status"] == "received")
+        received = sum(1 for line in lines if line["status"] == "received")
         invs = [i for i in all_invs if i["supplier_order_id"] == oid]
 
         for inv in invs:
@@ -115,6 +162,8 @@ def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest")
         result.append({
             **order,
             "client": order.get("client") or "—",
+            "customer_type": customer_types.get(order.get("customer_id")),
+            "has_proof": order["id"] in proof_order_ids,
             "total_lines": total,
             "received_lines": received,
             "fulfillment": fulfillment,
@@ -136,7 +185,7 @@ def get_supplier_order_by_number(so_number: str):
     all_vex = fetch_all("supplier_vex", "*")
 
     total = len(lines)
-    received = sum(1 for l in lines if l["status"] == "received")
+    received = sum(1 for line in lines if line["status"] == "received")
 
     for inv in invs:
         inv["vex"] = [v for v in all_vex if v["supplier_inv_id"] == inv["id"]]
@@ -150,9 +199,16 @@ def get_supplier_order_by_number(so_number: str):
     else:
         fulfillment = "complete"
 
+    customer_type = None
+    if order.get("customer_id"):
+        cust = supabase.table("customers").select("type").eq("id", order["customer_id"]).execute()
+        if cust.data:
+            customer_type = cust.data[0]["type"]
+
     return {
         **order,
         "client": order.get("client") or "—",
+        "customer_type": customer_type,
         "total_lines": total,
         "received_lines": received,
         "fulfillment": fulfillment,
@@ -387,7 +443,7 @@ async def sync_madisa(file: UploadFile = File(...)):
         try:
             n = int(float(str(val)))
             return (datetime(1899, 12, 30) + timedelta(days=n)).strftime("%Y-%m-%d")
-        except:
+        except (ValueError, TypeError):
             return None
 
     def get_category(llave):
@@ -453,3 +509,48 @@ async def sync_madisa(file: UploadFile = File(...)):
         "updated": updated,
         "skipped": skipped,
     }
+
+
+@router.post("/orders/{so_number}/proof-of-export")
+async def upload_proof_of_export(so_number: str, file: UploadFile = File(...)):
+    order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
+    if not order.data:
+        raise HTTPException(status_code=404, detail=f"{so_number} not found")
+    supplier_order_id = order.data[0]["id"]
+    content = await file.read()
+    path = f"{so_number}/proof_of_export_{file.filename}"
+    supabase_admin.storage.from_("documents").upload(
+        path,
+        content,
+        {"content-type": "application/pdf", "upsert": "true"},
+    )
+    url = supabase_admin.storage.from_("documents").get_public_url(path)
+    result = supabase.table("supplier_order_documents").insert({
+        "supplier_order_id": supplier_order_id,
+        "document_type": "proof_of_export",
+        "file_url": url,
+        "file_name": file.filename,
+    }).execute()
+    return result.data[0]
+
+
+@router.get("/orders/{so_number}/documents")
+def get_order_documents(so_number: str):
+    order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
+    if not order.data:
+        raise HTTPException(status_code=404, detail=f"{so_number} not found")
+    supplier_order_id = order.data[0]["id"]
+    docs = (
+        supabase.table("supplier_order_documents")
+        .select("*")
+        .eq("supplier_order_id", supplier_order_id)
+        .execute()
+        .data
+    )
+    return docs
+
+
+@router.delete("/documents/{doc_id}")
+def delete_order_document(doc_id: str):
+    supabase.table("supplier_order_documents").delete().eq("id", doc_id).execute()
+    return {"deleted": True}

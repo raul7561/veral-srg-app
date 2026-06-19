@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { getReceivingHistory } from '../api'
 import Pagination from '../components/Pagination'
@@ -7,6 +8,7 @@ import { input, pageTitle, table } from '../styles'
 const LIMIT = 25
 
 export default function ReceivingHistory() {
+  const { t } = useTranslation()
   const [orders, setOrders] = useState([])
   const [total, setTotal] = useState(0)
   const [search, setSearch] = useState('')
@@ -48,12 +50,12 @@ export default function ReceivingHistory() {
 
   return (
     <div className="p-8">
-      <h1 className={pageTitle}>Receiving History</h1>
+      <h1 className={pageTitle}>{t('receiving.title')}</h1>
 
       <div className="mb-6 flex items-center gap-2">
         <input
           className={`${input} w-80`}
-          placeholder="Search by SO, client or PO..."
+          placeholder={t('receiving.searchPlaceholder')}
           value={search}
           onChange={e => {
             setSearch(e.target.value)
@@ -61,31 +63,31 @@ export default function ReceivingHistory() {
           }}
         />
         <select value={filterSO} onChange={e => { setFilterSO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-          <option value="">All SOs</option>
+          <option value="">{t('receiving.allSos')}</option>
           {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
         </select>
         <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-          <option value="">All Clients</option>
+          <option value="">{t('receiving.allClients')}</option>
           {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
         <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="az">Client A–Z</option>
+          <option value="newest">{t('receiving.sortNewest')}</option>
+          <option value="oldest">{t('receiving.sortOldest')}</option>
+          <option value="az">{t('receiving.sortAz')}</option>
         </select>
       </div>
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-gray-500">No orders with received parts yet.</p>
+        <p className="text-sm text-gray-500">{t('receiving.empty')}</p>
       ) : (
         <div className={table.wrapper}>
           <table className={table.base}>
             <thead>
               <tr className={table.head}>
-                <th className={table.th}>Sales Order</th>
-                <th className={table.th}>Client</th>
-                <th className={table.th}>Purchase Order</th>
-                <th className={table.th}>Date</th>
+                <th className={table.th}>{t('receiving.salesOrder')}</th>
+                <th className={table.th}>{t('receiving.client')}</th>
+                <th className={table.th}>{t('receiving.purchaseOrder')}</th>
+                <th className={table.th}>{t('receiving.date')}</th>
               </tr>
             </thead>
             <tbody>

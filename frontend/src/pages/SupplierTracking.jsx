@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react"
+import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from "react-router-dom"
 import { getSupplierTracking } from "../api"
 import Pagination from "../components/Pagination"
@@ -7,15 +8,16 @@ import AttachDocumentModal from "../components/AttachDocumentModal"
 import { btn, input, pageTitle, table } from "../styles"
 
 const FULFILLMENT_LABELS = {
-  awaiting_parts: { label: "Awaiting Parts", color: "text-gray-400" },
-  pending: { label: "Pending", color: "text-srg-orange" },
-  in_progress: { label: "In Progress", color: "text-srg-blue" },
-  complete: { label: "Complete", color: "text-srg-green" },
+  awaiting_parts: { color: "text-gray-400" },
+  pending: { color: "text-srg-orange" },
+  in_progress: { color: "text-srg-blue" },
+  complete: { color: "text-srg-green" },
 }
 
 const LIMIT = 25
 
 export default function SupplierTracking() {
+  const { t } = useTranslation()
   const [syncing, setSyncing] = useState(false)
   const [syncMessage, setSyncMessage] = useState(null)
   const [orders, setOrders] = useState([])
@@ -24,9 +26,6 @@ export default function SupplierTracking() {
   const [uploadModalOpen, setUploadModalOpen] = useState(false)
   const [attachModalOpen, setAttachModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
-  const [filterSO, setFilterSO] = useState('')
-  const [filterClient, setFilterClient] = useState('')
-  const [filterPO, setFilterPO] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -63,38 +62,29 @@ export default function SupplierTracking() {
       })
       const data = await res.json()
       if (res.ok) {
-        setSyncMessage({ type: "success", text: `Updated: ${data.updated} — Skipped: ${data.skipped}` })
+        setSyncMessage({ type: "success", text: t('supplierTracking.syncResult', { updated: data.updated, skipped: data.skipped }) })
         fetchOrders()
       } else {
         setSyncMessage({ type: "error", text: data.detail })
       }
     } catch {
-      setSyncMessage({ type: "error", text: "Connection error" })
+      setSyncMessage({ type: "error", text: t('supplierTracking.connectionError') })
     } finally {
       setSyncing(false)
       if (syncInputRef.current) syncInputRef.current.value = ""
     }
   }
 
-  const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
-  const clientOptions = Array.from(new Set(orders.map(o => o.client || ""))).filter(Boolean)
-  const poOptions = Array.from(new Set(orders.map(o => o.po_number || ""))).filter(Boolean)
-
-  const filtered = orders
-    .filter(o => {
-      const q = search.toLowerCase()
-      const matchesText = o.so_number.toLowerCase().includes(q) ||
-        (o.client || "").toLowerCase().includes(q) ||
-        (o.po_number || "").toLowerCase().includes(q)
-      const matchesSO = filterSO ? o.so_number === filterSO : true
-      const matchesClient = filterClient ? (o.client || "") === filterClient : true
-      const matchesPO = filterPO ? (o.po_number || "") === filterPO : true
-      return matchesText && matchesSO && matchesClient && matchesPO
-    })
+  const filtered = orders.filter(o => {
+    const q = search.toLowerCase()
+    return o.so_number.toLowerCase().includes(q) ||
+      (o.client || "").toLowerCase().includes(q) ||
+      (o.po_number || "").toLowerCase().includes(q)
+  })
 
   return (
     <div className="p-8">
-      <h1 className={pageTitle}>Supplier Tracking</h1>
+      <h1 className={pageTitle}>{t('supplierTracking.title')}</h1>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
         <div className="flex flex-col gap-2 md:flex-row md:items-center md:gap-4">
@@ -102,12 +92,12 @@ export default function SupplierTracking() {
             onClick={() => setUploadModalOpen(true)}
             className={`${btn.primary} w-full md:w-auto`}
           >
-            Upload Document
+            {t('supplierTracking.uploadDocument')}
           </button>
           <div className="flex flex-col gap-2 md:flex-row md:items-center">
             <input
               type="text"
-              placeholder="Search by SO, client or PO..."
+              placeholder={t('supplierTracking.searchPlaceholder')}
               value={search}
               onChange={e => {
                 setSearch(e.target.value)
@@ -116,23 +106,14 @@ export default function SupplierTracking() {
               className={`${input} w-full md:w-72`}
             />
             <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
-            <select value={filterSO} onChange={e => { setFilterSO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-              <option value="">All SOs</option>
-              {soOptions.map(s => <option key={s} value={s}>{s}</option>)}
-            </select>
-            <select value={filterClient} onChange={e => { setFilterClient(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-              <option value="">All Clients</option>
-              {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-            <select value={filterPO} onChange={e => { setFilterPO(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-              <option value="">All POs</option>
-              {poOptions.map(p => <option key={p} value={p}>{p}</option>)}
-            </select>
-            <select value={sortBy} onChange={e => { setSortBy(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
-              <option value="newest">Newest</option>
-              <option value="oldest">Oldest</option>
-              <option value="az">Client A–Z</option>
-            </select>
+              <select value={sortBy} onChange={e => { setSortBy(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
+                <option value="newest">{t('supplierTracking.sortDateNewest')}</option>
+                <option value="oldest">{t('supplierTracking.sortDateOldest')}</option>
+                <option value="so_asc">{t('supplierTracking.sortSoAsc')}</option>
+                <option value="so_desc">{t('supplierTracking.sortSoDesc')}</option>
+                <option value="client_az">{t('supplierTracking.sortClientAz')}</option>
+                <option value="client_za">{t('supplierTracking.sortClientZa')}</option>
+              </select>
             </div>
           </div>
         </div>
@@ -151,7 +132,7 @@ export default function SupplierTracking() {
             disabled={syncing}
             className={`${btn.secondary} w-full md:w-auto`}
           >
-            {syncing ? "Syncing..." : "Sync Madisa Excel"}
+            {syncing ? t('supplierTracking.syncing') : t('supplierTracking.syncMadisa')}
           </button>
           {syncMessage && (
             <p className={`text-sm ${syncMessage.type === "success" ? "text-srg-green" : "text-srg-red"}`}>
@@ -166,12 +147,12 @@ export default function SupplierTracking() {
           <thead>
             <tr className={table.head}>
               {[
-                { key: "so_number", label: "Sales Order" },
-                { key: "client", label: "Client" },
-                { key: "po_number", label: "Purchase Order" },
-                { key: "order_date", label: "Date" },
-                { key: "total_lines", label: "Parts" },
-                { key: "fulfillment", label: "Status" },
+                { key: "so_number", label: t('supplierTracking.salesOrder') },
+                { key: "client", label: t('supplierTracking.client') },
+                { key: "po_number", label: t('supplierTracking.purchaseOrder') },
+                { key: "order_date", label: t('supplierTracking.date') },
+                { key: "total_lines", label: t('supplierTracking.parts') },
+                { key: "fulfillment", label: t('supplierTracking.status') },
               ].map(col => (
                 <th
                   key={col.key}
@@ -180,7 +161,7 @@ export default function SupplierTracking() {
                   {col.label}
                 </th>
               ))}
-              <th className={table.th}>Action</th>
+              <th className={table.th}>{t('supplierTracking.action')}</th>
             </tr>
           </thead>
           <tbody>
@@ -193,7 +174,26 @@ export default function SupplierTracking() {
                   <td className={`${table.td} font-mono text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
                   <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
                   <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
-                  <td className={`${table.td} ${f.color} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{f.label}</td>
+                  <td className={`${table.td} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>
+                    <div className="flex flex-col gap-1">
+                      <span className={f.color}>
+                        {order.fulfillment === 'awaiting_parts'
+                          ? t('supplierTracking.awaitingParts')
+                          : order.fulfillment === 'in_progress'
+                            ? t('supplierTracking.inProgress')
+                            : order.fulfillment === 'complete'
+                              ? t('supplierTracking.complete')
+                              : t('supplierTracking.pending')}
+                      </span>
+                      {order.customer_type === "international" && (
+                        order.has_proof ? (
+                          <span className="text-xs text-srg-green">{t('supplierTracking.proofUploaded')}</span>
+                        ) : (
+                          <span className="inline-flex w-fit rounded bg-srg-amber px-2 py-0.5 text-xs font-bold uppercase text-srg-black">{t('supplierTracking.proofPending')}</span>
+                        )
+                      )}
+                    </div>
+                  </td>
                   <td className={table.td}>
                     <button
                       onClick={() => {
@@ -202,7 +202,7 @@ export default function SupplierTracking() {
                       }}
                       className={`${btn.secondary} ${btn.row}`}
                     >
-                      Attach
+                      {t('supplierTracking.attach')}
                     </button>
                   </td>
                 </tr>
@@ -210,7 +210,7 @@ export default function SupplierTracking() {
             })}
             {filtered.length === 0 && (
               <tr className={table.row}>
-                <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>No orders found.</td>
+                <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>{t('supplierTracking.noOrders')}</td>
               </tr>
             )}
           </tbody>

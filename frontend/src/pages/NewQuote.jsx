@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { parseExport, calculateQuote, createQuote, updateQuote, getQuote, previewQuote, quotePdfUrl } from '../api/quotes'
 import { btn, input, pageTitle, table } from '../styles'
@@ -29,6 +30,7 @@ function finalUnitPrice(line) {
 }
 
 export default function NewQuote() {
+  const { t } = useTranslation()
   const { id } = useParams()
   const editMode = Boolean(id)
   const navigate = useNavigate()
@@ -142,7 +144,7 @@ export default function NewQuote() {
 
   async function recalculate() {
     if (editMode) {
-      const ok = window.confirm('Recalcular puede afectar los Core Deposit de este quote guardado. Si alguna línea traía core incluido en el precio, revísalo después de recalcular. ¿Continuar?')
+      const ok = window.confirm(t('quote.recalcWarning'))
       if (!ok) return
     }
     setLoading(true)
@@ -182,7 +184,7 @@ export default function NewQuote() {
 
   async function openPreview() {
     if (!clientName.trim()) {
-      setError('Escribe el nombre del cliente antes de revisar.')
+      setError(t('quote.errClientReview'))
       return
     }
     setPreviewing(true)
@@ -209,7 +211,7 @@ export default function NewQuote() {
 
   async function confirmQuote() {
     if (!clientName.trim()) {
-      setError('Escribe el nombre del cliente antes de confirmar.')
+      setError(t('quote.errClientConfirm'))
       return
     }
     setConfirming(true)
@@ -262,36 +264,36 @@ export default function NewQuote() {
     <div className="p-8">
       <ConfirmDialog
         open={confirmBack}
-        title="Volver al inicio"
-        message="Se perdera el quote en progreso. Esta accion no se puede deshacer. ¿Seguro que quieres volver?"
-        confirmLabel="Si, volver"
-        cancelLabel="Seguir editando"
+        title={t('quote.backTitle')}
+        message={t('quote.backMessage')}
+        confirmLabel={t('quote.backConfirm')}
+        cancelLabel={t('quote.backCancel')}
         destructive
         onConfirm={doBack}
         onCancel={() => setConfirmBack(false)}
       />
       {(hasLines || previewHtml) && !createdQuote && (
-        <button onClick={requestBack} className={`${btn.ghost} mb-2`} title="Volver al inicio">
-          ← Volver
+        <button onClick={requestBack} className={`${btn.ghost} mb-2`} title={t('quote.backTitle')}>
+          {t('quote.backHome')}
         </button>
       )}
       {editMode && (
-        <button onClick={() => navigate('/quotes/history')} className={`${btn.ghost} mb-2`}>← Volver al historial</button>
+        <button onClick={() => navigate('/quotes/history')} className={`${btn.ghost} mb-2`}>{t('quote.backHistory')}</button>
       )}
-      <h1 className={pageTitle}>{editMode ? `Actualizar Quote ${quoteNumber ?? ''}` : 'Nuevo Quote'}</h1>
+      <h1 className={pageTitle}>{editMode ? t('quote.updateTitle', { n: quoteNumber ?? '' }) : t('quote.newTitle')}</h1>
 
       {createdQuote && (
         <div className="border border-srg-green rounded-lg bg-srg-surface p-6 mb-6">
           <div className="flex items-center gap-2 text-srg-green font-bold uppercase tracking-wide text-sm mb-2">
-            <span>✓</span> Quote creado
+            <span>✓</span> {t('quote.quoteCreated')}
           </div>
           <div className="text-3xl font-extrabold mb-1">{createdQuote.quote_number}</div>
           <div className="text-sm text-gray-500 mb-4">
-            {createdQuote.client_name} · {createdQuote.total_items} líneas · ${Number(createdQuote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            {createdQuote.client_name} · {createdQuote.total_items} {t('quote.lines')} · ${Number(createdQuote.total_amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <div className="flex gap-3">
-            <button onClick={resetForm} className={btn.primary}>Listo</button>
-            <button onClick={() => window.open(quotePdfUrl(createdQuote.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
+            <button onClick={resetForm} className={btn.primary}>{t('quote.done')}</button>
+            <button onClick={() => window.open(quotePdfUrl(createdQuote.id), '_blank')} className={btn.secondary}>{t('quote.downloadPdf')}</button>
           </div>
         </div>
       )}
@@ -299,11 +301,11 @@ export default function NewQuote() {
       {previewHtml && !createdQuote && (
         <div className="mb-6">
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">Revisar documento</h2>
+            <h2 className="text-sm font-bold uppercase tracking-widest text-gray-400">{t('quote.reviewDoc')}</h2>
             <div className="flex gap-3">
-              <button onClick={backToEdit} className={btn.secondary}>← Volver a editar</button>
+              <button onClick={backToEdit} className={btn.secondary}>{t('quote.backToEdit')}</button>
               <button onClick={confirmQuote} disabled={confirming} className={btn.primary}>
-                {confirming ? 'Generando...' : '✓ Confirmar y generar'}
+                {confirming ? t('quote.generating') : t('quote.confirmGenerate')}
               </button>
             </div>
           </div>
@@ -330,33 +332,33 @@ export default function NewQuote() {
             onChange={e => handleFile(e.target.files[0])}
           />
           <div className="text-4xl text-srg-border mb-2">↑</div>
-          <div className="font-bold mb-1">Sube el export de cat.com</div>
-          <div className="text-sm text-gray-500">CSV o Excel. Las líneas, precios y totales aparecen al cargar.</div>
+          <div className="font-bold mb-1">{t('quote.uploadTitle')}</div>
+          <div className="text-sm text-gray-500">{t('quote.uploadHint')}</div>
         </label>
       )}
 
-      {loading && <div className="mt-4 text-gray-500">Procesando...</div>}
+      {loading && <div className="mt-4 text-gray-500">{t('quote.processing')}</div>}
       {error && <div className="mt-4 text-srg-red font-medium">{error}</div>}
 
       {hasLines && !createdQuote && !previewHtml && (
         <>
           <div className="flex flex-wrap gap-3 items-end mb-4">
             <div className="flex-1 min-w-48">
-              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">Cliente</label>
+              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">{t('quote.client')}</label>
               <ClientAutocomplete
                 value={clientName}
                 onChange={setClientName}
-                placeholder="Nombre del cliente"
+                placeholder={t('quote.clientPlaceholder')}
               />
             </div>
             <div className="w-40">
-              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">Nivel</label>
+              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">{t('quote.level')}</label>
               <select className={input} value={priceLevel} onChange={e => setPriceLevel(e.target.value)}>
                 {PRICE_LEVELS.map(l => <option key={l.value} value={l.value}>{l.label}</option>)}
               </select>
             </div>
             <div className="w-40">
-              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">Costo de envío</label>
+              <label className="text-xs uppercase font-semibold text-gray-500 tracking-wide">{t('quote.shippingCost')}</label>
               <div className="flex items-center gap-1">
                 <span className="text-sm text-gray-500">$</span>
                 <input
@@ -379,19 +381,19 @@ export default function NewQuote() {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
               <div className={`${'border border-srg-border rounded bg-srg-surface'} p-3`}>
                 <div className="text-2xl font-extrabold leading-none">{stats.generated}</div>
-                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Líneas</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.statLines')}</div>
               </div>
               <div className="border border-srg-border rounded bg-srg-surface p-3">
                 <div className="text-2xl font-extrabold leading-none text-srg-green">{stats.withStock}</div>
-                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Con stock</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.withStock')}</div>
               </div>
               <div className="border border-srg-border rounded bg-srg-surface p-3">
                 <div className="text-2xl font-extrabold leading-none text-srg-orange">{stats.noStock}</div>
-                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Sin stock</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.noStock')}</div>
               </div>
               <div className="border border-srg-border rounded bg-srg-surface p-3">
                 <div className="text-2xl font-extrabold leading-none">{money(totalAmount)}</div>
-                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Total</div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.total')}</div>
               </div>
             </div>
           )}
@@ -453,8 +455,8 @@ export default function NewQuote() {
                       <td className={`${table.td} font-mono`}>{line.part_number}</td>
                       <td className={`${table.td} ${isShifted ? 'text-srg-red' : ''}`}>{line.description}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{money(line.madisa_cost)}</td>
-                      <td className={`${table.td} text-right font-semibold`}>{finalUnitPrice(line) === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(finalUnitPrice(line))}</td>
-                      <td className={`${table.td} text-right`}>{totalPrice === null ? (isShifted ? <span className="text-srg-red">revisar</span> : '—') : money(totalPrice)}</td>
+                      <td className={`${table.td} text-right font-semibold`}>{finalUnitPrice(line) === null ? (isShifted ? <span className="text-srg-red">{t('quote.review')}</span> : '—') : money(finalUnitPrice(line))}</td>
+                      <td className={`${table.td} text-right`}>{totalPrice === null ? (isShifted ? <span className="text-srg-red">{t('quote.review')}</span> : '—') : money(totalPrice)}</td>
                       <td className={`${table.td} text-right text-gray-500`}>{weight(line.unit_weight)}</td>
                       <td className={`${table.td} text-right`}>{weight(totalWeight)}</td>
                       <td className={`${table.td} font-mono text-srg-blue`}>{line.replaces_part_number || <span className="text-gray-300">—</span>}</td>
@@ -463,9 +465,9 @@ export default function NewQuote() {
                           {isShifted
                             ? <span className="text-srg-red font-semibold text-xs">⚠ {line.notes}</span>
                             : line.notes === 'No stock'
-                              ? <span className="text-srg-orange font-semibold text-xs">No stock</span>
+                              ? <span className="text-srg-orange font-semibold text-xs">{t('quote.noStockNote')}</span>
                               : line.notes === 'Built to Order'
-                                ? <span className="text-srg-amber font-semibold text-xs">Built to Order</span>
+                                ? <span className="text-srg-amber font-semibold text-xs">{t('quote.builtToOrder')}</span>
                                 : line.notes
                                   ? <span className="text-gray-500 text-xs">{line.notes}</span>
                                   : null}
@@ -473,7 +475,7 @@ export default function NewQuote() {
                             type="text"
                             value={line.user_note ?? ''}
                             onChange={e => updateUserNote(line.item_number, e.target.value)}
-                            placeholder="Nota..."
+                            placeholder={t('quote.notePlaceholder')}
                             className="w-40 border border-srg-border rounded px-2 py-0.5 text-xs bg-white focus:outline-none focus:border-srg-yellow"
                           />
                         </div>
@@ -504,13 +506,13 @@ export default function NewQuote() {
           </div>
 
           <div className="flex justify-between items-center mt-4">
-            <div className="text-sm text-gray-500">{lines.length} líneas · desliza para ver todas las columnas</div>
+            <div className="text-sm text-gray-500">{t('quote.linesHint', { n: lines.length })}</div>
             <div className="flex gap-3">
               <button onClick={recalculate} disabled={loading} className={btn.secondary}>
-                ↻ Recalcular
+                {t('quote.recalculate')}
               </button>
               <button onClick={openPreview} disabled={previewing || loading} className={btn.primary}>
-                {previewing ? 'Generando preview...' : '→ Revisar documento'}
+                {previewing ? t('quote.generatingPreview') : t('quote.reviewDocBtn')}
               </button>
             </div>
           </div>

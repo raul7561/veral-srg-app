@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useTranslation } from 'react-i18next'
 import {
@@ -20,13 +20,8 @@ import { useAuth } from '../context/AuthContext'
 export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
   const { t, i18n } = useTranslation()
   const location = useLocation()
-  const [quotesOpen, setQuotesOpen] = useState(location.pathname.startsWith('/quotes'))
-
-  useEffect(() => {
-    if (!location.pathname.startsWith('/quotes')) {
-      setQuotesOpen(false)
-    }
-  }, [location.pathname])
+  const [quotesManuallyOpen, setQuotesManuallyOpen] = useState(false)
+  const quotesOpen = location.pathname.startsWith('/quotes') || quotesManuallyOpen
 
   const { logout } = useAuth()
 
@@ -77,7 +72,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
             <Link
               key={key}
               to={path}
-              onClick={onCloseMobile}
+              onClick={() => { setQuotesManuallyOpen(false); onCloseMobile?.() }}
               className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors ${
                 collapsed ? 'md:justify-center' : ''
               } ${
@@ -110,7 +105,7 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
             <div className="flex flex-col gap-1">
               <button
                 type="button"
-                onClick={() => setQuotesOpen(current => !current)}
+                onClick={() => setQuotesManuallyOpen(current => !current)}
                 className={`flex items-center gap-3 text-xs tracking-widest px-3 py-2 rounded transition-colors ${
                   collapsed ? 'md:justify-center' : ''
                 } ${

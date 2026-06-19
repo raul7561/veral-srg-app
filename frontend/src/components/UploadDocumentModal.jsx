@@ -1,6 +1,8 @@
 import { useState, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 export default function UploadDocumentModal({ onClose, onSuccess }) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("so")
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -61,12 +63,12 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
         const data = await res.json()
         if (res.ok) {
           const doc = data.so_number || data.po_number || data.ferral_order_number || "OK"
-          setResults(prev => [...prev, { file: file.name, type: "success", text: `${doc} — ${data.parts_count ?? 0} parts` }])
+          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.partsResult', { doc, count: data.parts_count ?? 0 }) }])
         } else {
-          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || "Upload failed" }])
+          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || t('modal.uploadFailed') }])
         }
       } catch {
-        setResults(prev => [...prev, { file: file.name, type: "error", text: "Connection error" }])
+        setResults(prev => [...prev, { file: file.name, type: "error", text: t('modal.connectionError') }])
       }
     }
 
@@ -81,7 +83,7 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
       <div className="bg-white rounded-lg shadow-lg w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold">Upload Document</h2>
+          <h2 className="text-lg font-semibold">{t('modal.uploadDocument')}</h2>
           <button onClick={onClose} className="text-gray-400 hover:text-black text-xl leading-none">✕</button>
         </div>
 
@@ -125,13 +127,13 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
               className="hidden"
             />
             <div className="text-4xl mb-3">📤</div>
-            <p className="text-sm text-gray-600 mb-1">Drag and drop PDF files here</p>
-            <p className="text-xs text-gray-400 mb-3">or</p>
+            <p className="text-sm text-gray-600 mb-1">{t('modal.dragDrop')}</p>
+            <p className="text-xs text-gray-400 mb-3">{t('modal.or')}</p>
             <label
               htmlFor="upload-file-input"
               className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm rounded cursor-pointer transition-colors"
             >
-              Browse files
+              {t('modal.browse')}
             </label>
           </div>
 
@@ -148,7 +150,7 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
                     )}
                     <span className="text-gray-700">{file.name} <span className="text-gray-400 text-xs">({(file.size / 1024).toFixed(0)} KB)</span></span>
                     {uploading && i < currentIndex && <span className="text-srg-green text-xs">✓</span>}
-                    {uploading && i > currentIndex && <span className="text-gray-400 text-xs">waiting</span>}
+                    {uploading && i > currentIndex && <span className="text-gray-400 text-xs">{t('modal.waiting')}</span>}
                   </div>
                   {!uploading && <button onClick={() => removeFile(i)} className="text-gray-400 hover:text-srg-red text-xs">✕</button>}
                 </div>
@@ -182,7 +184,7 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
               onClick={() => setFiles([])}
               className="px-4 py-2 text-sm text-gray-600 border rounded hover:bg-gray-100 transition-colors"
             >
-              Clear All
+              {t('modal.clearAll')}
             </button>
           )}
           <button
@@ -190,13 +192,13 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
             disabled={results.length === 0 && (files.length === 0 || uploading)}
             className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {uploading ? "Uploading..." : results.length > 0 && files.length === 0 ? "Done" : `Upload ${files.length > 0 ? `(${files.length})` : ""}`}
+            {uploading ? t('modal.uploading') : results.length > 0 && files.length === 0 ? t('modal.done') : files.length > 0 ? t('modal.uploadCount', { n: files.length }) : t('modal.upload')}
           </button>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-600 border rounded hover:bg-gray-100 transition-colors"
           >
-            Cancel
+            {t('modal.cancel')}
           </button>
         </div>
       </div>

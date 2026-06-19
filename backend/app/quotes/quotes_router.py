@@ -1,3 +1,4 @@
+import re
 import tempfile
 from datetime import date, datetime
 from pathlib import Path
@@ -190,9 +191,6 @@ def download_quote_excel(quote_id: int):
         media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
         headers={"Content-Disposition": f'attachment; filename="{filename}"'},
     )
-
-
-import re
 
 
 def _safe_filename_part(text: str) -> str:

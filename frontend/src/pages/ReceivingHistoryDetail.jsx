@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
 import { getReceivingHistoryDetail } from '../api'
 import { table } from '../styles'
 
 export default function ReceivingHistoryDetail() {
+  const { t } = useTranslation()
   const { soNumber } = useParams()
   const navigate = useNavigate()
   const [order, setOrder] = useState(null)
@@ -17,8 +19,8 @@ export default function ReceivingHistoryDetail() {
       })
   }, [soNumber])
 
-  if (loading) return <div className="p-8 text-sm text-gray-500">Loading...</div>
-  if (!order) return <div className="p-8 text-sm text-gray-500">Order not found.</div>
+  if (loading) return <div className="p-8 text-sm text-gray-500">{t('receiving.loading')}</div>
+  if (!order) return <div className="p-8 text-sm text-gray-500">{t('receiving.notFound')}</div>
 
   return (
     <div className="p-8">
@@ -26,7 +28,7 @@ export default function ReceivingHistoryDetail() {
         onClick={() => navigate('/receiving-history')}
         className="text-sm text-gray-500 hover:text-srg-black mb-6 flex items-center gap-1"
       >
-        ← Back
+        {t('receiving.back')}
       </button>
 
       <div className="mb-6">
@@ -42,14 +44,14 @@ export default function ReceivingHistoryDetail() {
         <table className={table.base}>
           <thead>
             <tr className={table.head}>
-              <th className={`${table.th} text-left`}>Part Number</th>
-              <th className={`${table.th} text-left`}>Description</th>
-              <th className={`${table.th} text-center`}>Qty</th>
-              <th className={`${table.th} text-center`}>Received</th>
-              <th className={`${table.th} text-center`}>Pending</th>
+              <th className={`${table.th} text-left`}>{t('receiving.partNumber')}</th>
+              <th className={`${table.th} text-left`}>{t('receiving.description')}</th>
+              <th className={`${table.th} text-center`}>{t('receiving.qty')}</th>
+              <th className={`${table.th} text-center`}>{t('receiving.received')}</th>
+              <th className={`${table.th} text-center`}>{t('receiving.pending')}</th>
               <th className={`${table.th} text-left`}>INV</th>
               <th className={`${table.th} text-left`}>VEX</th>
-              <th className={`${table.th} text-left`}>Date Received</th>
+              <th className={`${table.th} text-left`}>{t('receiving.dateReceived')}</th>
             </tr>
           </thead>
           <tbody>

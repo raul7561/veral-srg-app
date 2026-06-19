@@ -85,6 +85,27 @@ export function getSupplierOrderByNumber(soNumber) {
   return getJson(`/supplier-tracking/orders/by-number/${soNumber}`);
 }
 
+export function getOrderDocuments(soNumber) {
+  return getJson(`/supplier-tracking/orders/${soNumber}/documents`);
+}
+
+export async function uploadProofOfExport(soNumber, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetch(`${API_URL}/supplier-tracking/orders/${soNumber}/proof-of-export`, {
+    method: "POST",
+    body: formData,
+  });
+  if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
+  return res.json();
+}
+
+export async function deleteOrderDocument(docId) {
+  const res = await fetch(`${API_URL}/supplier-tracking/documents/${docId}`, { method: "DELETE" });
+  if (!res.ok) throw new Error(`Delete failed with status ${res.status}`);
+  return res.json();
+}
+
 export function getReadyToDispatch() {
   return getJson("/ready-to-dispatch/orders");
 }

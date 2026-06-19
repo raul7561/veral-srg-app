@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { getCustomers } from "../api";
-import CustomerForm, { INITIAL_FORM, formToPayload } from "../components/CustomerForm";
+import CustomerForm from "../components/CustomerForm";
+import { INITIAL_FORM, formToPayload } from "../components/customerFormHelpers";
 import { btn, pageTitle, table } from "../styles";
 
 const API = import.meta.env.VITE_API_URL;
 
 export default function Customers() {
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const [customers, setCustomers] = useState([]);
@@ -60,12 +63,12 @@ export default function Customers() {
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className={pageTitle}>Customers</h1>
+        <h1 className={pageTitle}>{t('customers.title')}</h1>
         <button
           onClick={() => { setShowForm(true); setForm(INITIAL_FORM); }}
           className={btn.primary}
         >
-          + Add Customer
+          {t('customers.addCustomer')}
         </button>
       </div>
 
@@ -81,22 +84,22 @@ export default function Customers() {
       )}
 
       {loading ? (
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-gray-400">{t('customers.loading')}</p>
       ) : (
         <>
-          <CustomerGroup title="International" customers={international} onDelete={id => setConfirmDelete(id)} />
-          <CustomerGroup title="Domestic" customers={domestic} onDelete={id => setConfirmDelete(id)} />
+          <CustomerGroup title={t('customers.international')} customers={international} onDelete={id => setConfirmDelete(id)} />
+          <CustomerGroup title={t('customers.domestic')} customers={domestic} onDelete={id => setConfirmDelete(id)} />
         </>
       )}
 
       {confirmDelete && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 w-80 shadow-xl">
-            <p className="font-semibold mb-4">Delete this customer?</p>
-            <p className="text-sm text-gray-500 mb-6">This action cannot be undone.</p>
+            <p className="font-semibold mb-4">{t('customers.deleteCustomerTitle')}</p>
+            <p className="text-sm text-gray-500 mb-6">{t('customers.deleteWarning')}</p>
             <div className="flex gap-3">
-              <button onClick={() => handleDelete(confirmDelete)} className={btn.destructive}>Delete</button>
-              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>Cancel</button>
+              <button onClick={() => handleDelete(confirmDelete)} className={btn.destructive}>{t('customers.delete')}</button>
+              <button onClick={() => setConfirmDelete(null)} className={btn.secondary}>{t('customers.cancel')}</button>
             </div>
           </div>
         </div>
@@ -106,6 +109,7 @@ export default function Customers() {
 }
 
 function CustomerGroup({ title, customers, onDelete }) {
+  const { t } = useTranslation();
   if (customers.length === 0) return null;
   return (
     <div className="mb-8">
@@ -116,11 +120,11 @@ function CustomerGroup({ title, customers, onDelete }) {
         <table className={table.base}>
           <thead>
             <tr className={table.head}>
-              <th className={table.th}>Name</th>
-              <th className={table.th}>Country</th>
-              <th className={table.th}>Primary Contact</th>
-              <th className={table.th}>Email</th>
-              <th className={table.th}>Phone</th>
+              <th className={table.th}>{t('customers.name')}</th>
+              <th className={table.th}>{t('customers.country')}</th>
+              <th className={table.th}>{t('customers.primaryContact')}</th>
+              <th className={table.th}>{t('customers.email')}</th>
+              <th className={table.th}>{t('customers.phone')}</th>
               <th className={table.th}></th>
             </tr>
           </thead>
@@ -137,7 +141,7 @@ function CustomerGroup({ title, customers, onDelete }) {
                   <td className={`${table.td} text-gray-600`}>{primary.email || "—"}</td>
                   <td className={`${table.td} text-gray-600`}>{primary.phone || "—"}</td>
                   <td className={`${table.td} text-right`}>
-                    <button onClick={() => onDelete(c.id)} className="text-xs text-srg-red hover:underline">Delete</button>
+                    <button onClick={() => onDelete(c.id)} className="text-xs text-srg-red hover:underline">{t('customers.delete')}</button>
                   </td>
                 </tr>
               );

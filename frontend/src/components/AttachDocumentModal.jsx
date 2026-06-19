@@ -1,6 +1,8 @@
 import { useState, useRef } from "react"
+import { useTranslation } from "react-i18next"
 
 export default function AttachDocumentModal({ soNumber, client, invs, onClose, onSuccess }) {
+  const { t } = useTranslation()
   const [activeTab, setActiveTab] = useState("inv")
   const [files, setFiles] = useState([])
   const [uploading, setUploading] = useState(false)
@@ -62,12 +64,12 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
         const data = await res.json()
         if (res.ok) {
           const doc = data.inv_number || data.vex_number || "OK"
-          setResults(prev => [...prev, { file: file.name, type: "success", text: `${doc} uploaded` }])
+          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.uploadedResult', { doc }) }])
         } else {
-          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || "Upload failed" }])
+          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || t('modal.uploadFailed') }])
         }
       } catch {
-        setResults(prev => [...prev, { file: file.name, type: "error", text: "Connection error" }])
+        setResults(prev => [...prev, { file: file.name, type: "error", text: t('modal.connectionError') }])
       }
     }
 
@@ -88,7 +90,7 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold">
-            Attach Document — {soNumber} — {client}
+            {t('modal.attachDocument', { so: soNumber, client })}
           </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-black text-xl leading-none">✕</button>
         </div>
@@ -117,13 +119,13 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
         {/* Content */}
         <div className="flex-1 overflow-auto px-6 py-6">
           {activeTab === "vex" && invs.length === 0 ? (
-            <div className="text-center text-gray-400 py-8">No invoices available. Attach an INV first.</div>
+            <div className="text-center text-gray-400 py-8">{t('modal.noInvoices')}</div>
           ) : (
             <>
               {/* INV Dropdown for VEX tab */}
               {activeTab === "vex" && (
                 <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Select INV</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">{t('modal.selectInv')}</label>
                   <select
                     value={selectedInv}
                     onChange={e => setSelectedInv(e.target.value)}
@@ -131,7 +133,7 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
                   >
                     {invs.map(inv => (
                       <option key={inv.id} value={inv.inv_number}>
-                        {inv.inv_number} ({inv.inv_date || "No date"})
+                        {inv.inv_number} ({inv.inv_date || t('modal.noDate')})
                       </option>
                     ))}
                   </select>
@@ -155,13 +157,13 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
                   className="hidden"
                 />
                 <div className="text-4xl mb-3">📤</div>
-                <p className="text-sm text-gray-600 mb-1">Drag and drop PDF files here</p>
-                <p className="text-xs text-gray-400 mb-3">or</p>
+                <p className="text-sm text-gray-600 mb-1">{t('modal.dragDrop')}</p>
+                <p className="text-xs text-gray-400 mb-3">{t('modal.or')}</p>
                 <label
                   htmlFor={`attach-file-input-${activeTab}`}
                   className="inline-block px-4 py-2 bg-gray-100 hover:bg-gray-200 text-sm rounded cursor-pointer transition-colors"
                 >
-                  Browse files
+                  {t('modal.browse')}
                 </label>
               </div>
 
@@ -178,7 +180,7 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
                     )}
                     <span className="text-gray-700">{file.name} <span className="text-gray-400 text-xs">({(file.size / 1024).toFixed(0)} KB)</span></span>
                     {uploading && i < currentIndex && <span className="text-srg-green text-xs">✓</span>}
-                    {uploading && i > currentIndex && <span className="text-gray-400 text-xs">waiting</span>}
+                    {uploading && i > currentIndex && <span className="text-gray-400 text-xs">{t('modal.waiting')}</span>}
                   </div>
                   {!uploading && <button onClick={() => removeFile(i)} className="text-gray-400 hover:text-srg-red text-xs">✕</button>}
                 </div>
@@ -206,10 +208,10 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
 
               {/* Current State */}
               <div className="mt-6 p-3 bg-gray-50 rounded-lg border border-gray-200 text-sm text-gray-600">
-                <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">Current State</p>
-                {activeTab === "inv" && <p>{invs.length} invoice(s) attached</p>}
+                <p className="text-xs text-gray-400 uppercase tracking-wide mb-2">{t('modal.currentState')}</p>
+                {activeTab === "inv" && <p>{t('modal.invoicesAttached', { count: invs.length })}</p>}
                 {activeTab === "vex" && selectedInv && (
-                  <p>VEX for {selectedInv}: {invs.find(i => i.inv_number === selectedInv)?.vex?.length || 0} attached</p>
+                  <p>{t('modal.vexAttached', { inv: selectedInv, count: invs.find(i => i.inv_number === selectedInv)?.vex?.length || 0 })}</p>
                 )}
               </div>
             </>
@@ -223,7 +225,7 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
               onClick={() => setFiles([])}
               className="px-4 py-2 text-sm text-gray-600 border rounded hover:bg-gray-100 transition-colors"
             >
-              Clear All
+              {t('modal.clearAll')}
             </button>
           )}
           <button
@@ -231,13 +233,13 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
             disabled={results.length === 0 && (files.length === 0 || uploading || (activeTab === "vex" && !selectedInv))}
             className="px-4 py-2 text-sm bg-black text-white rounded hover:bg-gray-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {uploading ? "Uploading..." : results.length > 0 && files.length === 0 ? "Done" : `Upload ${files.length > 0 ? `(${files.length})` : ""}`}
+            {uploading ? t('modal.uploading') : results.length > 0 && files.length === 0 ? t('modal.done') : files.length > 0 ? t('modal.uploadCount', { n: files.length }) : t('modal.upload')}
           </button>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm text-gray-600 border rounded hover:bg-gray-100 transition-colors"
           >
-            Cancel
+            {t('modal.cancel')}
           </button>
         </div>
       </div>
