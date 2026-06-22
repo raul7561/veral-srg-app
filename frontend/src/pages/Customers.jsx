@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { getCustomers } from "../api";
 import CustomerForm from "../components/CustomerForm";
 import { INITIAL_FORM, formToPayload } from "../components/customerFormHelpers";
-import { btn, pageTitle, table } from "../styles";
+import { btn, input, pageTitle, table } from "../styles";
 
 const API = import.meta.env.VITE_API_URL;
 
@@ -18,6 +18,7 @@ export default function Customers() {
   const [form, setForm] = useState(INITIAL_FORM);
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
+  const [search, setSearch] = useState("");
 
   useEffect(() => { fetchCustomers(); }, []);
 
@@ -57,19 +58,29 @@ export default function Customers() {
     fetchCustomers();
   }
 
-  const domestic = customers.filter(c => c.type === "domestic");
-  const international = customers.filter(c => c.type === "international");
+  const matchesSearch = (c) => c.name.toLowerCase().includes(search.trim().toLowerCase());
+  const domestic = customers.filter(c => c.type === "domestic" && matchesSearch(c));
+  const international = customers.filter(c => c.type === "international" && matchesSearch(c));
 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <h1 className={pageTitle}>{t('customers.title')}</h1>
-        <button
-          onClick={() => { setShowForm(true); setForm(INITIAL_FORM); }}
-          className={btn.primary}
-        >
-          {t('customers.addCustomer')}
-        </button>
+        <div className="flex items-center gap-3">
+          <input
+            type="text"
+            placeholder={t('customers.searchPlaceholder')}
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className={`${input} w-full md:w-72`}
+          />
+          <button
+            onClick={() => { setShowForm(true); setForm(INITIAL_FORM); }}
+            className={btn.primary}
+          >
+            {t('customers.addCustomer')}
+          </button>
+        </div>
       </div>
 
       {showForm && (

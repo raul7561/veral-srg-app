@@ -90,10 +90,18 @@ async def create_supplier_order(file: UploadFile = File(...)):
 
 
 @router.get("/orders")
-def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest"):
+def get_supplier_orders(
+    page: int = 1, limit: int = 25, sort_by: str = "newest", search: str = ""
+):
     start = (page - 1) * limit
     end = start + limit - 1
     query = supabase.table("supplier_orders").select("*", count="exact")
+    search_term = search.strip()
+    if search_term:
+        pattern = f"%{search_term}%"
+        query = query.or_(
+            f"so_number.ilike.{pattern},client.ilike.{pattern},po_number.ilike.{pattern}"
+        )
     if sort_by == "oldest":
         query = query.order("order_date", desc=False)
     elif sort_by == "so_asc":
@@ -109,11 +117,37 @@ def get_supplier_orders(page: int = 1, limit: int = 25, sort_by: str = "newest")
     resp = query.range(start, end).execute()
     orders = resp.data
     total_count = resp.count
-    all_lines = fetch_all("supplier_order_lines", "supplier_order_id, status")
-    all_invs = fetch_all("supplier_invs", "*")
-    all_vex = fetch_all("supplier_vex", "*")
 
     order_ids = [o["id"] for o in orders]
+
+    if order_ids:
+        all_lines = (
+            supabase.table("supplier_order_lines")
+            .select("supplier_order_id, status")
+            .in_("supplier_order_id", order_ids)
+            .execute()
+            .data
+        )
+        all_invs = (
+            supabase.table("supplier_invs")
+            .select("*")
+            .in_("supplier_order_id", order_ids)
+            .execute()
+            .data
+        )
+        inv_ids = [inv["id"] for inv in all_invs]
+        all_vex = (
+            supabase.table("supplier_vex")
+            .select("*")
+            .in_("supplier_inv_id", inv_ids)
+            .execute()
+            .data
+        ) if inv_ids else []
+    else:
+        all_lines = []
+        all_invs = []
+        all_vex = []
+
     customer_ids = [o["customer_id"] for o in orders if o.get("customer_id")]
 
     customer_types = {}

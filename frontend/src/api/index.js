@@ -59,7 +59,7 @@ export function getCustomerDocuments(customerId) {
   return getJson(`/customers/${customerId}/documents`);
 }
 
-export function getSupplierTracking({ page = 1, limit = 25, sortBy = "newest" } = {}) {
+export function getSupplierTracking({ page = 1, limit = 25, sortBy = "newest", search = "" } = {}) {
   if (USE_MOCK) {
     const total = mockSupplierTracking.length;
     const start = (page - 1) * limit;
@@ -67,6 +67,7 @@ export function getSupplierTracking({ page = 1, limit = 25, sortBy = "newest" } 
     return mockResponse({ rows, total });
   }
   const params = new URLSearchParams({ page, limit, sort_by: sortBy });
+  if (search) params.set("search", search);
   return getJson(`/supplier-tracking/orders?${params}`);
 }
 

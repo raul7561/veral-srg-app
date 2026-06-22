@@ -185,6 +185,7 @@ const resources = {
       },
       customers: {
         title: "Customers",
+        searchPlaceholder: "Search by name...",
         addCustomer: "+ Add Customer",
         loading: "Loading...",
         international: "International",
@@ -487,6 +488,7 @@ const resources = {
       },
       customers: {
         title: "Clientes",
+        searchPlaceholder: "Buscar por nombre...",
         addCustomer: "+ Agregar Cliente",
         loading: "Cargando...",
         international: "Internacional",

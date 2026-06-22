@@ -34,7 +34,7 @@ export default function SupplierTracking() {
 
   const fetchOrders = useCallback(async (p = page) => {
     try {
-      const data = await getSupplierTracking({ page: p, limit: LIMIT, sortBy })
+      const data = await getSupplierTracking({ page: p, limit: LIMIT, sortBy, search })
       setOrders(data?.rows || [])
       setTotal(data?.total || 0)
     } catch (err) {
@@ -42,9 +42,20 @@ export default function SupplierTracking() {
       setOrders([])
       setTotal(0)
     }
-  }, [page, sortBy])
+  }, [page, sortBy, search])
 
-  useEffect(() => { queueMicrotask(() => fetchOrders(page)) }, [page, fetchOrders])
+  useEffect(() => { queueMicrotask(() => fetchOrders(page)) }, [page, sortBy]) // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (page !== 1) {
+        setSearchParams({ page: '1' })
+      } else {
+        fetchOrders(1)
+      }
+    }, 350)
+    return () => clearTimeout(timer)
+  }, [search]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const goToPage = (p) => setSearchParams({ page: String(p) })
 
@@ -75,13 +86,6 @@ export default function SupplierTracking() {
     }
   }
 
-  const filtered = orders.filter(o => {
-    const q = search.toLowerCase()
-    return o.so_number.toLowerCase().includes(q) ||
-      (o.client || "").toLowerCase().includes(q) ||
-      (o.po_number || "").toLowerCase().includes(q)
-  })
-
   return (
     <div className="p-8">
       <h1 className={pageTitle}>{t('supplierTracking.title')}</h1>
@@ -99,10 +103,7 @@ export default function SupplierTracking() {
               type="text"
               placeholder={t('supplierTracking.searchPlaceholder')}
               value={search}
-              onChange={e => {
-                setSearch(e.target.value)
-                setSearchParams({ page: '1' })
-              }}
+              onChange={e => setSearch(e.target.value)}
               className={`${input} w-full md:w-72`}
             />
             <div className="grid grid-cols-2 gap-2 md:flex md:gap-2">
@@ -165,7 +166,7 @@ export default function SupplierTracking() {
             </tr>
           </thead>
           <tbody>
-            {filtered.map(order => {
+            {orders.map(order => {
               const f = FULFILLMENT_LABELS[order.fulfillment] || FULFILLMENT_LABELS.pending
               return (
                 <tr key={order.id} className={table.row}>
@@ -208,7 +209,7 @@ export default function SupplierTracking() {
                 </tr>
               )
             })}
-            {filtered.length === 0 && (
+            {orders.length === 0 && (
               <tr className={table.row}>
                 <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>{t('supplierTracking.noOrders')}</td>
               </tr>
