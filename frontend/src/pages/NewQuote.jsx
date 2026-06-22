@@ -258,7 +258,28 @@ export default function NewQuote() {
     const fp = (l.unit_price === null || l.unit_price === undefined) ? 0 : l.unit_price + (l.core_deposit || 0)
     return sum + fp * l.quantity
   }, 0)
+  const totalWeight = lines.reduce((sum, l) => {
+    return sum + (l.unit_weight || 0) * (l.quantity || 0)
+  }, 0)
   const hasLines = lines.length > 0
+
+  async function downloadPdf(id, quoteNumber, clientName) {
+    try {
+      const res = await fetch(quotePdfUrl(id))
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      const safeName = (clientName || 'client').replace(/[^a-zA-Z0-9_-]/g, '_')
+      a.href = url
+      a.download = `${quoteNumber}_${safeName}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } catch {
+      alert('Error al descargar el PDF')
+    }
+  }
 
   return (
     <div className="p-8">
@@ -293,7 +314,7 @@ export default function NewQuote() {
           </div>
           <div className="flex gap-3">
             <button onClick={resetForm} className={btn.primary}>{t('quote.done')}</button>
-            <button onClick={() => window.open(quotePdfUrl(createdQuote.id), '_blank')} className={btn.secondary}>{t('quote.downloadPdf')}</button>
+            <button onClick={() => downloadPdf(createdQuote.id, createdQuote.quote_number, createdQuote.client_name)} className={btn.secondary}>{t('quote.downloadPdf')}</button>
           </div>
         </div>
       )}
@@ -378,7 +399,7 @@ export default function NewQuote() {
           </div>
 
           {stats && (
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
+            <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-4">
               <div className={`${'border border-srg-border rounded bg-srg-surface'} p-3`}>
                 <div className="text-2xl font-extrabold leading-none">{stats.generated}</div>
                 <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.statLines')}</div>
@@ -394,6 +415,14 @@ export default function NewQuote() {
               <div className="border border-srg-border rounded bg-srg-surface p-3">
                 <div className="text-2xl font-extrabold leading-none">{money(totalAmount)}</div>
                 <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">{t('quote.total')}</div>
+              </div>
+              <div className="border border-srg-border rounded bg-srg-surface p-3">
+                <div className="text-2xl font-extrabold leading-none">
+                  {totalWeight > 0
+                    ? `${totalWeight.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} LBS`
+                    : '—'}
+                </div>
+                <div className="mt-1 text-xs font-bold uppercase tracking-widest text-gray-400">Total Weight</div>
               </div>
             </div>
           )}

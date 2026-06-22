@@ -103,7 +103,11 @@ def generate_quote_excel(quote: dict) -> bytes:
         ws.cell(row=r, column=8, value=uw)
         ws.cell(row=r, column=9, value=None if uw is None else round(uw * qty, 2))
         ws.cell(row=r, column=10, value=ln.get("minimum_qty"))
-        ws.cell(row=r, column=11, value=ln.get("notes") or None)
+        notes_val = ln.get("notes") or ""
+        rpn = ln.get("replaces_part_number")
+        if rpn:
+            notes_val = (notes_val + f"\nReplaces: {rpn}").strip()
+        ws.cell(row=r, column=11, value=notes_val or None)
 
     ws.cell(row=total_row, column=7, value=round(quote.get("total_amount") or 0, 2))
     total_weight = sum((ln.get("unit_weight") or 0) * (ln.get("quantity") or 0) for ln in lines)

@@ -131,7 +131,14 @@ def _build_html(quote: dict, internal: bool = False) -> str:
             f'<td class="r">{uw_s}</td>'
             f'<td class="r calc">{tw_s}</td>'
             f'<td class="c">{_num(ln.get("minimum_qty"))}</td>'
-            f'<td class="l">{_esc(ln.get("notes"))}</td>'
+            f'<td class="l">{_esc(ln.get("notes"))}'
+            + (
+                '<br><span style="color:#2B6CB0;font-size:8pt">Replaces: '
+                + _esc(ln.get("replaces_part_number"))
+                + '</span>'
+                if ln.get("replaces_part_number") else ''
+            )
+            + '</td>'
             "</tr>"
         )
 
