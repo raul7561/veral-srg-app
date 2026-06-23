@@ -36,6 +36,7 @@ def create_quote(request: CreateQuoteRequest, sales_rep_name: str, user_id: str 
             "madisa_cost": line.madisa_cost,
             "notes": line.notes,
             "availability_raw": line.availability_raw,
+            "replaces_part_number": line.replaces_part_number,
         }
         for line in request.lines
     ]
@@ -144,6 +145,7 @@ def update_quote(request, quote_id: int) -> dict:
                 "madisa_cost": line.madisa_cost,
                 "notes": line.notes,
                 "availability_raw": line.availability_raw,
+                "replaces_part_number": line.replaces_part_number,
             }
             for line in request.lines
         ]
