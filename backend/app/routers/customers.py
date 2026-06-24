@@ -1,8 +1,9 @@
-from fastapi import APIRouter, HTTPException, UploadFile, File, Form
+from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from app.database import supabase_admin as supabase
 import uuid
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/customers", tags=["customers"])
 
@@ -51,7 +52,7 @@ class CustomerUpdate(BaseModel):
 # --- Endpoints ---
 
 @router.get("/")
-def list_customers():
+def list_customers(user: dict = Depends(get_current_user)):
     customers = supabase.table("customers").select("*").order("name").execute().data
     all_contacts = supabase.table("customer_contacts").select("*").execute().data
 
@@ -62,7 +63,7 @@ def list_customers():
 
 
 @router.post("/")
-def create_customer(data: CustomerCreate):
+def create_customer(data: CustomerCreate, user: dict = Depends(get_current_user)):
     if data.type not in ("domestic", "international"):
         raise HTTPException(status_code=400, detail="type must be 'domestic' or 'international'")
 
@@ -100,7 +101,7 @@ def create_customer(data: CustomerCreate):
 
 
 @router.patch("/{customer_id}")
-def update_customer(customer_id: str, data: CustomerUpdate):
+def update_customer(customer_id: str, data: CustomerUpdate, user: dict = Depends(get_current_user)):
     fields = [
         "name", "type", "country",
         "billing_street", "billing_city", "billing_state", "billing_postal_code",
@@ -129,7 +130,7 @@ def update_customer(customer_id: str, data: CustomerUpdate):
 
 
 @router.delete("/{customer_id}")
-def delete_customer(customer_id: str):
+def delete_customer(customer_id: str, user: dict = Depends(get_current_user)):
     result = supabase.table("customers").delete().eq("id", customer_id).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Customer not found")
@@ -139,7 +140,7 @@ def delete_customer(customer_id: str):
 # --- Documents ---
 
 @router.get("/{customer_id}/documents")
-def list_documents(customer_id: str):
+def list_documents(customer_id: str, user: dict = Depends(get_current_user)):
     result = supabase.table("customer_documents").select("*").eq("customer_id", customer_id).order("uploaded_at", desc=True).execute()
     return result.data
 
@@ -150,7 +151,8 @@ async def upload_document(
     document_type: str = Form(...),
     label: Optional[str] = Form(None),
     expiry_date: Optional[str] = Form(None),
-    file: UploadFile = File(...)
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
 ):
     if document_type not in ("tax_certificate", "other"):
         raise HTTPException(status_code=400, detail="document_type must be 'tax_certificate' or 'other'")
@@ -180,7 +182,7 @@ async def upload_document(
 
 
 @router.delete("/{customer_id}/documents/{document_id}")
-def delete_document(customer_id: str, document_id: str):
+def delete_document(customer_id: str, document_id: str, user: dict = Depends(get_current_user)):
     result = supabase.table("customer_documents").delete().eq("id", document_id).eq("customer_id", customer_id).execute()
     if not result.data:
         raise HTTPException(status_code=404, detail="Document not found")

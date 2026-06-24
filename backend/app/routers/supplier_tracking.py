@@ -1,6 +1,7 @@
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from app.database import supabase_admin as supabase, supabase_admin
 from app.parsers.so_parser import parse_so_pdf
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/supplier-tracking", tags=["supplier-tracking"])
 
@@ -20,7 +21,7 @@ def fetch_all(table_name, select_clause):
 
 
 @router.post("/orders")
-async def create_supplier_order(file: UploadFile = File(...)):
+async def create_supplier_order(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     content = await file.read()
     parsed = parse_so_pdf(content)
 
@@ -91,7 +92,11 @@ async def create_supplier_order(file: UploadFile = File(...)):
 
 @router.get("/orders")
 def get_supplier_orders(
-    page: int = 1, limit: int = 25, sort_by: str = "newest", search: str = ""
+    page: int = 1,
+    limit: int = 25,
+    sort_by: str = "newest",
+    search: str = "",
+    user: dict = Depends(get_current_user),
 ):
     start = (page - 1) * limit
     end = start + limit - 1
@@ -208,7 +213,7 @@ def get_supplier_orders(
 
 
 @router.get("/orders/by-number/{so_number}")
-def get_supplier_order_by_number(so_number: str):
+def get_supplier_order_by_number(so_number: str, user: dict = Depends(get_current_user)):
     resp = supabase.table("supplier_orders").select("*").eq("so_number", so_number).execute()
     if not resp.data:
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
@@ -251,7 +256,7 @@ def get_supplier_order_by_number(so_number: str):
 
 
 @router.get("/orders/{so_number}/lines-by-so")
-def get_lines_by_so(so_number: str):
+def get_lines_by_so(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
     if not order.data:
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
@@ -261,7 +266,7 @@ def get_lines_by_so(so_number: str):
 
 
 @router.post("/attach/po")
-async def attach_po(file: UploadFile = File(...)):
+async def attach_po(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     from app.parsers.po_parser import parse_po_pdf
 
     content = await file.read()
@@ -296,7 +301,7 @@ async def attach_po(file: UploadFile = File(...)):
 
 
 @router.post("/attach/ferral-ov")
-async def attach_ferral_ov(file: UploadFile = File(...)):
+async def attach_ferral_ov(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     from app.parsers.ferral_ov_parser import parse_ferral_ov_pdf
 
     content = await file.read()
@@ -340,7 +345,7 @@ async def attach_ferral_ov(file: UploadFile = File(...)):
 
 
 @router.post("/attach/inv")
-async def attach_inv(file: UploadFile = File(...)):
+async def attach_inv(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     from app.parsers.inv_parser import parse_inv_pdf
 
     content = await file.read()
@@ -393,7 +398,12 @@ async def attach_inv(file: UploadFile = File(...)):
 
 
 @router.post("/orders/{so_number}/inv/{inv_number}/vex")
-async def attach_vex(so_number: str, inv_number: str, file: UploadFile = File(...)):
+async def attach_vex(
+    so_number: str,
+    inv_number: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
     from app.parsers.vex_parser import parse_vex_pdf
 
     inv = supabase.table("supplier_invs").select("id").eq("inv_number", inv_number).execute()
@@ -446,7 +456,7 @@ async def attach_vex(so_number: str, inv_number: str, file: UploadFile = File(..
 
 
 @router.post("/sync/madisa")
-async def sync_madisa(file: UploadFile = File(...)):
+async def sync_madisa(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     import pandas as pd
     import io as io_module
     from datetime import datetime, timedelta
@@ -546,7 +556,11 @@ async def sync_madisa(file: UploadFile = File(...)):
 
 
 @router.post("/orders/{so_number}/proof-of-export")
-async def upload_proof_of_export(so_number: str, file: UploadFile = File(...)):
+async def upload_proof_of_export(
+    so_number: str,
+    file: UploadFile = File(...),
+    user: dict = Depends(get_current_user),
+):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
     if not order.data:
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
@@ -569,7 +583,7 @@ async def upload_proof_of_export(so_number: str, file: UploadFile = File(...)):
 
 
 @router.get("/orders/{so_number}/documents")
-def get_order_documents(so_number: str):
+def get_order_documents(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
     if not order.data:
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
@@ -585,6 +599,6 @@ def get_order_documents(so_number: str):
 
 
 @router.delete("/documents/{doc_id}")
-def delete_order_document(doc_id: str):
+def delete_order_document(doc_id: str, user: dict = Depends(get_current_user)):
     supabase.table("supplier_order_documents").delete().eq("id", doc_id).execute()
     return {"deleted": True}
