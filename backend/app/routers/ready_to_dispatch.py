@@ -1,6 +1,7 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 from app.database import supabase_admin as supabase
 from datetime import datetime, timezone
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/ready-to-dispatch", tags=["Ready to Dispatch"])
 
@@ -34,7 +35,7 @@ def get_inv_completion(supplier_inv_id: str) -> bool:
 
 
 @router.get("/orders")
-def get_ready_orders():
+def get_ready_orders(user: dict = Depends(get_current_user)):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
 
@@ -77,7 +78,7 @@ def get_ready_orders():
     return results
 
 @router.patch("/inv/{inv_id}/ready")
-def mark_ready(inv_id: str):
+def mark_ready(inv_id: str, user: dict = Depends(get_current_user)):
     inv = supabase.table("supplier_invs").select("*").eq("id", inv_id).execute()
     if not inv.data:
         raise HTTPException(status_code=404, detail="INV not found")
@@ -91,7 +92,7 @@ def mark_ready(inv_id: str):
     return {"status": "ready"}
 
 @router.patch("/inv/{inv_id}/dispatch")
-def dispatch_inv(inv_id: str):
+def dispatch_inv(inv_id: str, user: dict = Depends(get_current_user)):
     inv = supabase.table("supplier_invs").select("*").eq("id", inv_id).execute()
     if not inv.data:
         raise HTTPException(status_code=404, detail="INV not found")
@@ -116,7 +117,7 @@ def dispatch_inv(inv_id: str):
 
 
 @router.patch("/inv/{inv_id}/undispatch")
-def undispatch_inv(inv_id: str):
+def undispatch_inv(inv_id: str, user: dict = Depends(get_current_user)):
     inv = supabase.table("supplier_invs").select("*").eq("id", inv_id).execute()
     if not inv.data:
         raise HTTPException(status_code=404, detail="INV not found")
@@ -135,7 +136,7 @@ def undispatch_inv(inv_id: str):
     return {"undispatched": True}
 
 @router.patch("/so/{so_number}/ready")
-def mark_so_ready(so_number: str):
+def mark_so_ready(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
     if not order.data:
         raise HTTPException(status_code=404, detail="SO not found")
@@ -153,7 +154,7 @@ def mark_so_ready(so_number: str):
     return {"status": "ready", "invs_updated": len(invs)}
 
 @router.patch("/so/{so_number}/dispatch")
-def dispatch_so(so_number: str):
+def dispatch_so(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
     if not order.data:
         raise HTTPException(status_code=404, detail="SO not found")

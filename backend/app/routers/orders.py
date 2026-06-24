@@ -1,12 +1,13 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from app.database import supabase_admin as supabase
 import numpy as np
 from datetime import date
+from app.auth import get_current_user
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 @router.get("")
-def get_orders():
+def get_orders(user: dict = Depends(get_current_user)):
     orders = supabase.table("supplier_orders").select("*").order("order_date", desc=True).execute().data
     all_invs = supabase.table("supplier_invs").select("*").execute().data
 

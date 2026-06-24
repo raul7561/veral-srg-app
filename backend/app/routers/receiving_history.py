@@ -1,10 +1,11 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.auth import get_current_user
 from app.database import supabase_admin as supabase
 
 router = APIRouter(prefix="/receiving-history", tags=["Receiving History"])
 
 @router.get("/orders")
-def get_orders_with_vex(page: int = 1, limit: int = 25):
+def get_orders_with_vex(page: int = 1, limit: int = 25, user: dict = Depends(get_current_user)):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
     supplier_vex = supabase.table("supplier_vex").select("*").execute().data
@@ -32,7 +33,7 @@ def get_orders_with_vex(page: int = 1, limit: int = 25):
     return { "rows": paginated, "total": total }
 
 @router.get("/orders/{so_number}")
-def get_order_detail(so_number: str):
+def get_order_detail(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("*").eq("so_number", so_number).execute()
     if not order.data:
         from fastapi import HTTPException
