@@ -46,7 +46,9 @@ async function fetchWithAuth(url, options) {
 }
 
 async function getJson(path) {
-  const res = await fetch(`${API_URL}${path}`)
+  const res = await fetchWithAuth(`${API_URL}${path}`, {
+    headers: await authHeaders(),
+  })
   if (!res.ok) throw new Error(`GET ${path} failed with status ${res.status}`)
   return res.json()
 }

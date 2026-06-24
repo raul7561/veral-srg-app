@@ -244,6 +244,7 @@ def list_quotes(
     date_from: date | None = None,
     date_to: date | None = None,
     search: str | None = None,
+    user: dict = Depends(get_current_user),
 ):
     result = quotes_repo.list_quotes(
         page=page,
@@ -268,7 +269,7 @@ def list_quotes(
 
 
 @router.get("/{quote_id}", response_model=QuoteDetail)
-def get_quote(quote_id: int):
+def get_quote(quote_id: int, user: dict = Depends(get_current_user)):
     quote = quotes_repo.get_quote(quote_id)
     if quote is None:
         raise HTTPException(status_code=404, detail="Quote no encontrado")
@@ -276,7 +277,7 @@ def get_quote(quote_id: int):
 
 
 @router.patch("/{quote_id}", response_model=QuoteDetail)
-def update_quote(quote_id: int, request: UpdateQuoteRequest):
+def update_quote(quote_id: int, request: UpdateQuoteRequest, user: dict = Depends(get_current_user)):
     try:
         quote = quotes_repo.update_quote(request=request, quote_id=quote_id)
     except QuoteNotFound:
@@ -306,7 +307,7 @@ def cancel_quote(quote_id: int, request: CancelQuoteRequest, user: dict = Depend
 
 
 @router.post("/{quote_id}/convert", response_model=QuoteDetail)
-def convert_quote(quote_id: int, request: ConvertQuoteRequest):
+def convert_quote(quote_id: int, request: ConvertQuoteRequest, user: dict = Depends(get_current_user)):
     try:
         quote = quotes_repo.convert_quote_to_so(
             quote_id=quote_id,
