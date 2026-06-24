@@ -23,7 +23,11 @@ export async function parseExport(file, priceLevel = "US_LIST") {
   const formData = new FormData()
   formData.append("file", file)
   formData.append("price_level", priceLevel)
-  const res = await fetch(`${API_URL}/api/quotes/parse`, { method: "POST", body: formData })
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/parse`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  })
   if (!res.ok) {
     const data = await res.json().catch(() => ({}))
     throw new Error(data.detail || `parse failed with status ${res.status}`)
@@ -32,9 +36,9 @@ export async function parseExport(file, priceLevel = "US_LIST") {
 }
 
 export async function calculateQuote(priceLevel, lines) {
-  const res = await fetch(`${API_URL}/api/quotes/calculate`, {
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/calculate`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify({ price_level: priceLevel, lines }),
   })
   if (!res.ok) throw new Error(`calculate failed with status ${res.status}`)
@@ -81,9 +85,9 @@ export async function convertQuote(id, payload) {
 }
 
 export async function previewQuote(payload) {
-  const res = await fetch(`${API_URL}/api/quotes/preview`, {
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/preview`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: await authHeaders({ "Content-Type": "application/json" }),
     body: JSON.stringify(payload),
   })
   if (!res.ok) {

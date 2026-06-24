@@ -111,7 +111,7 @@ MOCK_CANCELLED_DETAIL = QuoteDetail(
 
 
 @router.post("/parse", response_model=ParseResponse)
-def parse_quote(file: UploadFile, price_level: PriceLevel = Form("US_LIST")):
+def parse_quote(file: UploadFile, price_level: PriceLevel = Form("US_LIST"), user: dict = Depends(get_current_user)):
     suffix = Path(file.filename or "").suffix.lower()
     if suffix not in {".csv", ".xlsx", ".xltm", ".xlsm"}:
         raise HTTPException(
@@ -132,7 +132,7 @@ def parse_quote(file: UploadFile, price_level: PriceLevel = Form("US_LIST")):
 
 
 @router.post("/calculate", response_model=CalculateResponse)
-def calculate_quote(request: CalculateRequest):
+def calculate_quote(request: CalculateRequest, user: dict = Depends(get_current_user)):
     lines = pricing.calculate_lines(request.lines, request.price_level)
     return CalculateResponse(lines=lines)
 
@@ -142,7 +142,7 @@ PLACEHOLDER_SALES_REP = "Raul Fuguet"
 
 
 @router.post("/preview")
-def preview_quote(request: CreateQuoteRequest):
+def preview_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_user)):
     recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
     total_amount = sum(
         (line.unit_price or 0) * line.quantity for line in recalculated_lines
