@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from 'react-router-dom'
-import { parseExport, calculateQuote, createQuote, updateQuote, getQuote, previewQuote, quotePdfUrl } from '../api/quotes'
+import { parseExport, calculateQuote, createQuote, updateQuote, getQuote, previewQuote, downloadQuotePdf } from '../api/quotes'
 import { btn, input, pageTitle, table } from '../styles'
 import ConfirmDialog from '../components/ConfirmDialog'
 import ClientAutocomplete from '../components/ClientAutocomplete'
@@ -264,18 +264,9 @@ export default function NewQuote() {
   const hasLines = lines.length > 0
 
   async function downloadPdf(id, quoteNumber, clientName) {
+    const safeName = (clientName || 'client').replace(/[^a-zA-Z0-9_-]/g, '_')
     try {
-      const res = await fetch(quotePdfUrl(id))
-      const blob = await res.blob()
-      const url = URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      const safeName = (clientName || 'client').replace(/[^a-zA-Z0-9_-]/g, '_')
-      a.href = url
-      a.download = `${quoteNumber}_${safeName}.pdf`
-      document.body.appendChild(a)
-      a.click()
-      a.remove()
-      URL.revokeObjectURL(url)
+      await downloadQuotePdf(id, `${quoteNumber}_${safeName}.pdf`)
     } catch {
       alert('Error al descargar el PDF')
     }

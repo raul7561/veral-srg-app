@@ -172,7 +172,7 @@ def create_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_u
 
 
 @router.get("/{quote_id}/excel")
-def download_quote_excel(quote_id: int):
+def download_quote_excel(quote_id: int, user: dict = Depends(get_current_user)):
     quote = quotes_repo.get_quote(quote_id)
     if quote is None:
         raise HTTPException(status_code=404, detail="Quote no encontrado")
@@ -204,7 +204,7 @@ def _safe_filename_part(text: str) -> str:
 
 
 @router.get("/{quote_id}/pdf")
-def download_quote_pdf(quote_id: int):
+def download_quote_pdf(quote_id: int, user: dict = Depends(get_current_user)):
     quote = quotes_repo.get_quote(quote_id)
     if quote is None:
         raise HTTPException(status_code=404, detail="Quote no encontrado")
@@ -226,7 +226,7 @@ def download_quote_pdf(quote_id: int):
 
 
 @router.get("/{quote_id}/html")
-def quote_html(quote_id: int):
+def quote_html(quote_id: int, user: dict = Depends(get_current_user)):
     quote = quotes_repo.get_quote(quote_id)
     if quote is None:
         raise HTTPException(status_code=404, detail="Quote no encontrado")

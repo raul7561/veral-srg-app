@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { convertQuote, getClients, getQuotes, quoteHtmlUrl, quotePdfUrl, quoteExcelUrl } from '../api/quotes'
+import { convertQuote, downloadQuoteExcel, downloadQuotePdf, fetchQuoteHtml, getClients, getQuotes } from '../api/quotes'
 import { btn, input, pageTitle, table } from '../styles'
 
 function money(n) {
@@ -16,6 +16,7 @@ export default function Historial() {
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
+  const [previewHtml, setPreviewHtml] = useState(null)
   const [convertOpen, setConvertOpen] = useState(false)
   const [clientQuery, setClientQuery] = useState(selected?.client_name || '')
   const [clientResults, setClientResults] = useState([])
@@ -43,6 +44,18 @@ export default function Historial() {
   }, [page, search])
 
   useEffect(() => { queueMicrotask(() => load()) }, [page, load])
+
+  useEffect(() => {
+    let cancelled = false
+    if (!selected) {
+      queueMicrotask(() => { if (!cancelled) setPreviewHtml(null) })
+      return () => { cancelled = true }
+    }
+    fetchQuoteHtml(selected.id)
+      .then(html => { if (!cancelled) setPreviewHtml(html) })
+      .catch(() => { if (!cancelled) setPreviewHtml(null) })
+    return () => { cancelled = true }
+  }, [selected])
 
   useEffect(() => {
     const qid = location.state?.returnToConvertQuoteId
@@ -116,8 +129,8 @@ export default function Historial() {
             {!selected.so_number && (
               <button onClick={() => openConvertModal()} className={btn.primary}>→ Convertir a SO</button>
             )}
-            <button onClick={() => window.open(quotePdfUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar PDF</button>
-            <button onClick={() => window.open(quoteExcelUrl(selected.id), '_blank')} className={btn.secondary}>↓ Descargar Excel</button>
+            <button onClick={() => downloadQuotePdf(selected.id).catch(() => alert('Error al descargar el PDF'))} className={btn.secondary}>↓ Descargar PDF</button>
+            <button onClick={() => downloadQuoteExcel(selected.id).catch(() => alert('Error al descargar el Excel'))} className={btn.secondary}>↓ Descargar Excel</button>
           </div>
         </div>
         {convertOpen && (
@@ -194,7 +207,7 @@ export default function Historial() {
           </div>
         )}
         <iframe
-          src={quoteHtmlUrl(selected.id)}
+          srcDoc={previewHtml || ''}
           title={`Quote ${selected.quote_number}`}
           className="w-full border border-srg-border rounded bg-white"
           style={{ height: '75vh' }}

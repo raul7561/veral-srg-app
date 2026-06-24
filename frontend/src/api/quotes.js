@@ -151,3 +151,48 @@ export function quoteExcelUrl(id) {
 export function quoteHtmlUrl(id) {
   return `${API_URL}/api/quotes/${id}/html`
 }
+
+// Extrae el filename del header Content-Disposition; si no está, usa fallback.
+function filenameFromResponse(res, fallback) {
+  const cd = res.headers.get("Content-Disposition") || ""
+  const match = cd.match(/filename="?([^"]+)"?/)
+  return match ? match[1] : fallback
+}
+
+// Dispara la descarga de un blob con el nombre dado.
+function triggerDownload(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement("a")
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  URL.revokeObjectURL(url)
+}
+
+export async function downloadQuotePdf(id, fallbackName = `Quote_${id}.pdf`) {
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/${id}/pdf`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(`pdf download failed with status ${res.status}`)
+  const blob = await res.blob()
+  triggerDownload(blob, filenameFromResponse(res, fallbackName))
+}
+
+export async function downloadQuoteExcel(id, fallbackName = `Quote_${id}.xlsx`) {
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/${id}/excel`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(`excel download failed with status ${res.status}`)
+  const blob = await res.blob()
+  triggerDownload(blob, filenameFromResponse(res, fallbackName))
+}
+
+export async function fetchQuoteHtml(id) {
+  const res = await fetchWithAuth(`${API_URL}/api/quotes/${id}/html`, {
+    headers: await authHeaders(),
+  })
+  if (!res.ok) throw new Error(`html fetch failed with status ${res.status}`)
+  return res.text()
+}
