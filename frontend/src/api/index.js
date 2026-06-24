@@ -1,4 +1,5 @@
 import { supabase } from "../lib/supabaseClient";
+import { authHeaders, fetchWithAuth } from "./_auth";
 import {
   mockCustomerDocuments,
   mockReceivingHistory,
@@ -19,7 +20,9 @@ function mockResponse(data) {
 }
 
 async function getJson(path) {
-  const res = await fetch(`${API_URL}${path}`);
+  const res = await fetchWithAuth(`${API_URL}${path}`, {
+    headers: await authHeaders(),
+  });
   if (!res.ok) {
     throw new Error(`GET ${path} failed with status ${res.status}`);
   }
@@ -93,8 +96,9 @@ export function getOrderDocuments(soNumber) {
 export async function uploadProofOfExport(soNumber, file) {
   const formData = new FormData();
   formData.append("file", file);
-  const res = await fetch(`${API_URL}/supplier-tracking/orders/${soNumber}/proof-of-export`, {
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/orders/${soNumber}/proof-of-export`, {
     method: "POST",
+    headers: await authHeaders(),
     body: formData,
   });
   if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
@@ -102,7 +106,10 @@ export async function uploadProofOfExport(soNumber, file) {
 }
 
 export async function deleteOrderDocument(docId) {
-  const res = await fetch(`${API_URL}/supplier-tracking/documents/${docId}`, { method: "DELETE" });
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/documents/${docId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
   if (!res.ok) throw new Error(`Delete failed with status ${res.status}`);
   return res.json();
 }
