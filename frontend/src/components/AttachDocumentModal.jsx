@@ -15,19 +15,19 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
   function handleDragOver(e) {
     e.preventDefault()
     e.stopPropagation()
-    dragRef.current?.classList.add("border-blue-500", "bg-blue-50")
+    dragRef.current?.classList.add("border-srg-yellow", "bg-srg-yellow/10")
   }
 
   function handleDragLeave(e) {
     e.preventDefault()
     e.stopPropagation()
-    dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+    dragRef.current?.classList.remove("border-srg-yellow", "bg-srg-yellow/10")
   }
 
   function handleDrop(e) {
     e.preventDefault()
     e.stopPropagation()
-    dragRef.current?.classList.remove("border-blue-500", "bg-blue-50")
+    dragRef.current?.classList.remove("border-srg-yellow", "bg-srg-yellow/10")
     const dropped = Array.from(e.dataTransfer.files).filter(f => f.type === "application/pdf")
     if (dropped.length > 0) setFiles(prev => [...prev, ...dropped])
   }
@@ -185,8 +185,8 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
                       key={i}
                       className={`p-3 rounded-lg text-sm border ${
                         r.type === "success"
-                          ? "bg-green-50 text-srg-green border-green-200"
-                          : "bg-red-50 text-srg-red border-red-200"
+                          ? "bg-srg-green/10 text-srg-green border-srg-green/30"
+                          : "bg-srg-red/10 text-srg-red border-srg-red/30"
                       }`}
                     >
                       <span className="font-medium">{r.file}:</span> {r.text}

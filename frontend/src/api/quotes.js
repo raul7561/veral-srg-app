@@ -97,18 +97,6 @@ export function getClients() {
   return getJson('/api/clients')
 }
 
-export function quotePdfUrl(id) {
-  return `${API_URL}/api/quotes/${id}/pdf`
-}
-
-export function quoteExcelUrl(id) {
-  return `${API_URL}/api/quotes/${id}/excel`
-}
-
-export function quoteHtmlUrl(id) {
-  return `${API_URL}/api/quotes/${id}/html`
-}
-
 // Extrae el filename del header Content-Disposition; si no está, usa fallback.
 function filenameFromResponse(res, fallback) {
   const cd = res.headers.get("Content-Disposition") || ""

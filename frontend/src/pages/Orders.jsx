@@ -31,15 +31,15 @@ const METRIC_FILTERS = [
 ]
 
 const BAR_COLORS = {
-  on_track: '#2D7A4F',
-  follow_up: '#D45A00',
-  overdue: '#C0392B',
+  on_track: 'var(--color-srg-green)',
+  follow_up: 'var(--color-srg-orange)',
+  overdue: 'var(--color-srg-red)',
 }
 
 const DISPATCH_COLORS = {
-  pending: '#D45A00',
-  ready: '#2D7A4F',
-  dispatched: '#111111',
+  pending: 'var(--color-srg-orange)',
+  ready: 'var(--color-srg-green)',
+  dispatched: 'var(--color-srg-black)',
 }
 
 export default function Orders() {

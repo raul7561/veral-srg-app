@@ -447,7 +447,7 @@ export default function NewQuote() {
                   const totalWeight = line.unit_weight ? line.unit_weight * line.quantity : null
                   const isShifted = line.notes && line.notes.toLowerCase().includes('corrida')
                   return (
-                    <tr key={line.item_number} className={`${table.row} ${isShifted ? 'bg-red-50' : ''}`}>
+                    <tr key={line.item_number} className={`${table.row} ${isShifted ? 'bg-srg-red/10' : ''}`}>
                       <td className={`${table.td} text-gray-400`}>{line.item_number}</td>
                       <td className={`${table.td} text-gray-500`}>{line.brand}</td>
                       <td className={`${table.td} text-center`}>
