@@ -1,5 +1,6 @@
 import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { attachFerralOv, attachInv, attachPo, createSupplierOrder } from "../api"
 
 export default function UploadDocumentModal({ onClose, onSuccess }) {
   const { t } = useTranslation()
@@ -10,11 +11,18 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
   const [currentIndex, setCurrentIndex] = useState(-1)
   const dragRef = useRef(null)
 
+  const uploadFnByTab = {
+    so: createSupplierOrder,
+    po: attachPo,
+    ferral_ov: attachFerralOv,
+    inv: attachInv,
+  }
+
   const tabConfig = {
-    so: { label: "SO", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/orders` },
-    po: { label: "PO", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/po` },
-    ferral_ov: { label: "Ferral OV", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/ferral-ov` },
-    inv: { label: "INV", endpoint: `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/inv` },
+    so: { label: "SO" },
+    po: { label: "PO" },
+    ferral_ov: { label: "Ferral OV" },
+    inv: { label: "INV" },
   }
 
   function handleDragOver(e) {
@@ -51,24 +59,16 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
     if (files.length === 0) return
     setUploading(true)
     setResults([])
-    const endpoint = tabConfig[activeTab].endpoint
 
     for (let i = 0; i < files.length; i++) {
       setCurrentIndex(i)
       const file = files[i]
-      const formData = new FormData()
-      formData.append("file", file)
       try {
-        const res = await fetch(endpoint, { method: "POST", body: formData })
-        const data = await res.json()
-        if (res.ok) {
-          const doc = data.so_number || data.po_number || data.ferral_order_number || "OK"
-          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.partsResult', { doc, count: data.parts_count ?? 0 }) }])
-        } else {
-          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || t('modal.uploadFailed') }])
-        }
-      } catch {
-        setResults(prev => [...prev, { file: file.name, type: "error", text: t('modal.connectionError') }])
+        const data = await uploadFnByTab[activeTab](file)
+        const doc = data.so_number || data.po_number || data.ferral_order_number || "OK"
+        setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.partsResult', { doc, count: data.parts_count ?? 0 }) }])
+      } catch (err) {
+        setResults(prev => [...prev, { file: file.name, type: "error", text: err.message || t('modal.connectionError') }])
       }
     }
 

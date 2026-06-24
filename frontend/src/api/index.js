@@ -105,6 +105,84 @@ export async function uploadProofOfExport(soNumber, file) {
   return res.json();
 }
 
+export async function createSupplierOrder(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/orders`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload failed with status ${res.status}`);
+  return data;
+}
+
+export async function attachPo(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/attach/po`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload failed with status ${res.status}`);
+  return data;
+}
+
+export async function attachFerralOv(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/attach/ferral-ov`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload failed with status ${res.status}`);
+  return data;
+}
+
+export async function attachInv(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/attach/inv`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload failed with status ${res.status}`);
+  return data;
+}
+
+export async function attachVex(soNumber, invNumber, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/orders/${soNumber}/inv/${invNumber}/vex`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload failed with status ${res.status}`);
+  return data;
+}
+
+export async function syncMadisa(file) {
+  const formData = new FormData();
+  formData.append("file", file);
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/sync/madisa`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Sync failed with status ${res.status}`);
+  return data;
+}
+
 export async function deleteOrderDocument(docId) {
   const res = await fetchWithAuth(`${API_URL}/supplier-tracking/documents/${docId}`, {
     method: "DELETE",

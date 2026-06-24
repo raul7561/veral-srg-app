@@ -2,6 +2,10 @@ import { useState, useRef, useEffect, useCallback } from "react"
 import { useTranslation } from 'react-i18next'
 import { useParams, useNavigate } from "react-router-dom"
 import {
+  attachFerralOv,
+  attachInv,
+  attachPo,
+  attachVex,
   deleteOrderDocument,
   getOrderDocuments,
   getSupplierOrderLinesBySo,
@@ -10,8 +14,6 @@ import {
   uploadProofOfExport,
 } from "../api"
 import { table } from "../styles"
-
-const API = `${import.meta.env.VITE_API_URL}/supplier-tracking`
 
 export default function SupplierOrderDetail() {
   const { t } = useTranslation()
@@ -123,8 +125,7 @@ export default function SupplierOrderDetail() {
             label="PO"
             value={order.po_number}
             uploadLabel={t('orderDetail.attachPo')}
-            endpoint={`${API}/attach/po`}
-            method="POST"
+            uploadFn={attachPo}
             onSuccess={fetchOrder}
             pdfUrl={order.po_pdf_url}
           />
@@ -133,8 +134,7 @@ export default function SupplierOrderDetail() {
             label="Ferral OV"
             value={order.ferral_order_number ? `${order.ferral_order_number} — ${order.madisa_ov || ""}` : null}
             uploadLabel={t('orderDetail.attachFerral')}
-            endpoint={`${API}/attach/ferral-ov`}
-            method="POST"
+            uploadFn={attachFerralOv}
             onSuccess={fetchOrder}
             pdfUrl={order.ferral_ov_pdf_url}
           />
@@ -172,7 +172,7 @@ export default function SupplierOrderDetail() {
                 ))}
                 <SimpleUploader
                   label={t('orderDetail.attachInv')}
-                  endpoint={`${API}/attach/inv`}
+                  uploadFn={attachInv}
                   onSuccess={fetchOrder}
                 />
               </div>
@@ -237,7 +237,7 @@ export default function SupplierOrderDetail() {
   )
 }
 
-function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfUrl }) {
+function DocField({ label, value, uploadLabel, uploadFn, onSuccess, pdfUrl }) {
   const { t } = useTranslation()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
@@ -248,18 +248,11 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
     if (!file) return
     setUploading(true)
     setError(null)
-    const formData = new FormData()
-    formData.append("file", file)
     try {
-      const res = await fetch(endpoint, { method, body: formData })
-      if (res.ok) {
-        onSuccess()
-      } else {
-        const data = await res.json()
-        setError(data.detail)
-      }
-    } catch {
-      setError(t('orderDetail.connectionError'))
+      await uploadFn(file)
+      onSuccess()
+    } catch (err) {
+      setError(err.message || t('orderDetail.connectionError'))
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ""
@@ -293,7 +286,7 @@ function DocField({ label, value, uploadLabel, endpoint, method, onSuccess, pdfU
   )
 }
 
-function SimpleUploader({ label, endpoint, onSuccess }) {
+function SimpleUploader({ label, uploadFn, onSuccess }) {
   const { t } = useTranslation()
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState(null)
@@ -304,18 +297,11 @@ function SimpleUploader({ label, endpoint, onSuccess }) {
     if (!file) return
     setUploading(true)
     setError(null)
-    const formData = new FormData()
-    formData.append("file", file)
     try {
-      const res = await fetch(endpoint, { method: "POST", body: formData })
-      if (res.ok) {
-        onSuccess()
-      } else {
-        const data = await res.json()
-        setError(data.detail)
-      }
-    } catch {
-      setError(t('orderDetail.connectionError'))
+      await uploadFn(file)
+      onSuccess()
+    } catch (err) {
+      setError(err.message || t('orderDetail.connectionError'))
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ""
@@ -348,21 +334,11 @@ function VexUploader({ soNumber, invNumber, onSuccess }) {
     if (!file) return
     setUploading(true)
     setError(null)
-    const formData = new FormData()
-    formData.append("file", file)
     try {
-      const res = await fetch(
-        `${API}/orders/${soNumber}/inv/${invNumber}/vex`,
-        { method: "POST", body: formData }
-      )
-      const data = await res.json()
-      if (res.ok) {
-        onSuccess()
-      } else {
-        setError(data.detail)
-      }
-    } catch {
-      setError(t('orderDetail.connectionError'))
+      await attachVex(soNumber, invNumber, file)
+      onSuccess()
+    } catch (err) {
+      setError(err.message || t('orderDetail.connectionError'))
     } finally {
       setUploading(false)
       if (inputRef.current) inputRef.current.value = ""

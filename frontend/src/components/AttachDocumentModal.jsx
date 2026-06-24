@@ -1,5 +1,6 @@
 import { useState, useRef } from "react"
 import { useTranslation } from "react-i18next"
+import { attachInv, attachVex } from "../api"
 
 export default function AttachDocumentModal({ soNumber, client, invs, onClose, onSuccess }) {
   const { t } = useTranslation()
@@ -10,13 +11,6 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
   const [currentIndex, setCurrentIndex] = useState(-1)
   const [selectedInv, setSelectedInv] = useState(invs.length > 0 ? invs[0].inv_number : "")
   const dragRef = useRef(null)
-
-  function getEndpoint() {
-    if (activeTab === "vex") {
-      return `${import.meta.env.VITE_API_URL}/supplier-tracking/orders/${soNumber}/inv/${selectedInv}/vex`
-    }
-    return `${import.meta.env.VITE_API_URL}/supplier-tracking/attach/inv`
-  }
 
   function handleDragOver(e) {
     e.preventDefault()
@@ -57,19 +51,14 @@ export default function AttachDocumentModal({ soNumber, client, invs, onClose, o
     for (let i = 0; i < files.length; i++) {
       setCurrentIndex(i)
       const file = files[i]
-      const formData = new FormData()
-      formData.append("file", file)
       try {
-        const res = await fetch(getEndpoint(), { method: "POST", body: formData })
-        const data = await res.json()
-        if (res.ok) {
-          const doc = data.inv_number || data.vex_number || "OK"
-          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.uploadedResult', { doc }) }])
-        } else {
-          setResults(prev => [...prev, { file: file.name, type: "error", text: data.detail || t('modal.uploadFailed') }])
-        }
-      } catch {
-        setResults(prev => [...prev, { file: file.name, type: "error", text: t('modal.connectionError') }])
+        const data = activeTab === "vex"
+          ? await attachVex(soNumber, selectedInv, file)
+          : await attachInv(file)
+        const doc = data.inv_number || data.vex_number || "OK"
+        setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.uploadedResult', { doc }) }])
+      } catch (err) {
+        setResults(prev => [...prev, { file: file.name, type: "error", text: err.message || t('modal.uploadFailed') }])
       }
     }
 

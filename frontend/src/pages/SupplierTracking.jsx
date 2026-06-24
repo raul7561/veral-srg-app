@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react"
 import { useTranslation } from 'react-i18next'
 import { useNavigate, useSearchParams } from "react-router-dom"
-import { getSupplierTracking } from "../api"
+import { getSupplierTracking, syncMadisa } from "../api"
 import Pagination from "../components/Pagination"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
@@ -64,22 +64,12 @@ export default function SupplierTracking() {
     if (!file) return
     setSyncing(true)
     setSyncMessage(null)
-    const formData = new FormData()
-    formData.append("file", file)
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_URL}/supplier-tracking/sync/madisa`, {
-        method: "POST",
-        body: formData,
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setSyncMessage({ type: "success", text: t('supplierTracking.syncResult', { updated: data.updated, skipped: data.skipped }) })
-        fetchOrders()
-      } else {
-        setSyncMessage({ type: "error", text: data.detail })
-      }
-    } catch {
-      setSyncMessage({ type: "error", text: t('supplierTracking.connectionError') })
+      const data = await syncMadisa(file)
+      setSyncMessage({ type: "success", text: t('supplierTracking.syncResult', { updated: data.updated, skipped: data.skipped }) })
+      fetchOrders()
+    } catch (err) {
+      setSyncMessage({ type: "error", text: err.message || t('supplierTracking.connectionError') })
     } finally {
       setSyncing(false)
       if (syncInputRef.current) syncInputRef.current.value = ""
