@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { getCustomers } from "../api";
+import { createCustomer, deleteCustomer, getCustomers } from "../api";
 import CustomerForm from "../components/CustomerForm";
 import { INITIAL_FORM, formToPayload } from "../components/customerFormHelpers";
 import { btn, input, pageTitle, table } from "../styles";
-
-const API = import.meta.env.VITE_API_URL;
 
 export default function Customers() {
   const { t } = useTranslation();
@@ -19,6 +17,7 @@ export default function Customers() {
   const [saving, setSaving] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(null);
   const [search, setSearch] = useState("");
+  const [error, setError] = useState(null);
 
   useEffect(() => { fetchCustomers(); }, []);
 
@@ -33,12 +32,9 @@ export default function Customers() {
     if (!form.name.trim() || !form.country || form.country === "---") return;
     if (!form.primary_contact.name.trim()) return;
     setSaving(true);
+    setError(null);
     try {
-      await fetch(`${API}/customers/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formToPayload(form)),
-      });
+      await createCustomer(formToPayload(form));
       setForm(INITIAL_FORM);
       setShowForm(false);
       fetchCustomers();
@@ -47,15 +43,22 @@ export default function Customers() {
         navigate('/quotes/history', { state: { returnToConvertQuoteId: returnId } });
         return;
       }
+    } catch {
+      setError(t('customers.saveError'));
     } finally {
       setSaving(false);
     }
   }
 
   async function handleDelete(id) {
-    await fetch(`${API}/customers/${id}`, { method: "DELETE" });
-    setConfirmDelete(null);
-    fetchCustomers();
+    setError(null);
+    try {
+      await deleteCustomer(id);
+      setConfirmDelete(null);
+      fetchCustomers();
+    } catch {
+      setError(t('customers.deleteError'));
+    }
   }
 
   const matchesSearch = (c) => c.name.toLowerCase().includes(search.trim().toLowerCase());
@@ -84,15 +87,20 @@ export default function Customers() {
       </div>
 
       {showForm && (
-        <CustomerForm
-          form={form}
-          setForm={setForm}
-          saving={saving}
-          isEditing={false}
-          onSubmit={handleSubmit}
-          onCancel={() => { setShowForm(false); setForm(INITIAL_FORM); }}
-        />
+        <>
+          {error && <p className="text-sm text-srg-red mb-3">{error}</p>}
+          <CustomerForm
+            form={form}
+            setForm={setForm}
+            saving={saving}
+            isEditing={false}
+            onSubmit={handleSubmit}
+            onCancel={() => { setShowForm(false); setForm(INITIAL_FORM); }}
+          />
+        </>
       )}
+
+      {!showForm && error && <p className="text-sm text-srg-red mb-3">{error}</p>}
 
       {loading ? (
         <p className="text-gray-400">{t('customers.loading')}</p>

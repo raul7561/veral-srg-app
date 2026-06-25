@@ -4,6 +4,9 @@ import { initReactI18next } from 'react-i18next'
 const resources = {
   en: {
     translation: {
+      common: {
+        retry: "Retry",
+      },
       nav: {
         orders: "ORDERS",
         supplierTracking: "SUPPLIER TRACKING",
@@ -36,6 +39,7 @@ const resources = {
         inv: "INV",
         status: "Status",
         loading: "Loading...",
+        loadError: "Could not load orders.",
       },
       supplierTracking: {
         title: "Supplier Tracking",
@@ -66,6 +70,7 @@ const resources = {
         proofUploaded: "Proof ✓",
         syncResult: "Updated: {{updated}} — Skipped: {{skipped}}",
         connectionError: "Connection error",
+        loadError: "Could not load supplier tracking.",
       },
       orderDetail: {
         loading: "Loading...",
@@ -94,6 +99,7 @@ const resources = {
         proofUploading: "Uploading...",
         download: "Download",
         delete: "Delete",
+        loadError: "Could not load the order detail.",
       },
       receiving: {
         title: "Receiving History",
@@ -135,6 +141,7 @@ const resources = {
         dispatchedSection: "Dispatched",
         confirm: "Confirm",
         cancel: "Cancel",
+        actionError: "Could not complete the action. Please try again.",
         statusDispatched: "Dispatched - {{date}}",
         statusReady: "Ready to Dispatch - {{date}}",
         statusComplete: "Complete",
@@ -221,6 +228,9 @@ const resources = {
         file: "File",
         uploading: "Uploading...",
         uploadBtn: "Upload",
+        saveError: "Could not save. Please try again.",
+        deleteError: "Could not delete. Please try again.",
+        uploadError: "Could not upload the file. Please try again.",
         noTaxCert: "No tax certificate on file",
         expired: "Expired",
         expiringSoon: "Expiring soon",
@@ -255,6 +265,9 @@ const resources = {
         uploadFailed: "Upload failed",
         connectionError: "Connection error",
         partsResult: "{{doc}} — {{count}} parts",
+        poResult: "{{doc}} attached.",
+        clientWarning: "Order created, but client \"{{client}}\" is not registered, so it was left unlinked. Add it in Customers to enable client-type features (e.g. Proof of Export).",
+        pdfWarning: "The record was saved, but the PDF could not be attached. Try uploading it again from the order detail.",
         uploadedResult: "{{doc}} uploaded",
         noInvoices: "No invoices available. Attach an INV first.",
         selectInv: "Select INV",
@@ -297,6 +310,7 @@ const resources = {
         reviewDocBtn: "→ Review document",
         errClientReview: "Enter the client name before reviewing.",
         errClientConfirm: "Enter the client name before confirming.",
+        loadError: "Could not load quotes.",
         recalcWarning: "Recalculating may affect the Core Deposits of this saved quote. If any line had core included in the price, review it after recalculating. Continue?",
         backTitle: "Back to start",
         backMessage: "The in-progress quote will be lost. This action cannot be undone. Are you sure you want to go back?",
@@ -307,6 +321,9 @@ const resources = {
   },
   es: {
     translation: {
+      common: {
+        retry: "Reintentar",
+      },
       nav: {
         orders: "ÓRDENES",
         supplierTracking: "TRACKING DE PROVEEDOR",
@@ -339,6 +356,7 @@ const resources = {
         inv: "INV",
         status: "Estado",
         loading: "Cargando...",
+        loadError: "No se pudieron cargar las órdenes.",
       },
       supplierTracking: {
         title: "Tracking de Proveedor",
@@ -369,6 +387,7 @@ const resources = {
         proofUploaded: "Proof ✓",
         syncResult: "Actualizadas: {{updated}} — Omitidas: {{skipped}}",
         connectionError: "Error de conexión",
+        loadError: "No se pudo cargar el tracking de proveedor.",
       },
       orderDetail: {
         loading: "Cargando...",
@@ -397,6 +416,7 @@ const resources = {
         proofUploading: "Subiendo...",
         download: "Descargar",
         delete: "Eliminar",
+        loadError: "No se pudo cargar el detalle de la orden.",
       },
       receiving: {
         title: "Historial de Recepción",
@@ -438,6 +458,7 @@ const resources = {
         dispatchedSection: "Despachadas",
         confirm: "Confirmar",
         cancel: "Cancelar",
+        actionError: "No se pudo completar la acción. Intenta de nuevo.",
         statusDispatched: "Despachada - {{date}}",
         statusReady: "Lista para Despachar - {{date}}",
         statusComplete: "Completa",
@@ -524,6 +545,9 @@ const resources = {
         file: "Archivo",
         uploading: "Subiendo...",
         uploadBtn: "Subir",
+        saveError: "No se pudo guardar. Intenta de nuevo.",
+        deleteError: "No se pudo eliminar. Intenta de nuevo.",
+        uploadError: "No se pudo subir el archivo. Intenta de nuevo.",
         noTaxCert: "Sin certificado fiscal registrado",
         expired: "Vencido",
         expiringSoon: "Por vencer",
@@ -558,6 +582,9 @@ const resources = {
         uploadFailed: "Error al subir",
         connectionError: "Error de conexión",
         partsResult: "{{doc}} — {{count}} partes",
+        poResult: "{{doc}} adjuntado.",
+        clientWarning: "Orden creada, pero el cliente \"{{client}}\" no está registrado, así que quedó sin vincular. Agrégalo en Customers para habilitar funciones que dependen del tipo de cliente (ej. Proof of Export).",
+        pdfWarning: "El registro se guardó, pero el PDF no se pudo adjuntar. Vuelve a subirlo desde el detalle de la orden.",
         uploadedResult: "{{doc}} subido",
         noInvoices: "No hay facturas disponibles. Adjunta una INV primero.",
         selectInv: "Seleccionar INV",
@@ -600,6 +627,7 @@ const resources = {
         reviewDocBtn: "→ Revisar documento",
         errClientReview: "Escribe el nombre del cliente antes de revisar.",
         errClientConfirm: "Escribe el nombre del cliente antes de confirmar.",
+        loadError: "No se pudieron cargar los quotes.",
         recalcWarning: "Recalcular puede afectar los Core Deposit de este quote guardado. Si alguna línea traía core incluido en el precio, revísalo después de recalcular. ¿Continuar?",
         backTitle: "Volver al inicio",
         backMessage: "Se perderá el quote en progreso. Esta acción no se puede deshacer. ¿Seguro que quieres volver?",

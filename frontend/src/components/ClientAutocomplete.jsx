@@ -9,7 +9,7 @@ export default function ClientAutocomplete({ value, onChange, placeholder }) {
   useEffect(() => {
     getClients()
       .then(data => setNames((data.items || []).map(c => c.name)))
-      .catch(() => setNames([]))
+      .catch((err) => { console.error('Failed to load clients for autocomplete', err); setNames([]) })
   }, [])
 
   const suggestion =

@@ -1,6 +1,13 @@
 import { Fragment, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getReadyToDispatch } from '../api'
+import {
+  getReadyToDispatch,
+  markInvDispatched,
+  markInvReady,
+  markSoDispatched,
+  markSoReady,
+  unmarkInv,
+} from '../api'
 import { btn, input, pageTitle, table } from "../styles"
 
 export default function ReadyToDispatch() {
@@ -12,6 +19,7 @@ export default function ReadyToDispatch() {
   const [filterSO, setFilterSO] = useState('')
   const [filterClient, setFilterClient] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  const [error, setError] = useState(null)
 
   const fetchOrders = () => {
     getReadyToDispatch()
@@ -27,19 +35,20 @@ export default function ReadyToDispatch() {
     setExpanded(prev => ({ ...prev, [so_number]: !prev[so_number] }))
   }
 
-  const confirmAction = () => {
+  const confirmAction = async () => {
     const { type, inv_id, so_number } = confirming
-    const url = type === 'so_ready'
-      ? `${import.meta.env.VITE_API_URL}/ready-to-dispatch/so/${so_number}/ready`
-      : type === 'so_dispatch'
-        ? `${import.meta.env.VITE_API_URL}/ready-to-dispatch/so/${so_number}/dispatch`
-        : `${import.meta.env.VITE_API_URL}/ready-to-dispatch/inv/${inv_id}/${type}`
-    fetch(url, { method: 'PATCH' })
-      .then(r => r.json())
-      .then(() => {
-        setConfirming(null)
-        fetchOrders()
-      })
+    setError(null)
+    try {
+      if (type === 'ready') await markInvReady(inv_id)
+      else if (type === 'dispatch') await markInvDispatched(inv_id)
+      else if (type === 'undispatch') await unmarkInv(inv_id)
+      else if (type === 'so_ready') await markSoReady(so_number)
+      else if (type === 'so_dispatch') await markSoDispatched(so_number)
+      setConfirming(null)
+      fetchOrders()
+    } catch {
+      setError(t('dispatch.actionError'))
+    }
   }
 
   if (loading) return <div className="p-8 text-sm text-gray-500">{t('dispatch.loading')}</div>
@@ -213,9 +222,10 @@ export default function ReadyToDispatch() {
         <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50">
           <div className="bg-srg-surface border border-srg-border rounded p-6 w-96">
             <p className="text-sm font-semibold mb-4">{confirming.label}</p>
+            {error && <p className="text-sm text-srg-red mb-3">{error}</p>}
             <div className="flex gap-3">
               <button onClick={confirmAction} className={btn.primary}>{t('dispatch.confirm')}</button>
-              <button onClick={() => setConfirming(null)} className={btn.secondary}>{t('dispatch.cancel')}</button>
+              <button onClick={() => { setConfirming(null); setError(null) }} className={btn.secondary}>{t('dispatch.cancel')}</button>
             </div>
           </div>
         </div>

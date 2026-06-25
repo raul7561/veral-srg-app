@@ -58,6 +58,11 @@ export default function NewQuote() {
         setPriceLevel(q.price_level || 'US_LIST')
         setQuoteNumber(q.quote_number)
         setShippingCost(q.shipping_cost ?? '')
+        const loadedLines = q.lines || []
+        setLines(loadedLines)
+        const origMap = {}
+        loadedLines.forEach(l => { origMap[l.item_number] = l.quantity })
+        setOriginalQty(origMap)
       })
       .catch(e => setError(e.message))
   }, [id])

@@ -5,7 +5,15 @@ from app.database import supabase_admin as supabase
 router = APIRouter(prefix="/receiving-history", tags=["Receiving History"])
 
 @router.get("/orders")
-def get_orders_with_vex(page: int = 1, limit: int = 25, user: dict = Depends(get_current_user)):
+def get_orders_with_vex(
+    page: int = 1,
+    limit: int = 25,
+    search: str = "",
+    filter_so: str = "",
+    filter_client: str = "",
+    sort_by: str = "newest",
+    user: dict = Depends(get_current_user),
+):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
     supplier_vex = supabase.table("supplier_vex").select("*").execute().data
@@ -27,10 +35,37 @@ def get_orders_with_vex(page: int = 1, limit: int = 25, user: dict = Depends(get
             "order_date": so.get("order_date"),
         })
 
-    total = len(results)
+    q = search.strip().lower()
+    if q:
+        searched = [
+            o for o in results
+            if q in (o["so_number"] or "").lower()
+            or q in (o.get("client") or "").lower()
+            or q in (o.get("po_number") or "").lower()
+        ]
+    else:
+        searched = results
+
+    so_options = sorted({o["so_number"] for o in searched if o.get("so_number")})
+    client_options = sorted({o["client"] for o in searched if o.get("client")})
+
+    filtered = searched
+    if filter_so:
+        filtered = [o for o in filtered if o["so_number"] == filter_so]
+    if filter_client:
+        filtered = [o for o in filtered if (o.get("client") or "") == filter_client]
+
+    if sort_by == "oldest":
+        filtered = sorted(filtered, key=lambda o: o.get("order_date") or "")
+    elif sort_by == "az":
+        filtered = sorted(filtered, key=lambda o: (o.get("client") or "").lower())
+    else:
+        filtered = sorted(filtered, key=lambda o: o.get("order_date") or "", reverse=True)
+
+    total = len(filtered)
     start = (page - 1) * limit
-    paginated = results[start:start + limit]
-    return { "rows": paginated, "total": total }
+    paginated = filtered[start:start + limit]
+    return { "rows": paginated, "total": total, "so_options": so_options, "client_options": client_options }
 
 @router.get("/orders/{so_number}")
 def get_order_detail(so_number: str, user: dict = Depends(get_current_user)):

@@ -53,6 +53,42 @@ export function getCustomers() {
   return getJson("/customers/");
 }
 
+export function getCustomer(customerId) {
+  return getJson(`/customers/${customerId}`);
+}
+
+export async function createCustomer(payload) {
+  const res = await fetchWithAuth(`${API_URL}/customers/`, {
+    method: "POST",
+    headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Create customer failed with status ${res.status}`);
+  return data;
+}
+
+export async function updateCustomer(customerId, payload) {
+  const res = await fetchWithAuth(`${API_URL}/customers/${customerId}`, {
+    method: "PATCH",
+    headers: { ...(await authHeaders()), "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Update customer failed with status ${res.status}`);
+  return data;
+}
+
+export async function deleteCustomer(customerId) {
+  const res = await fetchWithAuth(`${API_URL}/customers/${customerId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Delete customer failed with status ${res.status}`);
+  return data;
+}
+
 export function getCustomerDocuments(customerId) {
   if (USE_MOCK) {
     return mockResponse(
@@ -60,6 +96,33 @@ export function getCustomerDocuments(customerId) {
     );
   }
   return getJson(`/customers/${customerId}/documents`);
+}
+
+export async function uploadCustomerDocument(customerId, { documentType, file, label, expiry }) {
+  const formData = new FormData();
+  formData.append("document_type", documentType);
+  formData.append("file", file);
+  if (label) formData.append("label", label);
+  if (expiry) formData.append("expiry_date", expiry);
+
+  const res = await fetchWithAuth(`${API_URL}/customers/${customerId}/documents`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Upload customer document failed with status ${res.status}`);
+  return data;
+}
+
+export async function deleteCustomerDocument(customerId, docId) {
+  const res = await fetchWithAuth(`${API_URL}/customers/${customerId}/documents/${docId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Delete customer document failed with status ${res.status}`);
+  return data;
 }
 
 export function getSupplierTracking({ page = 1, limit = 25, sortBy = "newest", search = "" } = {}) {
@@ -196,14 +259,81 @@ export function getReadyToDispatch() {
   return getJson("/ready-to-dispatch/orders");
 }
 
-export function getReceivingHistory({ page = 1, limit = 25 } = {}) {
+export async function markInvReady(invId) {
+  const res = await fetchWithAuth(`${API_URL}/ready-to-dispatch/inv/${invId}/ready`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Action failed with status ${res.status}`);
+  return res.json();
+}
+
+export async function markInvDispatched(invId) {
+  const res = await fetchWithAuth(`${API_URL}/ready-to-dispatch/inv/${invId}/dispatch`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Action failed with status ${res.status}`);
+  return res.json();
+}
+
+export async function unmarkInv(invId) {
+  const res = await fetchWithAuth(`${API_URL}/ready-to-dispatch/inv/${invId}/undispatch`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Action failed with status ${res.status}`);
+  return res.json();
+}
+
+export async function markSoReady(soNumber) {
+  const res = await fetchWithAuth(`${API_URL}/ready-to-dispatch/so/${soNumber}/ready`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Action failed with status ${res.status}`);
+  return res.json();
+}
+
+export async function markSoDispatched(soNumber) {
+  const res = await fetchWithAuth(`${API_URL}/ready-to-dispatch/so/${soNumber}/dispatch`, {
+    method: "PATCH",
+    headers: await authHeaders(),
+  });
+  if (!res.ok) throw new Error(`Action failed with status ${res.status}`);
+  return res.json();
+}
+
+export function getReceivingHistory({ page = 1, limit = 25, search = "", filterSO = "", filterClient = "", sortBy = "newest" } = {}) {
   if (USE_MOCK) {
-    const total = mockReceivingHistory.length;
+    let rows = mockReceivingHistory.slice();
+    const q = search.trim().toLowerCase();
+    const searched = q
+      ? rows.filter(o =>
+          (o.so_number || "").toLowerCase().includes(q) ||
+          (o.client || "").toLowerCase().includes(q) ||
+          (o.po_number || "").toLowerCase().includes(q))
+      : rows;
+    const so_options = Array.from(new Set(searched.map(o => o.so_number))).filter(Boolean).sort();
+    const client_options = Array.from(new Set(searched.map(o => o.client || ""))).filter(Boolean).sort();
+    let filtered = searched
+      .filter(o => (filterSO ? o.so_number === filterSO : true))
+      .filter(o => (filterClient ? (o.client || "") === filterClient : true));
+    filtered = filtered.slice().sort((a, b) => {
+      if (sortBy === "newest") return new Date(b.order_date || 0) - new Date(a.order_date || 0);
+      if (sortBy === "oldest") return new Date(a.order_date || 0) - new Date(b.order_date || 0);
+      if (sortBy === "az") return (a.client || "").localeCompare(b.client || "");
+      return 0;
+    });
+    const total = filtered.length;
     const start = (page - 1) * limit;
-    const rows = mockReceivingHistory.slice(start, start + limit);
-    return mockResponse({ rows, total });
+    const paginated = filtered.slice(start, start + limit);
+    return mockResponse({ rows: paginated, total, so_options, client_options });
   }
-  const params = new URLSearchParams({ page, limit });
+  const params = new URLSearchParams({ page, limit, sort_by: sortBy });
+  if (search) params.set("search", search);
+  if (filterSO) params.set("filter_so", filterSO);
+  if (filterClient) params.set("filter_client", filterClient);
   return getJson(`/receiving-history/orders?${params}`);
 }
 

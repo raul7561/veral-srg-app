@@ -137,10 +137,6 @@ def calculate_quote(request: CalculateRequest, user: dict = Depends(get_current_
     return CalculateResponse(lines=lines)
 
 
-# TODO Auth: sales_rep_name sale del usuario logueado. Placeholder fijo hasta que entre Supabase Auth.
-PLACEHOLDER_SALES_REP = "Raul Fuguet"
-
-
 @router.post("/preview")
 def preview_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_user)):
     recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
@@ -149,7 +145,7 @@ def preview_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_
     )
     quote_dict = {
         "client_name": request.client_name,
-        "sales_rep_name": PLACEHOLDER_SALES_REP,
+        "sales_rep_name": user["full_name"],
         "price_level": request.price_level,
         "shipping_cost": request.shipping_cost,
         "total_amount": total_amount,

@@ -34,6 +34,11 @@ def get_inv_completion(supplier_inv_id: str) -> bool:
     return True
 
 
+def get_inv_vex_numbers(supplier_inv_id: str) -> list[str]:
+    vex_list = supabase.table("supplier_vex").select("vex_number").eq("supplier_inv_id", supplier_inv_id).order("vex_number").execute().data
+    return [v["vex_number"] for v in vex_list if v.get("vex_number")]
+
+
 @router.get("/orders")
 def get_ready_orders(user: dict = Depends(get_current_user)):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
@@ -55,6 +60,7 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
                 "dispatch_status": inv.get("dispatch_status", "pending"),
                 "dispatched_at": inv.get("dispatched_at"),
                 "complete": complete,
+                "vexs": get_inv_vex_numbers(inv["id"]),
             })
 
         any_complete = any(s["complete"] for s in inv_statuses)

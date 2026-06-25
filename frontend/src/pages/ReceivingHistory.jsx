@@ -15,38 +15,26 @@ export default function ReceivingHistory() {
   const [filterSO, setFilterSO] = useState('')
   const [filterClient, setFilterClient] = useState('')
   const [sortBy, setSortBy] = useState('newest')
+  const [soOptions, setSoOptions] = useState([])
+  const [clientOptions, setClientOptions] = useState([])
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = parseInt(searchParams.get('page') || '1', 10)
 
   useEffect(() => {
-    getReceivingHistory({ page, limit: LIMIT })
-      .then(data => {
-        setOrders(Array.isArray(data?.rows) ? data.rows : [])
-        setTotal(data?.total || 0)
-      })
-  }, [page])
+    const handle = setTimeout(() => {
+      getReceivingHistory({ page, limit: LIMIT, search, filterSO, filterClient, sortBy })
+        .then(data => {
+          setOrders(Array.isArray(data?.rows) ? data.rows : [])
+          setTotal(data?.total || 0)
+          setSoOptions(Array.isArray(data?.so_options) ? data.so_options : [])
+          setClientOptions(Array.isArray(data?.client_options) ? data.client_options : [])
+        })
+    }, 300)
+    return () => clearTimeout(handle)
+  }, [page, search, filterSO, filterClient, sortBy])
 
   const goToPage = (p) => setSearchParams({ page: String(p) })
-
-  const soOptions = Array.from(new Set(orders.map(o => o.so_number))).filter(Boolean)
-  const clientOptions = Array.from(new Set(orders.map(o => o.client || ''))).filter(Boolean)
-
-  const filtered = orders
-    .filter(o => {
-      const q = search.toLowerCase()
-      const matchesText = o.so_number.toLowerCase().includes(q) || (o.client || '').toLowerCase().includes(q) || (o.po_number || '').toLowerCase().includes(q)
-      const matchesSO = filterSO ? o.so_number === filterSO : true
-      const matchesClient = filterClient ? (o.client || '') === filterClient : true
-      return matchesText && matchesSO && matchesClient
-    })
-    .slice()
-    .sort((a, b) => {
-      if (sortBy === 'newest') return new Date(b.order_date || 0) - new Date(a.order_date || 0)
-      if (sortBy === 'oldest') return new Date(a.order_date || 0) - new Date(b.order_date || 0)
-      if (sortBy === 'az') return (a.client || '').localeCompare(b.client || '')
-      return 0
-    })
 
   return (
     <div className="p-8">
@@ -70,14 +58,14 @@ export default function ReceivingHistory() {
           <option value="">{t('receiving.allClients')}</option>
           {clientOptions.map(c => <option key={c} value={c}>{c}</option>)}
         </select>
-        <select value={sortBy} onChange={e => setSortBy(e.target.value)} className={input}>
+        <select value={sortBy} onChange={e => { setSortBy(e.target.value); setSearchParams({ page: '1' }) }} className={input}>
           <option value="newest">{t('receiving.sortNewest')}</option>
           <option value="oldest">{t('receiving.sortOldest')}</option>
           <option value="az">{t('receiving.sortAz')}</option>
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {orders.length === 0 ? (
         <p className="text-sm text-gray-500">{t('receiving.empty')}</p>
       ) : (
         <div className={table.wrapper}>
@@ -91,7 +79,7 @@ export default function ReceivingHistory() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map(o => (
+              {orders.map(o => (
                 <tr
                   key={o.so_number}
                   onClick={() => navigate(`/receiving-history/${o.so_number}`)}

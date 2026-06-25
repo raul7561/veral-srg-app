@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -14,6 +14,7 @@ import {
   YAxis,
 } from 'recharts'
 import { getOrders, getQuotesThisMonthCount } from '../api'
+import LoadError from '../components/LoadError'
 import { card, input, pageTitle, sectionTitle, table } from '../styles'
 
 const LAG_STYLES = {
@@ -50,6 +51,7 @@ export default function Orders() {
   const [search, setSearch] = useState('')
   const [activeFilter, setActiveFilter] = useState(null)
   const [quotesThisMonth, setQuotesThisMonth] = useState(0)
+  const [error, setError] = useState(false)
 
   function getLagText(status) {
     if (status === 'overdue') return t('orders.overdue')
@@ -57,14 +59,18 @@ export default function Orders() {
     return t('orders.onTrack')
   }
 
-  useEffect(() => {
+  const loadOrders = useCallback(() => {
+    setLoading(true)
+    setError(false)
     getOrders()
       .then(data => { setOrders(data); setLoading(false) })
-      .catch(() => setLoading(false))
+      .catch(() => { setError(true); setLoading(false) })
     getQuotesThisMonthCount()
       .then(setQuotesThisMonth)
       .catch(() => setQuotesThisMonth(0))
   }, [])
+
+  useEffect(() => { queueMicrotask(() => loadOrders()) }, [loadOrders])
 
   const metricCounts = useMemo(() => ({
     on_track: orders.filter(order => order.lag_status === 'on_track').length,
@@ -109,9 +115,9 @@ export default function Orders() {
   const filtered = useMemo(() => orders
     .filter(o => {
       const q = search.toLowerCase()
-      const matchesText = o.so_number.toLowerCase().includes(q) ||
-        o.client.toLowerCase().includes(q) ||
-        o.invoices.some(i => i.inv_number.toLowerCase().includes(q))
+      const matchesText = (o.so_number || '').toLowerCase().includes(q) ||
+        (o.client || '').toLowerCase().includes(q) ||
+        o.invoices.some(i => (i.inv_number || '').toLowerCase().includes(q))
       const matchesActiveFilter = !activeFilter ||
         (activeFilter === 'no_inv' ? o.invoices.length === 0 : o.lag_status === activeFilter)
       return matchesText && matchesActiveFilter
@@ -125,6 +131,7 @@ export default function Orders() {
   if (loading) return (
     <div className="p-8 text-srg-black font-['DM_Sans']">{t('orders.loading')}</div>
   )
+  if (error) return <LoadError message={t('orders.loadError')} onRetry={loadOrders} />
 
   return (
     <>

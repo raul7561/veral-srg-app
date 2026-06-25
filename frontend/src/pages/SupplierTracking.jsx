@@ -5,6 +5,7 @@ import { getSupplierTracking, syncMadisa } from "../api"
 import Pagination from "../components/Pagination"
 import UploadDocumentModal from "../components/UploadDocumentModal"
 import AttachDocumentModal from "../components/AttachDocumentModal"
+import LoadError from "../components/LoadError"
 import { btn, input, pageTitle, table } from "../styles"
 
 const FULFILLMENT_LABELS = {
@@ -27,6 +28,7 @@ export default function SupplierTracking() {
   const [attachModalOpen, setAttachModalOpen] = useState(false)
   const [selectedOrder, setSelectedOrder] = useState(null)
   const [sortBy, setSortBy] = useState('newest')
+  const [error, setError] = useState(false)
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
   const page = parseInt(searchParams.get('page') || '1', 10)
@@ -34,11 +36,13 @@ export default function SupplierTracking() {
 
   const fetchOrders = useCallback(async (p = page) => {
     try {
+      setError(false)
       const data = await getSupplierTracking({ page: p, limit: LIMIT, sortBy, search })
       setOrders(data?.rows || [])
       setTotal(data?.total || 0)
     } catch (err) {
       console.error("Failed to fetch orders", err)
+      setError(true)
       setOrders([])
       setTotal(0)
     }
@@ -133,82 +137,88 @@ export default function SupplierTracking() {
         </div>
       </div>
 
-      <div className={table.wrapper}>
-        <table className={table.base}>
-          <thead>
-            <tr className={table.head}>
-              {[
-                { key: "so_number", label: t('supplierTracking.salesOrder') },
-                { key: "client", label: t('supplierTracking.client') },
-                { key: "po_number", label: t('supplierTracking.purchaseOrder') },
-                { key: "order_date", label: t('supplierTracking.date') },
-                { key: "total_lines", label: t('supplierTracking.parts') },
-                { key: "fulfillment", label: t('supplierTracking.status') },
-              ].map(col => (
-                <th
-                  key={col.key}
-                  className={table.th}
-                >
-                  {col.label}
-                </th>
-              ))}
-              <th className={table.th}>{t('supplierTracking.action')}</th>
-            </tr>
-          </thead>
-          <tbody>
-            {orders.map(order => {
-              const f = FULFILLMENT_LABELS[order.fulfillment] || FULFILLMENT_LABELS.pending
-              return (
-                <tr key={order.id} className={table.row}>
-                  <td className={`${table.td} font-mono text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
-                  <td className={`${table.td} text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
-                  <td className={`${table.td} font-mono text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
-                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
-                  <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
-                  <td className={`${table.td} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>
-                    <div className="flex flex-col gap-1">
-                      <span className={f.color}>
-                        {order.fulfillment === 'awaiting_parts'
-                          ? t('supplierTracking.awaitingParts')
-                          : order.fulfillment === 'in_progress'
-                            ? t('supplierTracking.inProgress')
-                            : order.fulfillment === 'complete'
-                              ? t('supplierTracking.complete')
-                              : t('supplierTracking.pending')}
-                      </span>
-                      {order.customer_type === "international" && (
-                        order.has_proof ? (
-                          <span className="text-xs text-srg-green">{t('supplierTracking.proofUploaded')}</span>
-                        ) : (
-                          <span className="inline-flex w-fit rounded bg-srg-amber px-2 py-0.5 text-xs font-bold uppercase text-srg-black">{t('supplierTracking.proofPending')}</span>
-                        )
-                      )}
-                    </div>
-                  </td>
-                  <td className={table.td}>
-                    <button
-                      onClick={() => {
-                        setSelectedOrder(order)
-                        setAttachModalOpen(true)
-                      }}
-                      className={`${btn.secondary} ${btn.row}`}
+      {error ? (
+        <LoadError message={t('supplierTracking.loadError')} onRetry={() => fetchOrders(page)} />
+      ) : (
+        <>
+          <div className={table.wrapper}>
+            <table className={table.base}>
+              <thead>
+                <tr className={table.head}>
+                  {[
+                    { key: "so_number", label: t('supplierTracking.salesOrder') },
+                    { key: "client", label: t('supplierTracking.client') },
+                    { key: "po_number", label: t('supplierTracking.purchaseOrder') },
+                    { key: "order_date", label: t('supplierTracking.date') },
+                    { key: "total_lines", label: t('supplierTracking.parts') },
+                    { key: "fulfillment", label: t('supplierTracking.status') },
+                  ].map(col => (
+                    <th
+                      key={col.key}
+                      className={table.th}
                     >
-                      {t('supplierTracking.attach')}
-                    </button>
-                  </td>
+                      {col.label}
+                    </th>
+                  ))}
+                  <th className={table.th}>{t('supplierTracking.action')}</th>
                 </tr>
-              )
-            })}
-            {orders.length === 0 && (
-              <tr className={table.row}>
-                <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>{t('supplierTracking.noOrders')}</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+              </thead>
+              <tbody>
+                {orders.map(order => {
+                  const f = FULFILLMENT_LABELS[order.fulfillment] || FULFILLMENT_LABELS.pending
+                  return (
+                    <tr key={order.id} className={table.row}>
+                      <td className={`${table.td} font-mono text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.so_number}</td>
+                      <td className={`${table.td} text-srg-black cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.client || "—"}</td>
+                      <td className={`${table.td} font-mono text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.po_number || "—"}</td>
+                      <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.order_date || "—"}</td>
+                      <td className={`${table.td} text-gray-600 cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>{order.received_lines}/{order.total_lines}</td>
+                      <td className={`${table.td} cursor-pointer`} onClick={() => navigate(`/supplier-tracking/${order.so_number}`)}>
+                        <div className="flex flex-col gap-1">
+                          <span className={f.color}>
+                            {order.fulfillment === 'awaiting_parts'
+                              ? t('supplierTracking.awaitingParts')
+                              : order.fulfillment === 'in_progress'
+                                ? t('supplierTracking.inProgress')
+                                : order.fulfillment === 'complete'
+                                  ? t('supplierTracking.complete')
+                                  : t('supplierTracking.pending')}
+                          </span>
+                          {order.customer_type === "international" && (
+                            order.has_proof ? (
+                              <span className="text-xs text-srg-green">{t('supplierTracking.proofUploaded')}</span>
+                            ) : (
+                              <span className="inline-flex w-fit rounded bg-srg-amber px-2 py-0.5 text-xs font-bold uppercase text-srg-black">{t('supplierTracking.proofPending')}</span>
+                            )
+                          )}
+                        </div>
+                      </td>
+                      <td className={table.td}>
+                        <button
+                          onClick={() => {
+                            setSelectedOrder(order)
+                            setAttachModalOpen(true)
+                          }}
+                          className={`${btn.secondary} ${btn.row}`}
+                        >
+                          {t('supplierTracking.attach')}
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                })}
+                {orders.length === 0 && (
+                  <tr className={table.row}>
+                    <td colSpan={7} className={`${table.td} py-6 text-center text-gray-400`}>{t('supplierTracking.noOrders')}</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
 
-      <Pagination page={page} total={total} limit={LIMIT} onPageChange={goToPage} />
+          <Pagination page={page} total={total} limit={LIMIT} onPageChange={goToPage} />
+        </>
+      )}
 
       {/* Upload Document Modal (SO, PO, Ferral OV) */}
       {uploadModalOpen && (

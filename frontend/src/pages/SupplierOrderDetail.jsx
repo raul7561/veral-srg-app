@@ -13,6 +13,7 @@ import {
   openSignedPdf,
   uploadProofOfExport,
 } from "../api"
+import LoadError from "../components/LoadError"
 import { table } from "../styles"
 
 export default function SupplierOrderDetail() {
@@ -24,10 +25,13 @@ export default function SupplierOrderDetail() {
   const [documents, setDocuments] = useState([])
   const [uploadingProof, setUploadingProof] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
   const proofInputRef = useRef(null)
 
   const fetchOrder = useCallback(async () => {
+    setLoading(true)
     try {
+      setError(false)
       const [orderRes, linesRes, docsRes] = await Promise.all([
         getSupplierOrderByNumber(soNumber),
         getSupplierOrderLinesBySo(soNumber),
@@ -38,6 +42,11 @@ export default function SupplierOrderDetail() {
       setDocuments(docsRes || [])
     } catch (err) {
       console.error(err)
+      if (String(err?.message || '').includes('404')) {
+        setOrder(null)
+      } else {
+        setError(true)
+      }
     } finally {
       setLoading(false)
     }
@@ -70,6 +79,7 @@ export default function SupplierOrderDetail() {
   }
 
   if (loading) return <div className="p-8">{t('orderDetail.loading')}</div>
+  if (error) return <LoadError message={t('orderDetail.loadError')} onRetry={fetchOrder} />
   if (!order) return <div className="p-8">{t('orderDetail.notFound', { so: soNumber })}</div>
 
   const proofDoc = documents.find(d => d.document_type === "proof_of_export")

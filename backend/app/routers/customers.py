@@ -62,6 +62,18 @@ def list_customers(user: dict = Depends(get_current_user)):
     return customers
 
 
+@router.get("/{customer_id}")
+def get_customer(customer_id: str, user: dict = Depends(get_current_user)):
+    result = supabase.table("customers").select("*").eq("id", customer_id).execute()
+    if not result.data:
+        raise HTTPException(status_code=404, detail="Customer not found")
+
+    customer = result.data[0]
+    contacts = supabase.table("customer_contacts").select("*").eq("customer_id", customer_id).execute().data
+    customer["contacts"] = contacts
+    return customer
+
+
 @router.post("/")
 def create_customer(data: CustomerCreate, user: dict = Depends(get_current_user)):
     if data.type not in ("domestic", "international"):

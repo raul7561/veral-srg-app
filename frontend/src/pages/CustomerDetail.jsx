@@ -1,12 +1,17 @@
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCustomerDocuments, getCustomers, openSignedPdf } from "../api";
+import {
+  deleteCustomerDocument,
+  getCustomer,
+  getCustomerDocuments,
+  openSignedPdf,
+  updateCustomer,
+  uploadCustomerDocument,
+} from "../api";
 import CustomerForm from "../components/CustomerForm";
 import { INITIAL_FORM, customerToForm, formToPayload } from "../components/customerFormHelpers";
 import { btn, table } from "../styles";
-
-const API = import.meta.env.VITE_API_URL;
 
 export default function CustomerDetail() {
   const { t } = useTranslation();
@@ -19,6 +24,7 @@ export default function CustomerDetail() {
   const [showEditForm, setShowEditForm] = useState(false);
   const [editForm, setEditForm] = useState(INITIAL_FORM);
   const [savingCustomer, setSavingCustomer] = useState(false);
+  const [error, setError] = useState(null);
 
   const [uploading, setUploading] = useState(false);
   const [uploadType, setUploadType] = useState(customer?.type === "domestic" ? "tax_certificate" : "other");
@@ -30,17 +36,22 @@ export default function CustomerDetail() {
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
-    const [allCustomers, docs] = await Promise.all([
-      getCustomers(),
-      getCustomerDocuments(id),
-    ]);
-    const found = allCustomers.find(c => c.id === id);
-    setCustomer(found || null);
-    if (found) {
-      setUploadType(found.type === "domestic" ? "tax_certificate" : "other");
+    try {
+      const [found, docs] = await Promise.all([
+        getCustomer(id),
+        getCustomerDocuments(id),
+      ]);
+      setCustomer(found || null);
+      if (found) {
+        setUploadType(found.type === "domestic" ? "tax_certificate" : "other");
+      }
+      setDocuments(docs);
+    } catch {
+      setCustomer(null);
+      setDocuments([]);
+    } finally {
+      setLoading(false);
     }
-    setDocuments(docs);
-    setLoading(false);
   }, [id]);
 
   useEffect(() => { queueMicrotask(() => fetchAll()); }, [id, fetchAll]);
@@ -54,14 +65,13 @@ export default function CustomerDetail() {
     if (!editForm.name.trim() || !editForm.country || editForm.country === "---") return;
     if (!editForm.primary_contact.name.trim()) return;
     setSavingCustomer(true);
+    setError(null);
     try {
-      await fetch(`${API}/customers/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formToPayload(editForm)),
-      });
+      await updateCustomer(id, formToPayload(editForm));
       setShowEditForm(false);
       await fetchAll();
+    } catch {
+      setError(t('customers.saveError'));
     } finally {
       setSavingCustomer(false);
     }
@@ -70,16 +80,13 @@ export default function CustomerDetail() {
   async function handleUpload() {
     if (!uploadFile) return;
     setUploading(true);
+    setError(null);
     try {
-      const formData = new FormData();
-      formData.append("document_type", uploadType);
-      formData.append("file", uploadFile);
-      if (uploadLabel) formData.append("label", uploadLabel);
-      if (uploadExpiry) formData.append("expiry_date", uploadExpiry);
-
-      await fetch(`${API}/customers/${id}/documents`, {
-        method: "POST",
-        body: formData,
+      await uploadCustomerDocument(id, {
+        documentType: uploadType,
+        file: uploadFile,
+        label: uploadLabel || undefined,
+        expiry: uploadExpiry || undefined,
       });
 
       setUploadFile(null);
@@ -87,15 +94,22 @@ export default function CustomerDetail() {
       setUploadExpiry("");
       setShowUploadForm(false);
       fetchAll();
+    } catch {
+      setError(t('customers.uploadError'));
     } finally {
       setUploading(false);
     }
   }
 
   async function handleDeleteDoc(docId) {
-    await fetch(`${API}/customers/${id}/documents/${docId}`, { method: "DELETE" });
-    setConfirmDelete(null);
-    fetchAll();
+    setError(null);
+    try {
+      await deleteCustomerDocument(id, docId);
+      setConfirmDelete(null);
+      fetchAll();
+    } catch {
+      setError(t('customers.deleteError'));
+    }
   }
 
   if (loading) return <div className="p-8 text-gray-400">{t('customers.loading')}</div>;
@@ -148,14 +162,17 @@ export default function CustomerDetail() {
       </div>
 
       {showEditForm && (
-        <CustomerForm
-          form={editForm}
-          setForm={setEditForm}
-          saving={savingCustomer}
-          isEditing
-          onSubmit={handleSaveCustomer}
-          onCancel={() => setShowEditForm(false)}
-        />
+        <>
+          {error && <p className="text-sm text-srg-red mb-3">{error}</p>}
+          <CustomerForm
+            form={editForm}
+            setForm={setEditForm}
+            saving={savingCustomer}
+            isEditing
+            onSubmit={handleSaveCustomer}
+            onCancel={() => setShowEditForm(false)}
+          />
+        </>
       )}
 
       {/* Contacts */}
@@ -232,6 +249,8 @@ export default function CustomerDetail() {
             {t('customers.upload')}
           </button>
         </div>
+
+        {!showEditForm && error && <p className="text-sm text-srg-red mb-3">{error}</p>}
 
         {showUploadForm && (
           <div className="border rounded-lg p-4 mb-4 bg-white">

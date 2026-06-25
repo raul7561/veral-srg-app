@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useTranslation } from 'react-i18next'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { convertQuote, downloadQuoteExcel, downloadQuotePdf, fetchQuoteHtml, getClients, getQuotes } from '../api/quotes'
+import LoadError from '../components/LoadError'
 import { btn, input, pageTitle, table } from '../styles'
 
 function money(n) {
@@ -9,9 +11,10 @@ function money(n) {
 }
 
 export default function Historial() {
+  const { t } = useTranslation()
   const [quotes, setQuotes] = useState([])
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState(false)
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
@@ -29,15 +32,15 @@ export default function Historial() {
 
   const load = useCallback(async () => {
     setLoading(true)
-    setError(null)
+    setError(false)
     try {
       const params = { page, page_size: 20, status: 'activo' }
       if (search.trim()) params.search = search.trim()
       const data = await getQuotes(params)
       setQuotes(data.items || [])
       setTotalPages(data.total_pages || 1)
-    } catch (e) {
-      setError(e.message)
+    } catch {
+      setError(true)
     } finally {
       setLoading(false)
     }
@@ -232,13 +235,13 @@ export default function Historial() {
       </div>
 
       {loading && <div className="text-gray-500">Cargando...</div>}
-      {error && <div className="text-srg-red font-medium">{error}</div>}
+      {error && <LoadError message={t('quote.loadError')} onRetry={load} />}
 
-      {!loading && quotes.length === 0 && (
+      {!error && !loading && quotes.length === 0 && (
         <div className="text-gray-500">No hay quotes activos.</div>
       )}
 
-      {!loading && quotes.length > 0 && (
+      {!error && !loading && quotes.length > 0 && (
         <>
           <div className={table.wrapper}>
             <table className={table.base}>

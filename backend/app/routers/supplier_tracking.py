@@ -1,9 +1,12 @@
+import logging
+
 from fastapi import APIRouter, UploadFile, File, HTTPException, Depends
 from app.database import supabase_admin as supabase, supabase_admin
 from app.parsers.so_parser import parse_so_pdf
 from app.auth import get_current_user
 
 router = APIRouter(prefix="/supplier-tracking", tags=["supplier-tracking"])
+logger = logging.getLogger(__name__)
 
 
 def fetch_all(table_name, select_clause):
@@ -46,13 +49,9 @@ async def create_supplier_order(file: UploadFile = File(...), user: dict = Depen
         if customer_match.data:
             customer_id = customer_match.data[0]["id"]
 
-    client_warning = None
+    unmatched_client = None
     if customer_id is None:
-        client_warning = (
-            f"El cliente '{parsed['client']}' no está registrado y la orden quedó sin vincular. "
-            "Agrégalo en Customers para habilitar funciones que dependen del tipo de cliente "
-            "(ej. Proof of Export)."
-        )
+        unmatched_client = parsed["client"]
 
     result = supabase.table("supplier_orders").insert({
         "so_number": so,
@@ -73,20 +72,23 @@ async def create_supplier_order(file: UploadFile = File(...), user: dict = Depen
             "status": "pending",
         }).execute()
 
+    pdf_uploaded = True
     try:
         path = f"{so}/{file.filename}"
         supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
         url = supabase_admin.storage.from_("documents").get_public_url(path)
         supabase.table("supplier_orders").update({"so_pdf_url": url}).eq("id", supplier_order_id).execute()
-    except Exception:
-        pass        
+    except Exception as exc:
+        pdf_uploaded = False
+        logger.warning("PDF storage upload failed for %s: %s", path, exc)
 
 
     return {
         "so_number": so,
         "supplier_order_id": supplier_order_id,
         "parts_count": len(parsed["parts"]),
-        "client_warning": client_warning,
+        "unmatched_client": unmatched_client,
+        "pdf_uploaded": pdf_uploaded,
     }
 
 
@@ -285,18 +287,21 @@ async def attach_po(file: UploadFile = File(...), user: dict = Depends(get_curre
         "po_number": parsed["po_number"],
     }).eq("so_number", parsed["so_number"]).execute()
 
+    pdf_uploaded = True
     try:
         path = f"{parsed['so_number']}/{file.filename}"
         supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
         url = supabase_admin.storage.from_("documents").get_public_url(path)
         supabase.table("supplier_orders").update({"po_pdf_url": url}).eq("so_number", parsed["so_number"]).execute()
-    except Exception:
-        pass
+    except Exception as exc:
+        pdf_uploaded = False
+        logger.warning("PDF storage upload failed for %s: %s", path, exc)
 
     return {
         "so_number": parsed["so_number"],
         "po_number": parsed["po_number"],
         "vendor": parsed["vendor"],
+        "pdf_uploaded": pdf_uploaded,
     }
 
 
@@ -328,19 +333,22 @@ async def attach_ferral_ov(file: UploadFile = File(...), user: dict = Depends(ge
             "madisa_ov": parsed["madisa_ov"],
         }).eq("supplier_order_id", supplier_order_id).execute()
 
+    pdf_uploaded = True
     try:
         path = f"{parsed['so_number']}/{file.filename}"
         supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
         url = supabase_admin.storage.from_("documents").get_public_url(path)
         supabase.table("supplier_orders").update({"ferral_ov_pdf_url": url}).eq("so_number", parsed["so_number"]).execute()
-    except Exception:
-        pass    
+    except Exception as exc:
+        pdf_uploaded = False
+        logger.warning("PDF storage upload failed for %s: %s", path, exc)
 
     return {
         "ferral_order_number": parsed["ferral_order_number"],
         "madisa_ov": parsed["madisa_ov"],
         "so_number": parsed["so_number"],
         "parts_count": len(parsed["parts"]),
+        "pdf_uploaded": pdf_uploaded,
     }
 
 
@@ -381,19 +389,22 @@ async def attach_inv(file: UploadFile = File(...), user: dict = Depends(get_curr
             "quantity": p["quantity"],
         }).execute()
 
+    pdf_uploaded = True
     try:
         path = f"{parsed['so_number']}/{file.filename}"
         supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
         url = supabase_admin.storage.from_("documents").get_public_url(path)
         supabase.table("supplier_invs").update({"inv_pdf_url": url}).eq("id", supplier_inv_id).execute()
-    except Exception:
-        pass    
+    except Exception as exc:
+        pdf_uploaded = False
+        logger.warning("PDF storage upload failed for %s: %s", path, exc)
 
     return {
         "so_number": parsed["so_number"],
         "inv_number": parsed["inv_number"],
         "inv_date": parsed["inv_date"],
         "parts_count": len(parsed["parts"]),
+        "pdf_uploaded": pdf_uploaded,
     }
 
 
@@ -437,6 +448,8 @@ async def attach_vex(
             "quantity": p["quantity"],
         }).execute()
 
+    pdf_uploaded = True
+    path = file.filename
     try:
         inv_data = supabase.table("supplier_invs").select("supplier_order_id").eq("id", supplier_inv_id).execute()
         order_data = supabase.table("supplier_orders").select("so_number").eq("id", inv_data.data[0]["supplier_order_id"]).execute()
@@ -445,13 +458,15 @@ async def attach_vex(
         supabase_admin.storage.from_("documents").upload(path, content, {"content-type": "application/pdf", "upsert": "true"})
         url = supabase_admin.storage.from_("documents").get_public_url(path)
         supabase.table("supplier_vex").update({"vex_pdf_url": url}).eq("id", supplier_vex_id).execute()
-    except Exception:
-        pass
+    except Exception as exc:
+        pdf_uploaded = False
+        logger.warning("PDF storage upload failed for %s: %s", path, exc)
 
     return {
         "vex_number": parsed["vex_number"],
         "vex_date": parsed["vex_date"],
         "parts_count": len(parsed["parts"]),
+        "pdf_uploaded": pdf_uploaded,
     }
 
 

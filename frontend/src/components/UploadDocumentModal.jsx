@@ -66,7 +66,20 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
       try {
         const data = await uploadFnByTab[activeTab](file)
         const doc = data.so_number || data.po_number || data.ferral_order_number || "OK"
-        setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.partsResult', { doc, count: data.parts_count ?? 0 }) }])
+        const warnings = []
+        if (data.unmatched_client) {
+          warnings.push(t('modal.clientWarning', { client: data.unmatched_client }))
+        }
+        if (data.pdf_uploaded === false) {
+          warnings.push(t('modal.pdfWarning'))
+        }
+        if (warnings.length > 0) {
+          setResults(prev => [...prev, { file: file.name, type: "warning", text: warnings.join(' ') }])
+        } else if (activeTab === "po") {
+          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.poResult', { doc }) }])
+        } else {
+          setResults(prev => [...prev, { file: file.name, type: "success", text: t('modal.partsResult', { doc, count: data.parts_count ?? 0 }) }])
+        }
       } catch (err) {
         setResults(prev => [...prev, { file: file.name, type: "error", text: err.message || t('modal.connectionError') }])
       }
@@ -167,6 +180,8 @@ export default function UploadDocumentModal({ onClose, onSuccess }) {
                   className={`p-3 rounded-lg text-sm border ${
                     r.type === "success"
                       ? "bg-srg-green/10 text-srg-green border-srg-green/30"
+                      : r.type === "warning"
+                      ? "bg-srg-orange/10 text-srg-orange border-srg-orange/30"
                       : "bg-srg-red/10 text-srg-red border-srg-red/30"
                   }`}
                 >
