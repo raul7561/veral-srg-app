@@ -145,7 +145,8 @@ def _build_html(quote: dict, internal: bool = False) -> str:
     # total de precio: viene calculado del helper (fuente de verdad)
     total_amount = quote.get("total_amount") or 0
     ship = quote.get("shipping_cost")
-    ship_s = _money(ship) if ship not in (None, 0) else "Pendiente"
+    ship_s = _money(ship) if ship not in (None, 0) else "Pending"
+    grand_total = total_amount + ship if ship not in (None, 0) else total_amount
 
     meta = {
         "quote_number": _esc(quote.get("quote_number")),
@@ -229,7 +230,7 @@ table.items tfoot td {{ padding:5px 4px; font-size:9pt;
   <tbody>{''.join(rows)}</tbody>
   <tfoot>
     <tr>
-      <td class="t-lbl" colspan="{span_total}">Total (USD)</td>
+      <td class="t-lbl" colspan="{span_total}">Subtotal (USD)</td>
       <td class="t-val">{_money(total_amount)}</td>
       <td class="t-lbl">Total weight (LBS)</td>
       <td class="t-val">{_weight(total_weight)}</td>
@@ -238,6 +239,11 @@ table.items tfoot td {{ padding:5px 4px; font-size:9pt;
     <tr>
       <td class="t-lbl" colspan="{span_total}">Shipping cost (USD)</td>
       <td class="t-val">{ship_s}</td>
+      <td colspan="{span_ship_end}"></td>
+    </tr>
+    <tr>
+      <td class="t-lbl" colspan="{span_total}">Total (USD)</td>
+      <td class="t-val">{_money(grand_total)}</td>
       <td colspan="{span_ship_end}"></td>
     </tr>
   </tfoot>
