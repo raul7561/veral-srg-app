@@ -229,10 +229,12 @@ export default function SupplierOrderDetail() {
                   <td className="py-1 pr-4">{line.warehouse || "—"}</td>
                   <td className="py-1 pr-4">{line.eta_to_ferral || "—"}</td>
                   <td className="py-1 font-medium">
-                    {line.status === "received" ? (
-                      <span className="text-srg-green">{t('orderDetail.received')}</span>
-                    ) : line.status === "pending" ? (
-                      <span className="text-srg-orange">{t('orderDetail.pending')}</span>
+                    {line.status === "complete" ? (
+                      <span className="text-srg-green">{t('orderDetail.statusComplete')}</span>
+                    ) : line.status === "partial" ? (
+                      <span className="text-srg-orange">{t('orderDetail.statusPartial')}</span>
+                    ) : line.status === "pending" || line.status === "not_invoiced" ? (
+                      <span className="text-srg-orange opacity-70">{t('orderDetail.statusPending')}</span>
                     ) : (
                       <span className="text-gray-500">{line.status}</span>
                     )}

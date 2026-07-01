@@ -76,6 +76,7 @@ export default function ReceivingHistory() {
                 <th className={table.th}>{t('receiving.client')}</th>
                 <th className={table.th}>{t('receiving.purchaseOrder')}</th>
                 <th className={table.th}>{t('receiving.date')}</th>
+                <th className={table.th}>{t('receiving.status')}</th>
               </tr>
             </thead>
             <tbody>
@@ -89,6 +90,11 @@ export default function ReceivingHistory() {
                   <td className={`${table.td} text-srg-black`}>{o.client}</td>
                   <td className={`${table.td} font-mono text-gray-600`}>{o.po_number || '—'}</td>
                   <td className={`${table.td} text-gray-600`}>{o.order_date}</td>
+                  <td className={table.td}>
+                    {o.status === 'complete'
+                      ? <span className="text-srg-green font-medium">{t('receiving.statusComplete')}</span>
+                      : <span className="text-srg-orange font-medium">{t('receiving.statusPartial')}</span>}
+                  </td>
                 </tr>
               ))}
             </tbody>

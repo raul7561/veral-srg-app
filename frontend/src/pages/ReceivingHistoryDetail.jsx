@@ -62,10 +62,19 @@ export default function ReceivingHistoryDetail() {
                 <td className={`${table.td} text-center`}>{p.qty}</td>
                 <td className={`${table.td} text-center text-srg-green font-semibold`}>{p.qty_received}</td>
                 <td className={`${table.td} text-center`}>
-                  {p.qty_pending > 0
-                    ? <span className="text-srg-red font-semibold">{p.qty_pending}</span>
-                    : <span className="text-gray-400">0</span>
-                  }
+                  {p.qty_pending > 0 ? (
+                    <div className="flex flex-col items-center gap-0.5">
+                      <span className="text-srg-red font-semibold">{p.qty_pending}</span>
+                      {p.pending_reason === 'invoice' && (
+                        <span className="text-[10px] uppercase font-bold text-srg-orange">{t('receiving.pendingInvoice')}</span>
+                      )}
+                      {p.pending_reason === 'receive' && (
+                        <span className="text-[10px] uppercase font-bold text-srg-red">{t('receiving.pendingReceive')}</span>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-gray-400">0</span>
+                  )}
                 </td>
                 <td className={`${table.td} text-xs text-gray-600`}>{p.invs.join(', ') || '—'}</td>
                 <td className={`${table.td} text-xs text-gray-600`}>{p.vexs.join(', ') || '—'}</td>
