@@ -66,6 +66,49 @@ def get_orders_with_vex(
     total = len(filtered)
     start = (page - 1) * limit
     paginated = filtered[start:start + limit]
+    order_id_by_so = {o["so_number"]: o["id"] for o in supplier_orders}
+    order_ids_page = [order_id_by_so[o["so_number"]] for o in paginated if o.get("so_number") in order_id_by_so]
+    if order_ids_page:
+        order_lines_page = (
+            supabase.table("supplier_order_lines")
+            .select("*")
+            .in_("supplier_order_id", order_ids_page)
+            .execute()
+            .data
+        )
+        invs_page = [inv for inv in supplier_invs if inv["supplier_order_id"] in order_ids_page]
+        inv_ids_page = [inv["id"] for inv in invs_page]
+        inv_lines_page = (
+            supabase.table("supplier_inv_lines")
+            .select("*")
+            .in_("supplier_inv_id", inv_ids_page)
+            .execute()
+            .data
+        ) if inv_ids_page else []
+        vex_page = [v for v in supplier_vex if v["supplier_inv_id"] in inv_ids_page]
+        vex_ids_page = [v["id"] for v in vex_page]
+        vex_lines_page = (
+            supabase.table("supplier_vex_lines")
+            .select("*")
+            .in_("supplier_vex_id", vex_ids_page)
+            .execute()
+            .data
+        ) if vex_ids_page else []
+
+        for row in paginated:
+            order_id = order_id_by_so.get(row["so_number"])
+            if not order_id:
+                continue
+            order_lines = [line for line in order_lines_page if line["supplier_order_id"] == order_id]
+            invs = [inv for inv in invs_page if inv["supplier_order_id"] == order_id]
+            inv_ids = {inv["id"] for inv in invs}
+            inv_lines = [line for line in inv_lines_page if line["supplier_inv_id"] in inv_ids]
+            vex = [v for v in vex_page if v["supplier_inv_id"] in inv_ids]
+            vex_ids = {v["id"] for v in vex}
+            vex_lines = [line for line in vex_lines_page if line["supplier_vex_id"] in vex_ids]
+            parts = compute_part_fulfillment(order_id, order_lines, invs, inv_lines, vex, vex_lines)
+            row["status"] = "complete" if parts and all(part["status"] == "complete" for part in parts) else "partial"
+
     return { "rows": paginated, "total": total, "so_options": so_options, "client_options": client_options }
 
 @router.get("/orders/{so_number}")
@@ -152,6 +195,7 @@ def get_order_detail(so_number: str, user: dict = Depends(get_current_user)):
             "qty": part["ordered"],
             "qty_received": part["received"],
             "qty_pending": part["pending_to_receive"],
+            "pending_reason": part["pending_reason"],
             "invs": inv_matches,
             "vexs": vex_matches,
             "date_of_receiving": latest_date[:10] if latest_date else None,

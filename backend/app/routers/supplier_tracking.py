@@ -81,6 +81,13 @@ def compute_part_fulfillment(supplier_order_id, order_lines, invs, inv_lines, ve
             "received": received_qty,
             "pending_to_invoice": max(ordered - invoiced_qty, 0),
             "pending_to_receive": max(ordered - received_qty, 0),
+            "pending_reason": (
+                "invoice"
+                if max(ordered - invoiced_qty, 0) > 0
+                else "receive"
+                if max(ordered - received_qty, 0) > 0
+                else None
+            ),
             "status": status,
         })
 
