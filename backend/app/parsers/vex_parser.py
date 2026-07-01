@@ -13,10 +13,13 @@ def parse_vex_pdf(content: bytes) -> dict:
 
     parts = []
     for line in text.split("\n"):
-        match = re.match(r"^(\d+[A-Z0-9]+)\s+\[.+?\]\s+.+?\s+([\d.]+)\s+H87", line)
+        match = re.match(
+            r"^([0-9A-Z]+-[0-9A-Z]+)\s+\[\d+\]\s+.+?\s+(\d+\.\d{3})\s+H\d+",
+            line,
+        )
         if match:
             parts.append({
-                "part_number": match.group(1),
+                "part_number": match.group(1).replace("-", ""),
                 "quantity": int(float(match.group(2))),
             })
 

@@ -23,6 +23,90 @@ def fetch_all(table_name, select_clause):
     return rows
 
 
+def compute_part_fulfillment(supplier_order_id, order_lines, invs, inv_lines, vex, vex_lines):
+    """
+    For one supplier order, compute part fulfillment from INV and VEX quantities.
+    Cross-table matching uses part_number as stored, without normalization.
+    """
+    order_part_qty = {}
+    for line in order_lines:
+        if line.get("supplier_order_id") != supplier_order_id:
+            continue
+        pn = line["part_number"]
+        order_part_qty[pn] = order_part_qty.get(pn, 0) + line["quantity"]
+
+    order_inv_ids = {
+        inv["id"]
+        for inv in invs
+        if inv.get("supplier_order_id") == supplier_order_id
+    }
+
+    invoiced = {}
+    for line in inv_lines:
+        if line.get("supplier_inv_id") not in order_inv_ids:
+            continue
+        pn = line["part_number"]
+        invoiced[pn] = invoiced.get(pn, 0) + line["quantity"]
+
+    order_vex_ids = {
+        v["id"]
+        for v in vex
+        if v.get("supplier_inv_id") in order_inv_ids
+    }
+
+    received = {}
+    for line in vex_lines:
+        if line.get("supplier_vex_id") not in order_vex_ids:
+            continue
+        pn = line["part_number"]
+        received[pn] = received.get(pn, 0) + line["quantity"]
+
+    parts = []
+    for pn, ordered in order_part_qty.items():
+        invoiced_qty = invoiced.get(pn, 0)
+        received_qty = received.get(pn, 0)
+        if received_qty >= ordered:
+            status = "complete"
+        elif received_qty > 0:
+            status = "partial"
+        elif invoiced_qty < ordered:
+            status = "not_invoiced"
+        else:
+            status = "pending"
+
+        parts.append({
+            "part_number": pn,
+            "ordered": ordered,
+            "invoiced": invoiced_qty,
+            "received": received_qty,
+            "pending_to_invoice": max(ordered - invoiced_qty, 0),
+            "pending_to_receive": max(ordered - received_qty, 0),
+            "status": status,
+        })
+
+    return parts
+
+
+def summarize_part_fulfillment(parts):
+    parts_total = len(parts)
+    parts_complete = sum(1 for part in parts if part["status"] == "complete")
+
+    if parts_total == 0:
+        order_status = "awaiting_parts"
+    elif parts_complete == parts_total:
+        order_status = "complete"
+    elif any(part["received"] > 0 for part in parts):
+        order_status = "in_progress"
+    else:
+        order_status = "pending"
+
+    return {
+        "parts_total": parts_total,
+        "parts_complete": parts_complete,
+        "order_status": order_status,
+    }
+
+
 @router.post("/orders")
 async def create_supplier_order(file: UploadFile = File(...), user: dict = Depends(get_current_user)):
     content = await file.read()
@@ -130,7 +214,7 @@ def get_supplier_orders(
     if order_ids:
         all_lines = (
             supabase.table("supplier_order_lines")
-            .select("supplier_order_id, status")
+            .select("*")
             .in_("supplier_order_id", order_ids)
             .execute()
             .data
@@ -150,10 +234,27 @@ def get_supplier_orders(
             .execute()
             .data
         ) if inv_ids else []
+        all_inv_lines = (
+            supabase.table("supplier_inv_lines")
+            .select("*")
+            .in_("supplier_inv_id", inv_ids)
+            .execute()
+            .data
+        ) if inv_ids else []
+        vex_ids = [v["id"] for v in all_vex]
+        all_vex_lines = (
+            supabase.table("supplier_vex_lines")
+            .select("*")
+            .in_("supplier_vex_id", vex_ids)
+            .execute()
+            .data
+        ) if vex_ids else []
     else:
         all_lines = []
         all_invs = []
         all_vex = []
+        all_inv_lines = []
+        all_vex_lines = []
 
     customer_ids = [o["customer_id"] for o in orders if o.get("customer_id")]
 
@@ -184,30 +285,26 @@ def get_supplier_orders(
     for order in orders:
         oid = order["id"]
         lines = [line for line in all_lines if line["supplier_order_id"] == oid]
-        total = len(lines)
-        received = sum(1 for line in lines if line["status"] == "received")
         invs = [i for i in all_invs if i["supplier_order_id"] == oid]
+        inv_ids = {inv["id"] for inv in invs}
+        order_vex = [v for v in all_vex if v["supplier_inv_id"] in inv_ids]
+        vex_ids = {v["id"] for v in order_vex}
+        order_inv_lines = [line for line in all_inv_lines if line["supplier_inv_id"] in inv_ids]
+        order_vex_lines = [line for line in all_vex_lines if line["supplier_vex_id"] in vex_ids]
+        parts = compute_part_fulfillment(oid, lines, invs, order_inv_lines, order_vex, order_vex_lines)
+        summary = summarize_part_fulfillment(parts)
 
         for inv in invs:
             inv["vex"] = [v for v in all_vex if v["supplier_inv_id"] == inv["id"]]
-
-        if total == 0:
-            fulfillment = "awaiting_parts"
-        elif received == 0:
-            fulfillment = "pending"
-        elif received < total:
-            fulfillment = "in_progress"
-        else:
-            fulfillment = "complete"
 
         result.append({
             **order,
             "client": order.get("client") or "—",
             "customer_type": customer_types.get(order.get("customer_id")),
             "has_proof": order["id"] in proof_order_ids,
-            "total_lines": total,
-            "received_lines": received,
-            "fulfillment": fulfillment,
+            "total_lines": summary["parts_total"],
+            "received_lines": summary["parts_complete"],
+            "fulfillment": summary["order_status"],
             "invs": invs,
         })
 
@@ -221,24 +318,36 @@ def get_supplier_order_by_number(so_number: str, user: dict = Depends(get_curren
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
     order = resp.data[0]
     oid = order["id"]
-    lines = supabase.table("supplier_order_lines").select("supplier_order_id, status").eq("supplier_order_id", oid).execute().data
+    lines = supabase.table("supplier_order_lines").select("*").eq("supplier_order_id", oid).execute().data
     invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", oid).execute().data
-    all_vex = fetch_all("supplier_vex", "*")
-
-    total = len(lines)
-    received = sum(1 for line in lines if line["status"] == "received")
+    inv_ids = [inv["id"] for inv in invs]
+    all_vex = (
+        supabase.table("supplier_vex")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    inv_lines = (
+        supabase.table("supplier_inv_lines")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex_ids = [v["id"] for v in all_vex]
+    vex_lines = (
+        supabase.table("supplier_vex_lines")
+        .select("*")
+        .in_("supplier_vex_id", vex_ids)
+        .execute()
+        .data
+    ) if vex_ids else []
+    parts = compute_part_fulfillment(oid, lines, invs, inv_lines, all_vex, vex_lines)
+    summary = summarize_part_fulfillment(parts)
 
     for inv in invs:
         inv["vex"] = [v for v in all_vex if v["supplier_inv_id"] == inv["id"]]
-
-    if total == 0:
-        fulfillment = "awaiting_parts"
-    elif received == 0:
-        fulfillment = "pending"
-    elif received < total:
-        fulfillment = "in_progress"
-    else:
-        fulfillment = "complete"
 
     customer_type = None
     if order.get("customer_id"):
@@ -250,9 +359,9 @@ def get_supplier_order_by_number(so_number: str, user: dict = Depends(get_curren
         **order,
         "client": order.get("client") or "—",
         "customer_type": customer_type,
-        "total_lines": total,
-        "received_lines": received,
-        "fulfillment": fulfillment,
+        "total_lines": summary["parts_total"],
+        "received_lines": summary["parts_complete"],
+        "fulfillment": summary["order_status"],
         "invs": invs,
     }
 
@@ -264,7 +373,51 @@ def get_lines_by_so(so_number: str, user: dict = Depends(get_current_user)):
         raise HTTPException(status_code=404, detail=f"{so_number} not found")
     supplier_order_id = order.data[0]["id"]
     lines = supabase.table("supplier_order_lines").select("*").eq("supplier_order_id", supplier_order_id).execute().data
-    return lines
+    invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", supplier_order_id).execute().data
+    inv_ids = [inv["id"] for inv in invs]
+    inv_lines = (
+        supabase.table("supplier_inv_lines")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex = (
+        supabase.table("supplier_vex")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex_ids = [v["id"] for v in vex]
+    vex_lines = (
+        supabase.table("supplier_vex_lines")
+        .select("*")
+        .in_("supplier_vex_id", vex_ids)
+        .execute()
+        .data
+    ) if vex_ids else []
+
+    line_by_part = {}
+    for line in lines:
+        if line["part_number"] not in line_by_part:
+            line_by_part[line["part_number"]] = line
+
+    parts = compute_part_fulfillment(supplier_order_id, lines, invs, inv_lines, vex, vex_lines)
+    result = []
+    for part in parts:
+        source = line_by_part.get(part["part_number"], {})
+        result.append({
+            **part,
+            "id": source.get("id", part["part_number"]),
+            "description": source.get("description"),
+            "quantity": part["ordered"],
+            "warehouse": source.get("warehouse"),
+            "eta_to_ferral": source.get("eta_to_ferral"),
+            "po_category": source.get("po_category"),
+        })
+
+    return result
 
 
 @router.post("/attach/po")
@@ -417,7 +570,12 @@ async def attach_vex(
 ):
     from app.parsers.vex_parser import parse_vex_pdf
 
-    inv = supabase.table("supplier_invs").select("id").eq("inv_number", inv_number).execute()
+    inv = (
+        supabase.table("supplier_invs")
+        .select("id, supplier_order_id")
+        .eq("inv_number", inv_number)
+        .execute()
+    )
     if not inv.data:
         raise HTTPException(status_code=404, detail=f"{inv_number} not found")
 
@@ -432,6 +590,63 @@ async def attach_vex(
     existing = supabase.table("supplier_vex").select("id").eq("vex_number", parsed["vex_number"]).execute()
     if existing.data:
         raise HTTPException(status_code=409, detail=f"{parsed['vex_number']} already exists")
+
+    order = (
+        supabase.table("supplier_orders")
+        .select("so_number")
+        .eq("id", inv.data[0]["supplier_order_id"])
+        .execute()
+    )
+    if order.data[0]["so_number"] != so_number:
+        raise HTTPException(status_code=422, detail=f"{inv_number} no pertenece a {so_number}")
+
+    inv_lines = (
+        supabase.table("supplier_inv_lines")
+        .select("part_number, quantity")
+        .eq("supplier_inv_id", supplier_inv_id)
+        .execute()
+        .data
+    )
+    inv_qty = {l["part_number"]: l["quantity"] for l in inv_lines}
+
+    prev_vex = (
+        supabase.table("supplier_vex")
+        .select("id")
+        .eq("supplier_inv_id", supplier_inv_id)
+        .execute()
+        .data
+    )
+    prev_vex_ids = [v["id"] for v in prev_vex]
+    received = {}
+    if prev_vex_ids:
+        prev_lines = (
+            supabase.table("supplier_vex_lines")
+            .select("part_number, quantity")
+            .in_("supplier_vex_id", prev_vex_ids)
+            .execute()
+            .data
+        )
+        for l in prev_lines:
+            received[l["part_number"]] = received.get(l["part_number"], 0) + l["quantity"]
+
+    overflow = []
+    for p in parsed["parts"]:
+        pn = p["part_number"]
+        pedido = inv_qty.get(pn)
+        if pedido is None:
+            overflow.append(f"{pn} no está en {inv_number}")
+            continue
+        total = received.get(pn, 0) + p["quantity"]
+        if total > pedido:
+            overflow.append(
+                f"{pn}: {inv_number} factura {pedido}, ya recibido {received.get(pn, 0)}, "
+                f"este VEX suma {p['quantity']} (total {total})"
+            )
+    if overflow:
+        raise HTTPException(
+            status_code=422,
+            detail="El VEX excede lo facturado en el INV. " + "; ".join(overflow),
+        )
 
     vex_result = supabase.table("supplier_vex").insert({
         "supplier_inv_id": supplier_inv_id,

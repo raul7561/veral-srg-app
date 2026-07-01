@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends
 from app.auth import get_current_user
 from app.database import supabase_admin as supabase
+from app.routers.supplier_tracking import compute_part_fulfillment
 
 router = APIRouter(prefix="/receiving-history", tags=["Receiving History"])
 
@@ -78,40 +79,79 @@ def get_order_detail(so_number: str, user: dict = Depends(get_current_user)):
 
     lines = supabase.table("supplier_order_lines").select("*").eq("supplier_order_id", supplier_order_id).execute().data
     invs = supabase.table("supplier_invs").select("*").eq("supplier_order_id", supplier_order_id).execute().data
-    vex = supabase.table("supplier_vex").select("*").execute().data
+    inv_ids = [inv["id"] for inv in invs]
+    inv_lines = (
+        supabase.table("supplier_inv_lines")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex = (
+        supabase.table("supplier_vex")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex_ids = [v["id"] for v in vex]
+    vex_lines = (
+        supabase.table("supplier_vex_lines")
+        .select("*")
+        .in_("supplier_vex_id", vex_ids)
+        .execute()
+        .data
+    ) if vex_ids else []
 
-    vex_by_inv = {}
-    for v in vex:
-        vex_by_inv.setdefault(v["supplier_inv_id"], []).append(v)
+    inv_by_id = {inv["id"]: inv for inv in invs}
+    vex_by_id = {v["id"]: v for v in vex}
+    inv_lines_by_part = {}
+    for line in inv_lines:
+        inv_lines_by_part.setdefault(line["part_number"], []).append(line)
+
+    vex_lines_by_part = {}
+    for line in vex_lines:
+        vex_lines_by_part.setdefault(line["part_number"], []).append(line)
+
+    line_by_part = {}
+    for line in lines:
+        if line["part_number"] not in line_by_part:
+            line_by_part[line["part_number"]] = line
+
+    parts = compute_part_fulfillment(supplier_order_id, lines, invs, inv_lines, vex, vex_lines)
 
     part_rows = []
-    for line in lines:
-        pn = line["part_number"]
+    for part in parts:
+        pn = part["part_number"]
         pn_with_suffix = pn + "-N"
 
         inv_matches = []
+        for inv_line in inv_lines_by_part.get(pn, []):
+            inv = inv_by_id.get(inv_line["supplier_inv_id"])
+            if inv and inv["inv_number"] not in inv_matches:
+                inv_matches.append(inv["inv_number"])
+
         vex_matches = []
         latest_date = None
-        qty_received = 0
+        for vex_line in vex_lines_by_part.get(pn, []):
+            v = vex_by_id.get(vex_line["supplier_vex_id"])
+            if not v:
+                continue
+            if v["vex_number"] not in vex_matches:
+                vex_matches.append(v["vex_number"])
+            created = v.get("created_at", "")
+            if created:
+                if latest_date is None or created > latest_date:
+                    latest_date = created
 
-        for inv in invs:
-            inv_vex = vex_by_inv.get(inv["id"], [])
-            if inv_vex:
-                inv_matches.append(inv["inv_number"])
-                for v in inv_vex:
-                    vex_matches.append(v["vex_number"])
-                    created = v.get("created_at", "")
-                    if created:
-                        if latest_date is None or created > latest_date:
-                            latest_date = created
-                qty_received = line["quantity"]
+        source = line_by_part.get(pn, {})
 
         part_rows.append({
             "part_number": pn_with_suffix,
-            "description": line.get("description", "—"),
-            "qty": line["quantity"],
-            "qty_received": qty_received,
-            "qty_pending": line["quantity"] - qty_received,
+            "description": source.get("description", "—"),
+            "qty": part["ordered"],
+            "qty_received": part["received"],
+            "qty_pending": part["pending_to_receive"],
             "invs": inv_matches,
             "vexs": vex_matches,
             "date_of_receiving": latest_date[:10] if latest_date else None,
