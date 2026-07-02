@@ -23,6 +23,21 @@ def fetch_all(table_name, select_clause):
     return rows
 
 
+def _delete_storage_file(pdf_url):
+    if not pdf_url:
+        return
+    marker = "/documents/"
+    if marker not in pdf_url:
+        return
+    path = pdf_url.split(marker, 1)[1].split("?", 1)[0]
+    from urllib.parse import unquote
+    path = unquote(path)
+    try:
+        supabase_admin.storage.from_("documents").remove([path])
+    except Exception as exc:
+        logger.warning("Storage remove failed for %s: %s", path, exc)
+
+
 def compute_part_fulfillment(supplier_order_id, order_lines, invs, inv_lines, vex, vex_lines):
     """
     For one supplier order, compute part fulfillment from INV and VEX quantities.
@@ -690,6 +705,40 @@ async def attach_vex(
         "parts_count": len(parsed["parts"]),
         "pdf_uploaded": pdf_uploaded,
     }
+
+
+@router.delete("/vex/{vex_id}")
+def delete_vex(vex_id: str, user: dict = Depends(get_current_user)):
+    vex = supabase.table("supplier_vex").select("id, vex_pdf_url").eq("id", vex_id).execute()
+    if not vex.data:
+        raise HTTPException(status_code=404, detail="VEX not found")
+
+    supabase.table("supplier_vex_lines").delete().eq("supplier_vex_id", vex_id).execute()
+    supabase.table("supplier_vex").delete().eq("id", vex_id).execute()
+    _delete_storage_file(vex.data[0].get("vex_pdf_url"))
+    return {"deleted": vex_id}
+
+
+@router.delete("/inv/{inv_id}")
+def delete_inv(inv_id: str, user: dict = Depends(get_current_user)):
+    inv = supabase.table("supplier_invs").select("id, inv_pdf_url").eq("id", inv_id).execute()
+    if not inv.data:
+        raise HTTPException(status_code=404, detail="INV not found")
+
+    vex_rows = supabase.table("supplier_vex").select("id, vex_pdf_url").eq("supplier_inv_id", inv_id).execute().data or []
+    vex_ids = [v["id"] for v in vex_rows]
+    if vex_ids:
+        supabase.table("supplier_vex_lines").delete().in_("supplier_vex_id", vex_ids).execute()
+        supabase.table("supplier_vex").delete().eq("supplier_inv_id", inv_id).execute()
+
+    supabase.table("supplier_inv_lines").delete().eq("supplier_inv_id", inv_id).execute()
+    supabase.table("supplier_invs").delete().eq("id", inv_id).execute()
+
+    for v in vex_rows:
+        _delete_storage_file(v.get("vex_pdf_url"))
+    _delete_storage_file(inv.data[0].get("inv_pdf_url"))
+
+    return {"deleted": inv_id, "vex_deleted": len(vex_ids)}
 
 
 @router.post("/sync/madisa")

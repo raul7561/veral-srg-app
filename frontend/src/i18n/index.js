@@ -103,6 +103,11 @@ const resources = {
         download: "Download",
         delete: "Delete",
         loadError: "Could not load the order detail.",
+        deleteVexTitle: "Delete VEX",
+        deleteVexMsg: "You are about to delete {{vex}} and its parsed lines. This cannot be undone.",
+        deleteInvTitle: "Delete Invoice",
+        deleteInvMsg: "You are about to delete {{inv}}, its {{count}} associated VEX and all their lines. This cannot be undone.",
+        deleteConfirm: "Delete",
       },
       receiving: {
         title: "Receiving History",
@@ -428,6 +433,11 @@ const resources = {
         download: "Descargar",
         delete: "Eliminar",
         loadError: "No se pudo cargar el detalle de la orden.",
+        deleteVexTitle: "Eliminar VEX",
+        deleteVexMsg: "Vas a eliminar {{vex}} y sus líneas. Esta acción no se puede deshacer.",
+        deleteInvTitle: "Eliminar Factura",
+        deleteInvMsg: "Vas a eliminar {{inv}}, sus {{count}} VEX asociados y todas sus líneas. Esta acción no se puede deshacer.",
+        deleteConfirm: "Eliminar",
       },
       receiving: {
         title: "Historial de Recepción",

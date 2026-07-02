@@ -6,15 +6,21 @@ import {
   attachInv,
   attachPo,
   attachVex,
+  deleteInv,
   deleteOrderDocument,
+  deleteVex,
   getOrderDocuments,
   getSupplierOrderLinesBySo,
   getSupplierOrderByNumber,
   openSignedPdf,
   uploadProofOfExport,
 } from "../api"
+import ConfirmDialog from "../components/ConfirmDialog"
 import LoadError from "../components/LoadError"
 import { table } from "../styles"
+
+const pdfButtonClass = "inline-flex items-center rounded border border-srg-border bg-srg-surface px-2 py-0.5 text-xs font-medium text-srg-black hover:bg-srg-cream"
+const deleteButtonClass = "text-xs font-semibold text-srg-red hover:underline"
 
 export default function SupplierOrderDetail() {
   const { t } = useTranslation()
@@ -26,6 +32,8 @@ export default function SupplierOrderDetail() {
   const [uploadingProof, setUploadingProof] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
+  const [confirmState, setConfirmState] = useState(null)
+  const [deleting, setDeleting] = useState(false)
   const proofInputRef = useRef(null)
 
   const fetchOrder = useCallback(async () => {
@@ -78,6 +86,21 @@ export default function SupplierOrderDetail() {
     }
   }
 
+  async function handleDelete() {
+    if (!confirmState) return
+    setDeleting(true)
+    try {
+      if (confirmState.type === 'vex') await deleteVex(confirmState.id)
+      else await deleteInv(confirmState.id)
+      setConfirmState(null)
+      await fetchOrder()
+    } catch (err) {
+      console.error(err)
+    } finally {
+      setDeleting(false)
+    }
+  }
+
   if (loading) return <div className="p-8">{t('orderDetail.loading')}</div>
   if (error) return <LoadError message={t('orderDetail.loadError')} onRetry={fetchOrder} />
   if (!order) return <div className="p-8">{t('orderDetail.notFound', { so: soNumber })}</div>
@@ -100,7 +123,7 @@ export default function SupplierOrderDetail() {
           <span className="text-gray-600">{order.client}</span>
           <span className="text-gray-400 text-sm">{order.order_date || "—"}</span>
           {order.so_pdf_url && (
-            <button type="button" onClick={() => openSignedPdf(order.so_pdf_url)} className="text-xs text-srg-black hover:underline cursor-pointer">↓ SO PDF</button>
+            <button type="button" onClick={() => openSignedPdf(order.so_pdf_url)} className={pdfButtonClass}>↓ SO PDF</button>
           )}
         </div>
         {isInternational && (
@@ -159,8 +182,15 @@ export default function SupplierOrderDetail() {
                       <span className="font-mono font-medium">{inv.inv_number}</span>
                       <span className="text-gray-400 text-xs">{inv.inv_date || "—"}</span>
                       {inv.inv_pdf_url && (
-                        <button type="button" onClick={() => openSignedPdf(inv.inv_pdf_url)} className="text-xs text-srg-black hover:underline cursor-pointer">↓ PDF</button>
+                        <button type="button" onClick={() => openSignedPdf(inv.inv_pdf_url)} className={pdfButtonClass}>↓ PDF</button>
                       )}
+                      <button
+                        type="button"
+                        onClick={() => setConfirmState({ type: 'inv', id: inv.id, label: inv.inv_number, extra: inv.vex.length })}
+                        className={deleteButtonClass}
+                      >
+                        {t('orderDetail.deleteConfirm')}
+                      </button>
                     </div>
                     <div className="flex items-center gap-2 ml-4">
                       <span className="text-xs text-gray-400">VEX:</span>
@@ -168,8 +198,15 @@ export default function SupplierOrderDetail() {
                         <span key={v.id} className="text-xs font-mono text-gray-600">
                           {v.vex_number}
                           {v.vex_pdf_url && (
-                            <button type="button" onClick={() => openSignedPdf(v.vex_pdf_url)} className="text-xs text-srg-black hover:underline ml-1 cursor-pointer">↓</button>
+                            <button type="button" onClick={() => openSignedPdf(v.vex_pdf_url)} className={`${pdfButtonClass} ml-1`}>↓ PDF</button>
                           )}
+                          <button
+                            type="button"
+                            onClick={() => setConfirmState({ type: 'vex', id: v.id, label: v.vex_number })}
+                            className={`${deleteButtonClass} ml-2`}
+                          >
+                            {t('orderDetail.deleteConfirm')}
+                          </button>
                         </span>
                       ))}
                       <VexUploader
@@ -245,6 +282,20 @@ export default function SupplierOrderDetail() {
           </table>
         )}
       </div>
+      <ConfirmDialog
+        open={!!confirmState}
+        title={confirmState?.type === 'inv' ? t('orderDetail.deleteInvTitle') : t('orderDetail.deleteVexTitle')}
+        message={
+          confirmState?.type === 'inv'
+            ? t('orderDetail.deleteInvMsg', { inv: confirmState?.label, count: confirmState?.extra })
+            : t('orderDetail.deleteVexMsg', { vex: confirmState?.label })
+        }
+        confirmLabel={t('orderDetail.deleteConfirm')}
+        onConfirm={handleDelete}
+        onCancel={() => setConfirmState(null)}
+        loading={deleting}
+        destructive
+      />
     </div>
   )
 }
@@ -278,7 +329,7 @@ function DocField({ label, value, uploadLabel, uploadFn, onSuccess, pdfUrl }) {
         <div className="flex items-center gap-2">
           <span className="font-mono text-sm">{value}</span>
           {pdfUrl && (
-            <button type="button" onClick={() => openSignedPdf(pdfUrl)} className="text-xs text-srg-black hover:underline">↓ PDF</button>
+            <button type="button" onClick={() => openSignedPdf(pdfUrl)} className={pdfButtonClass}>↓ PDF</button>
           )}
         </div>
       ) : (

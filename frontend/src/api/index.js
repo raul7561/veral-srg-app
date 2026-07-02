@@ -255,6 +255,26 @@ export async function deleteOrderDocument(docId) {
   return res.json();
 }
 
+export async function deleteVex(vexId) {
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/vex/${vexId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Delete VEX failed with status ${res.status}`);
+  return data;
+}
+
+export async function deleteInv(invId) {
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/inv/${invId}`, {
+    method: "DELETE",
+    headers: await authHeaders(),
+  });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.detail || `Delete INV failed with status ${res.status}`);
+  return data;
+}
+
 export function getReadyToDispatch() {
   return getJson("/ready-to-dispatch/orders");
 }

@@ -7,9 +7,10 @@ export default function ConfirmDialog({
   message,
   confirmLabel = 'Confirmar',
   cancelLabel = 'Cancelar',
-  destructive = false,
   onConfirm,
   onCancel,
+  loading,
+  destructive = false,
 }) {
   useEffect(() => {
     if (!open) return
@@ -24,32 +25,32 @@ export default function ConfirmDialog({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-md border border-srg-border rounded-lg bg-srg-surface shadow-xl"
+        className="w-full max-w-md rounded border border-srg-border bg-srg-surface p-6 shadow-lg"
         onClick={e => e.stopPropagation()}
       >
-        <div className="border-t-4 border-srg-yellow rounded-t-lg" />
-        <div className="p-6">
-          <h2 className="text-lg font-extrabold uppercase tracking-wide text-srg-black mb-2">
-            {title}
-          </h2>
-          <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-            {message}
-          </p>
-          <div className="flex justify-end gap-3">
-            <button onClick={onCancel} className={btn.secondary}>
-              {cancelLabel}
-            </button>
-            <button
-              onClick={onConfirm}
-              className={destructive ? btn.destructive : btn.primary}
-            >
-              {confirmLabel}
-            </button>
-          </div>
+        <h2 className="text-lg font-semibold text-srg-black">{title}</h2>
+        <p className="mt-3 text-sm text-gray-600">{message}</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={loading}
+            className={btn.secondary}
+          >
+            {cancelLabel}
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            disabled={loading}
+            className={destructive ? btn.destructive : btn.primary}
+          >
+            {loading ? "..." : confirmLabel}
+          </button>
         </div>
       </div>
     </div>
