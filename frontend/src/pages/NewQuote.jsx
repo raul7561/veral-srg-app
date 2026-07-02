@@ -26,7 +26,7 @@ function weight(n) {
 
 function finalUnitPrice(line) {
   if (line.unit_price === null || line.unit_price === undefined) return null
-  return line.unit_price + (line.core_deposit || 0)
+  return line.unit_price + (line.core_deposit_applied || 0)
 }
 
 export default function NewQuote() {
@@ -58,7 +58,11 @@ export default function NewQuote() {
         setPriceLevel(q.price_level || 'US_LIST')
         setQuoteNumber(q.quote_number)
         setShippingCost(q.shipping_cost ?? '')
-        const loadedLines = q.lines || []
+        const loadedLines = (q.lines || []).map(l => ({
+          ...l,
+          core_deposit: null,
+          core_deposit_applied: null,
+        }))
         setLines(loadedLines)
         const origMap = {}
         loadedLines.forEach(l => { origMap[l.item_number] = l.quantity })
@@ -77,7 +81,7 @@ export default function NewQuote() {
       const origMap = {}
       result.lines.forEach(l => { origMap[l.item_number] = l.quantity })
       setOriginalQty(origMap)
-      setLines(calc.lines)
+      setLines(calc.lines.map(l => ({ ...l, core_deposit: null, core_deposit_applied: null })))
       setFileName(file.name)
       setStats({
         generated: result.lines_generated,
@@ -147,6 +151,16 @@ export default function NewQuote() {
     })
   }
 
+  function normalizedCore(value) {
+    if (value === null || value === undefined || value === '') return 0
+    const n = Number(value)
+    return Number.isNaN(n) ? 0 : n
+  }
+
+  function hasPendingCore() {
+    return lines.some(l => normalizedCore(l.core_deposit) !== normalizedCore(l.core_deposit_applied))
+  }
+
   async function recalculate() {
     if (editMode) {
       const ok = window.confirm(t('quote.recalcWarning'))
@@ -158,7 +172,10 @@ export default function NewQuote() {
       const coreMap = {}
       lines.forEach(l => { coreMap[l.item_number] = l.core_deposit ?? null })
       const calc = await calculateQuote(priceLevel, lines)
-      const merged = calc.lines.map(l => ({ ...l, core_deposit: coreMap[l.item_number] ?? null }))
+      const merged = calc.lines.map(l => {
+        const coreDeposit = coreMap[l.item_number] ?? null
+        return { ...l, core_deposit: coreDeposit, core_deposit_applied: coreDeposit }
+      })
       setLines(merged)
     } catch (e) {
       setError(e.message)
@@ -169,7 +186,7 @@ export default function NewQuote() {
 
   function linesForPayload() {
     return lines.map(l => {
-      const core = l.core_deposit || 0
+      const core = l.core_deposit_applied || 0
       const base = (l.unit_price === null || l.unit_price === undefined) ? null : l.unit_price
       const finalPrice = base === null ? null : base + core
       let notes = l.notes || ''
@@ -182,12 +199,17 @@ export default function NewQuote() {
       }
       const rest = { ...l }
       delete rest.core_deposit
+      delete rest.core_deposit_applied
       delete rest.user_note
       return { ...rest, unit_price: finalPrice, notes }
     })
   }
 
   async function openPreview() {
+    if (hasPendingCore()) {
+      setError(t('quote.pendingCoreWarning'))
+      return
+    }
     if (!clientName.trim()) {
       setError(t('quote.errClientReview'))
       return
@@ -215,6 +237,10 @@ export default function NewQuote() {
   }
 
   async function confirmQuote() {
+    if (hasPendingCore()) {
+      setError(t('quote.pendingCoreWarning'))
+      return
+    }
     if (!clientName.trim()) {
       setError(t('quote.errClientConfirm'))
       return
@@ -260,7 +286,7 @@ export default function NewQuote() {
   }
 
   const totalAmount = lines.reduce((sum, l) => {
-    const fp = (l.unit_price === null || l.unit_price === undefined) ? 0 : l.unit_price + (l.core_deposit || 0)
+    const fp = (l.unit_price === null || l.unit_price === undefined) ? 0 : l.unit_price + (l.core_deposit_applied || 0)
     return sum + fp * l.quantity
   }, 0)
   const totalWeight = lines.reduce((sum, l) => {

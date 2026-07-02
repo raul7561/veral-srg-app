@@ -29,8 +29,6 @@ _ASSETS = Path(__file__).parent / "assets"
 COMPANY = {
     "name": "SEVEN ROADS GROUP",
     "lines": [
-        "8109 NW 29TH STREET",
-        "MIAMI FL 33122",
         "+1 (305) 377-8997",
         "PARTS@SEVENROADSGROUP.COM",
         "WWW.SEVENROADSGROUP.COM",
@@ -174,11 +172,12 @@ body {{ font-family: Arial, sans-serif; font-size: 9pt; color:#111; margin:0; }}
   margin-bottom:14px; }}
 .brand {{ display:flex; align-items:center; gap:14px; }}
 .brand img {{ height:74px; }}
-.brand .co-name {{ font-size:14pt; font-weight:bold; letter-spacing:.5px; }}
+.brand .co-name {{ font-size:14pt; font-weight:bold; letter-spacing:.5px;
+  white-space:nowrap; }}
 .brand .co-lines {{ font-size:8.5pt; line-height:1.45; color:#222;
   margin-top:3px; }}
-.meta {{ border-collapse:collapse; }}
-.meta td {{ padding:3px 10px; font-size:9.5pt; }}
+.meta {{ border-collapse:collapse; border:1px solid #d4a800; }}
+.meta td {{ padding:3px 10px; font-size:9.5pt; border:1px solid #e3e3e3; }}
 .meta .k {{ background:{AMBER}; font-weight:bold; text-align:left;
   white-space:nowrap; }}
 .meta .v {{ text-align:right; font-weight:bold; border-bottom:1px solid #ddd; }}
