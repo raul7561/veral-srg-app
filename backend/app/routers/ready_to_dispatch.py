@@ -2,24 +2,23 @@ from fastapi import APIRouter, HTTPException, Depends
 from app.database import supabase_admin as supabase
 from datetime import datetime, timezone
 from app.auth import get_current_user
+from app.routers.supplier_tracking import compute_part_fulfillment
 
 router = APIRouter(prefix="/ready-to-dispatch", tags=["Ready to Dispatch"])
 
 
-def get_inv_completion(supplier_inv_id: str) -> bool:
-    inv_lines = supabase.table("supplier_inv_lines").select("part_number, quantity").eq("supplier_inv_id", supplier_inv_id).execute().data
+def _group_by(rows, key):
+    grouped = {}
+    for row in rows:
+        grouped.setdefault(row[key], []).append(row)
+    return grouped
+
+
+def _is_inv_complete(inv_lines, vex_lines):
     if not inv_lines:
         return False
-
-    vex_list = supabase.table("supplier_vex").select("id").eq("supplier_inv_id", supplier_inv_id).execute().data
-    if not vex_list:
+    if not vex_lines:
         return False
-
-    vex_ids = [v["id"] for v in vex_list]
-    vex_lines = []
-    for vex_id in vex_ids:
-        lines = supabase.table("supplier_vex_lines").select("part_number, quantity").eq("supplier_vex_id", vex_id).execute().data
-        vex_lines.extend(lines)
 
     vex_totals = {}
     for line in vex_lines:
@@ -34,25 +33,65 @@ def get_inv_completion(supplier_inv_id: str) -> bool:
     return True
 
 
-def get_inv_vex_numbers(supplier_inv_id: str) -> list[str]:
-    vex_list = supabase.table("supplier_vex").select("vex_number").eq("supplier_inv_id", supplier_inv_id).order("vex_number").execute().data
-    return [v["vex_number"] for v in vex_list if v.get("vex_number")]
-
-
 @router.get("/orders")
 def get_ready_orders(user: dict = Depends(get_current_user)):
     supplier_orders = supabase.table("supplier_orders").select("*").execute().data
     supplier_invs = supabase.table("supplier_invs").select("*").execute().data
+    order_ids_with_invs = sorted({inv["supplier_order_id"] for inv in supplier_invs})
+    inv_ids = [inv["id"] for inv in supplier_invs]
+
+    supplier_order_lines = (
+        supabase.table("supplier_order_lines")
+        .select("*")
+        .in_("supplier_order_id", order_ids_with_invs)
+        .execute()
+        .data
+    ) if order_ids_with_invs else []
+    supplier_inv_lines = (
+        supabase.table("supplier_inv_lines")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    supplier_vex = (
+        supabase.table("supplier_vex")
+        .select("*")
+        .in_("supplier_inv_id", inv_ids)
+        .execute()
+        .data
+    ) if inv_ids else []
+    vex_ids = [v["id"] for v in supplier_vex]
+    supplier_vex_lines = (
+        supabase.table("supplier_vex_lines")
+        .select("*")
+        .in_("supplier_vex_id", vex_ids)
+        .execute()
+        .data
+    ) if vex_ids else []
+
+    invs_by_order = _group_by(supplier_invs, "supplier_order_id")
+    order_lines_by_order = _group_by(supplier_order_lines, "supplier_order_id")
+    inv_lines_by_inv = _group_by(supplier_inv_lines, "supplier_inv_id")
+    vex_by_inv = _group_by(supplier_vex, "supplier_inv_id")
+    vex_lines_by_vex = _group_by(supplier_vex_lines, "supplier_vex_id")
 
     results = []
     for so in supplier_orders:
-        so_invs = [i for i in supplier_invs if i["supplier_order_id"] == so["id"]]
+        so_invs = invs_by_order.get(so["id"], [])
         if not so_invs:
             continue
 
         inv_statuses = []
         for inv in so_invs:
-            complete = get_inv_completion(inv["id"])
+            inv_vex = vex_by_inv.get(inv["id"], [])
+            inv_vex_ids = {v["id"] for v in inv_vex}
+            inv_vex_lines = [
+                line
+                for vex_id in inv_vex_ids
+                for line in vex_lines_by_vex.get(vex_id, [])
+            ]
+            complete = _is_inv_complete(inv_lines_by_inv.get(inv["id"], []), inv_vex_lines)
             inv_statuses.append({
                 "inv_id": inv["id"],
                 "inv_number": inv["inv_number"],
@@ -60,7 +99,7 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
                 "dispatch_status": inv.get("dispatch_status", "pending"),
                 "dispatched_at": inv.get("dispatched_at"),
                 "complete": complete,
-                "vexs": get_inv_vex_numbers(inv["id"]),
+                "vexs": sorted(v["vex_number"] for v in inv_vex if v.get("vex_number")),
             })
 
         any_complete = any(s["complete"] for s in inv_statuses)
@@ -69,6 +108,32 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
 
         all_complete = all(s["complete"] for s in inv_statuses)
         so_dispatch_status = so.get("dispatch_status", "pending")
+        so_inv_ids = {inv["id"] for inv in so_invs}
+        so_vex = [
+            v
+            for inv_id in so_inv_ids
+            for v in vex_by_inv.get(inv_id, [])
+        ]
+        so_vex_ids = {v["id"] for v in so_vex}
+        so_inv_lines = [
+            line
+            for inv_id in so_inv_ids
+            for line in inv_lines_by_inv.get(inv_id, [])
+        ]
+        so_vex_lines = [
+            line
+            for vex_id in so_vex_ids
+            for line in vex_lines_by_vex.get(vex_id, [])
+        ]
+        parts = compute_part_fulfillment(
+            so["id"],
+            order_lines_by_order.get(so["id"], []),
+            so_invs,
+            so_inv_lines,
+            so_vex,
+            so_vex_lines,
+        )
+        order_full = bool(parts) and all(part["status"] == "complete" for part in parts)
 
         results.append({
             "so_number": so["so_number"],
@@ -78,6 +143,7 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
             "dispatch_status": so_dispatch_status,
             "dispatched_at": so.get("dispatched_at"),
             "all_complete": all_complete,
+            "order_full": order_full,
             "invs": inv_statuses,
         })
 

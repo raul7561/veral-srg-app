@@ -126,10 +126,10 @@ export default function ReadyToDispatch() {
     if (isDispatched) {
       return <span className="inline-flex rounded bg-srg-green px-2 py-1 text-xs font-semibold text-white">{t('dispatch.badgeDispatched')}</span>
     }
-    if (o.all_complete) {
-      return <span className="inline-flex rounded bg-srg-green px-2 py-1 text-xs font-semibold text-white">{t('dispatch.badgeAllComplete')}</span>
+    if (o.order_full) {
+      return <span className="inline-flex rounded bg-srg-green px-2 py-1 text-xs font-semibold text-white">{t('dispatch.badgeOrderFull')}</span>
     }
-    return <span className="inline-flex rounded bg-srg-orange px-2 py-1 text-xs font-semibold text-srg-black">{t('dispatch.badgePartial')}</span>
+    return <span className="inline-flex rounded bg-srg-orange px-2 py-1 text-xs font-semibold text-srg-black">{t('dispatch.badgeInvReady')}</span>
   }
 
   const orderActionButton = (o, isDispatched) => {
