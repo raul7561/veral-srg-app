@@ -124,6 +124,7 @@ def _build_html(quote: dict, internal: bool = False) -> str:
             f'<td class="l">{_esc(ln.get("part_number"))}</td>'
             f'<td class="l">{_esc(ln.get("description"))}</td>'
             + (f'<td class="r madisa">{_money(ln.get("madisa_cost"))}</td>' if internal else "")
+            + (f'<td class="r madisa">{_money(ln.get("core_deposit"))}</td>' if internal else "")
             + f'<td class="r">{up_s}</td>'
             f'<td class="r calc">{tp_s}</td>'
             f'<td class="r">{uw_s}</td>'
@@ -155,8 +156,9 @@ def _build_html(quote: dict, internal: bool = False) -> str:
     company_lines = "<br>".join(_esc(x) for x in COMPANY["lines"])
     legal_html = _esc(LEGAL).replace("\n", "<br>")
     madisa_th = '<th class="madisa">MADISA COST</th>' if internal else ''
-    span_total = 7 if internal else 6
-    span_ship_end = 5 if internal else 4
+    core_th = '<th class="madisa">CORE DEPOSIT</th>' if internal else ''
+    span_total = 8 if internal else 6
+    span_ship_end = 6 if internal else 4
 
     return f"""<!DOCTYPE html>
 <html><head><meta charset="utf-8"><style>
@@ -222,7 +224,7 @@ table.items tfoot td {{ padding:5px 4px; font-size:9pt;
 
 <table class="items">
   <thead><tr>
-    <th>#</th><th>Brand</th><th>QTY</th><th>PART#</th><th>DESCRIPTION</th>{madisa_th}
+    <th>#</th><th>Brand</th><th>QTY</th><th>PART#</th><th>DESCRIPTION</th>{madisa_th}{core_th}
     <th>UNIT PRICE</th><th>TOTAL PRICE</th><th>UNIT WEIGHT</th>
     <th>TOTAL WEIGHT</th><th>MINIMUM QTY</th><th>NOTES</th>
   </tr></thead>

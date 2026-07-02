@@ -16,6 +16,7 @@ class QuoteLine(BaseModel):
     description: str
     madisa_cost: float
     unit_price: float | None = None
+    core_deposit: float | None = None
     minimum_qty: int | None = None
     replaces_part_number: str | None = None
     is_quotable: bool = True

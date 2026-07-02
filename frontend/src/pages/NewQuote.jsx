@@ -58,11 +58,22 @@ export default function NewQuote() {
         setPriceLevel(q.price_level || 'US_LIST')
         setQuoteNumber(q.quote_number)
         setShippingCost(q.shipping_cost ?? '')
-        const loadedLines = (q.lines || []).map(l => ({
-          ...l,
-          core_deposit: null,
-          core_deposit_applied: null,
-        }))
+        const loadedLines = (q.lines || []).map(l => {
+          const core = l.core_deposit || 0
+          if (core > 0) {
+            return {
+              ...l,
+              unit_price: l.unit_price === null || l.unit_price === undefined ? l.unit_price : l.unit_price - core,
+              core_deposit: core,
+              core_deposit_applied: core,
+            }
+          }
+          return {
+            ...l,
+            core_deposit: null,
+            core_deposit_applied: null,
+          }
+        })
         setLines(loadedLines)
         const origMap = {}
         loadedLines.forEach(l => { origMap[l.item_number] = l.quantity })
@@ -187,8 +198,6 @@ export default function NewQuote() {
   function linesForPayload() {
     return lines.map(l => {
       const core = l.core_deposit_applied || 0
-      const base = (l.unit_price === null || l.unit_price === undefined) ? null : l.unit_price
-      const finalPrice = base === null ? null : base + core
       let notes = l.notes || ''
       if (core > 0) {
         notes = notes ? `${notes} · Core deposit included` : 'Core deposit included'
@@ -198,10 +207,9 @@ export default function NewQuote() {
         notes = notes ? `${notes} · ${userNote}` : userNote
       }
       const rest = { ...l }
-      delete rest.core_deposit
       delete rest.core_deposit_applied
       delete rest.user_note
-      return { ...rest, unit_price: finalPrice, notes }
+      return { ...rest, core_deposit: core || null, notes }
     })
   }
 

@@ -275,6 +275,9 @@ def get_quote(quote_id: int, user: dict = Depends(get_current_user)):
 @router.patch("/{quote_id}", response_model=QuoteDetail)
 def update_quote(quote_id: int, request: UpdateQuoteRequest, user: dict = Depends(get_current_user)):
     try:
+        if request.lines is not None and request.price_level is not None:
+            recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
+            request = request.model_copy(update={"lines": recalculated_lines})
         quote = quotes_repo.update_quote(request=request, quote_id=quote_id)
     except QuoteNotFound:
         raise HTTPException(status_code=404, detail="Quote no encontrado")
