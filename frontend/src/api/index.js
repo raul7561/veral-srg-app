@@ -168,6 +168,18 @@ export async function uploadProofOfExport(soNumber, file) {
   return res.json();
 }
 
+export async function uploadShippingLabel(soNumber, files) {
+  const formData = new FormData();
+  Array.from(files).forEach((file) => formData.append("files", file));
+  const res = await fetchWithAuth(`${API_URL}/supplier-tracking/orders/${soNumber}/shipping-label`, {
+    method: "POST",
+    headers: await authHeaders(),
+    body: formData,
+  });
+  if (!res.ok) throw new Error(`Upload failed with status ${res.status}`);
+  return res.json();
+}
+
 export async function createSupplierOrder(file) {
   const formData = new FormData();
   formData.append("file", file);

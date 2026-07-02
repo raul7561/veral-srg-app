@@ -69,12 +69,21 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
         .execute()
         .data
     ) if vex_ids else []
+    shipping_docs = (
+        supabase.table("supplier_order_documents")
+        .select("*")
+        .eq("document_type", "shipping_label")
+        .in_("supplier_order_id", order_ids_with_invs)
+        .execute()
+        .data
+    ) if order_ids_with_invs else []
 
     invs_by_order = _group_by(supplier_invs, "supplier_order_id")
     order_lines_by_order = _group_by(supplier_order_lines, "supplier_order_id")
     inv_lines_by_inv = _group_by(supplier_inv_lines, "supplier_inv_id")
     vex_by_inv = _group_by(supplier_vex, "supplier_inv_id")
     vex_lines_by_vex = _group_by(supplier_vex_lines, "supplier_vex_id")
+    shipping_docs_by_order = _group_by(shipping_docs, "supplier_order_id")
 
     results = []
     for so in supplier_orders:
@@ -144,6 +153,7 @@ def get_ready_orders(user: dict = Depends(get_current_user)):
             "dispatched_at": so.get("dispatched_at"),
             "all_complete": all_complete,
             "order_full": order_full,
+            "has_shipping_label": bool(shipping_docs_by_order.get(so["id"])),
             "invs": inv_statuses,
         })
 

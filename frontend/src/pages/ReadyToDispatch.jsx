@@ -1,12 +1,15 @@
 import { Fragment, useEffect, useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
+  getOrderDocuments,
   getReadyToDispatch,
   markInvDispatched,
   markInvReady,
   markSoDispatched,
   markSoReady,
+  openSignedPdf,
   unmarkInv,
+  uploadShippingLabel,
 } from '../api'
 import { btn, input, pageTitle, table } from "../styles"
 
@@ -20,9 +23,13 @@ export default function ReadyToDispatch() {
   const [filterClient, setFilterClient] = useState('')
   const [sortBy, setSortBy] = useState('newest')
   const [error, setError] = useState(null)
+  const [uploadingLabel, setUploadingLabel] = useState(null)
+  const [loadingLabels, setLoadingLabels] = useState(null)
+  const [labelsOpen, setLabelsOpen] = useState({})
+  const [shippingLabelsByOrder, setShippingLabelsByOrder] = useState({})
 
   const fetchOrders = () => {
-    getReadyToDispatch()
+    return getReadyToDispatch()
       .then(data => {
         setOrders(data)
         setLoading(false)
@@ -48,6 +55,49 @@ export default function ReadyToDispatch() {
       fetchOrders()
     } catch {
       setError(t('dispatch.actionError'))
+    }
+  }
+
+  const loadShippingLabels = async (soNumber, force = false) => {
+    if (!force && shippingLabelsByOrder[soNumber]) {
+      setLabelsOpen(prev => ({ ...prev, [soNumber]: true }))
+      return
+    }
+    setLoadingLabels(soNumber)
+    setError(null)
+    try {
+      const docs = await getOrderDocuments(soNumber)
+      const labels = (docs || []).filter(doc => doc.document_type === 'shipping_label')
+      setShippingLabelsByOrder(prev => ({ ...prev, [soNumber]: labels }))
+      setLabelsOpen(prev => ({ ...prev, [soNumber]: true }))
+    } catch {
+      setError(t('dispatch.actionError'))
+    } finally {
+      setLoadingLabels(null)
+    }
+  }
+
+  const toggleShippingLabels = async (soNumber) => {
+    if (labelsOpen[soNumber]) {
+      setLabelsOpen(prev => ({ ...prev, [soNumber]: false }))
+      return
+    }
+    await loadShippingLabels(soNumber)
+  }
+
+  const handleShippingLabel = async (soNumber, fileList) => {
+    const files = Array.from(fileList || [])
+    if (!files.length) return
+    setUploadingLabel(soNumber)
+    setError(null)
+    try {
+      await uploadShippingLabel(soNumber, files)
+      await fetchOrders()
+      await loadShippingLabels(soNumber, true)
+    } catch {
+      setError(t('dispatch.actionError'))
+    } finally {
+      setUploadingLabel(null)
     }
   }
 
@@ -160,6 +210,43 @@ export default function ReadyToDispatch() {
     return null
   }
 
+  const shippingLabelAction = (o, isDispatched) => {
+    if (!isDispatched) return null
+    if (o.has_shipping_label) {
+      return (
+        <>
+          <span className="text-xs font-semibold text-srg-green">{t('dispatch.labelAttached')}</span>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); toggleShippingLabels(o.so_number) }}
+            className={`${btn.ghost} ${btn.row}`}
+          >
+            {loadingLabels === o.so_number ? t('dispatch.loading') : t('dispatch.viewLabels')}
+          </button>
+        </>
+      )
+    }
+    return (
+      <label
+        className={`${btn.secondary} ${btn.row}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {uploadingLabel === o.so_number ? t('dispatch.loading') : t('dispatch.attachLabel')}
+        <input
+          type="file"
+          accept=".pdf"
+          multiple
+          disabled={uploadingLabel === o.so_number}
+          className="hidden"
+          onChange={(e) => {
+            handleShippingLabel(o.so_number, e.target.files)
+            e.target.value = ''
+          }}
+        />
+      </label>
+    )
+  }
+
   const renderDispatchTable = (rows, isDispatched) => (
     <div className={isDispatched ? "opacity-70" : ""}>
       <div className={table.wrapper}>
@@ -177,6 +264,7 @@ export default function ReadyToDispatch() {
           <tbody>
             {rows.map(o => {
               const isOpen = expanded[o.so_number]
+              const labelDocs = shippingLabelsByOrder[o.so_number] || []
               return (
                 <Fragment key={o.so_number}>
                   <tr className={`${table.row} cursor-pointer`} onClick={() => toggleExpand(o.so_number)}>
@@ -186,11 +274,31 @@ export default function ReadyToDispatch() {
                     <td className={`${table.td} font-mono text-gray-600`}>{o.po_number || "—"}</td>
                     <td className={table.td}>{orderStatusBadge(o, isDispatched)}</td>
                     <td className={table.td}>
-                      <div className="hidden md:flex items-center justify-end">
+                      <div className="hidden md:flex items-center justify-end gap-2">
                         {orderActionButton(o, isDispatched)}
+                        {shippingLabelAction(o, isDispatched)}
                       </div>
                     </td>
                   </tr>
+                  {labelsOpen[o.so_number] && (
+                    <tr className={`${table.row} bg-srg-cream/40 hover:bg-srg-cream`}>
+                      <td className={table.td}></td>
+                      <td className={`${table.td} pl-8`} colSpan={5}>
+                        <div className="hidden md:flex flex-wrap items-center gap-x-4 gap-y-1">
+                          {labelDocs.map(doc => (
+                            <button
+                              key={doc.id || doc.file_url}
+                              type="button"
+                              onClick={(e) => { e.stopPropagation(); openSignedPdf(doc.file_url) }}
+                              className="text-xs text-srg-black hover:underline cursor-pointer"
+                            >
+                              {doc.file_name}
+                            </button>
+                          ))}
+                        </div>
+                      </td>
+                    </tr>
+                  )}
                   {isOpen && o.invs.map(inv => (
                     <tr key={inv.inv_id} className={`${table.row} bg-srg-cream/60 hover:bg-srg-cream`}>
                       <td className={table.td}></td>

@@ -868,6 +868,38 @@ async def upload_proof_of_export(
     return result.data[0]
 
 
+@router.post("/orders/{so_number}/shipping-label")
+async def upload_shipping_label(
+    so_number: str,
+    files: list[UploadFile] = File(...),
+    user: dict = Depends(get_current_user),
+):
+    order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
+    if not order.data:
+        raise HTTPException(status_code=404, detail=f"{so_number} not found")
+    supplier_order_id = order.data[0]["id"]
+
+    inserted = []
+    for file in files:
+        content = await file.read()
+        path = f"{so_number}/shipping_label_{file.filename}"
+        supabase_admin.storage.from_("documents").upload(
+            path,
+            content,
+            {"content-type": "application/pdf", "upsert": "true"},
+        )
+        url = supabase_admin.storage.from_("documents").get_public_url(path)
+        result = supabase.table("supplier_order_documents").insert({
+            "supplier_order_id": supplier_order_id,
+            "document_type": "shipping_label",
+            "file_url": url,
+            "file_name": file.filename,
+        }).execute()
+        inserted.append(result.data[0])
+
+    return inserted
+
+
 @router.get("/orders/{so_number}/documents")
 def get_order_documents(so_number: str, user: dict = Depends(get_current_user)):
     order = supabase.table("supplier_orders").select("id").eq("so_number", so_number).execute()
