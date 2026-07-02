@@ -140,6 +140,9 @@ def calculate_quote(request: CalculateRequest, user: dict = Depends(get_current_
 @router.post("/preview")
 def preview_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_user)):
     recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
+    for line in recalculated_lines:
+        if line.unit_price is not None and line.core_deposit:
+            line.unit_price = line.unit_price + line.core_deposit
     total_amount = sum(
         (line.unit_price or 0) * line.quantity for line in recalculated_lines
     )
@@ -158,6 +161,9 @@ def preview_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_
 @router.post("", response_model=QuoteDetail, status_code=201)
 def create_quote(request: CreateQuoteRequest, user: dict = Depends(get_current_user)):
     recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
+    for line in recalculated_lines:
+        if line.unit_price is not None and line.core_deposit:
+            line.unit_price = line.unit_price + line.core_deposit
     request = request.model_copy(update={"lines": recalculated_lines})
     quote = quotes_repo.create_quote(
         request=request,
@@ -277,6 +283,9 @@ def update_quote(quote_id: int, request: UpdateQuoteRequest, user: dict = Depend
     try:
         if request.lines is not None and request.price_level is not None:
             recalculated_lines = pricing.calculate_lines(request.lines, request.price_level)
+            for line in recalculated_lines:
+                if line.unit_price is not None and line.core_deposit:
+                    line.unit_price = line.unit_price + line.core_deposit
             request = request.model_copy(update={"lines": recalculated_lines})
         quote = quotes_repo.update_quote(request=request, quote_id=quote_id)
     except QuoteNotFound:

@@ -33,7 +33,7 @@ def calculate_lines(lines: list[QuoteLine], level: PriceLevel) -> list[QuoteLine
         new_line.core_deposit = line.core_deposit
         new_line.quantity = _rounded_quantity(line.quantity, line.minimum_qty)
         if line.is_quotable and line.madisa_cost > 0:
-            new_line.unit_price = _unit_price(line.madisa_cost, level) + (line.core_deposit or 0)
+            new_line.unit_price = _unit_price(line.madisa_cost, level)
         else:
             new_line.unit_price = None
         result.append(new_line)
