@@ -56,14 +56,14 @@ export default function Navbar({ collapsed, mobileOpen, onCloseMobile }) {
           type="button"
           aria-label="Close navigation"
           onClick={onCloseMobile}
-          className="fixed inset-x-0 top-14 bottom-0 z-30 bg-black/50 md:hidden"
+          className="fixed inset-x-0 top-24 bottom-0 z-30 bg-black/50 md:hidden"
         />
       )}
 
       <nav
-        className={`fixed top-14 bottom-0 left-0 z-40 w-64 shrink-0 bg-srg-black flex flex-col px-4 py-6 transition-all duration-200 transform ${
+        className={`fixed top-24 bottom-0 left-0 z-40 w-64 shrink-0 bg-srg-black flex flex-col px-4 py-6 transition-all duration-200 transform ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
-        } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0 md:self-start`}
+        } ${collapsed ? 'md:w-16 md:px-2' : 'md:w-64 md:px-4'} md:sticky md:top-24 md:h-[calc(100vh-6rem)] md:translate-x-0 md:self-start`}
       >
         <div className="h-px bg-srg-yellow mb-4" />
 
